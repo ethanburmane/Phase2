@@ -3,8 +3,8 @@
 *-error.log
 /.idea
 /.nyc_output
-/dist
 /lib
+/dist
 /package-lock.json
 /tmp
 /yarn.lock
