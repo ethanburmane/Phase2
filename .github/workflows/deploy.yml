@@ -75,5 +75,5 @@ jobs:
           aws lambda update-function-code --function-name=package-byName-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-get.zip
           aws lambda update-function-code --function-name=package-byRegEx-post --zip-file=fileb://dist/AWS/Lambda/deploy/package-byRegEx-post.zip
           aws lambda update-function-code --function-name=package-id-rate-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-rate-get.zip
-          aws lambda update-function-code --function-name=packages/post --zip-file=fileb://dist/AWS/Lambda/deploy/packages/post.zip
+          aws lambda update-function-code --function-name=packages/post --zip-file=fileb://dist/AWS/Lambda/deploy/packages-post.zip
           aws lambda update-function-code --function-name=reset-delete --zip-file=fileb://dist/AWS/Lambda/deploy/reset-delete.zip
