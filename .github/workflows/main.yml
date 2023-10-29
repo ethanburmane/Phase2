@@ -3,7 +3,7 @@ name: CI/CD
 on:
   push:
     branches:
-      - main
+      - '*'
 
 jobs:
 
@@ -45,6 +45,7 @@ jobs:
       - name: npm install
         env:
           CI: true
+          GITHUB_TOKEN: $API_TOKEN
         run: |
           npm ci
       - name: deploy
