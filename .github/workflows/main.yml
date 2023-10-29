@@ -6,6 +6,23 @@ on:
     - main
 
 jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      with:
+          node_version: '18'
+      - name: npm install
+        env:
+          CI: true
+        run: |
+          npm ci
+      - name: npm test
+        env: 
+          CI: true
+        run: |
+          npm test
   deploy_lambda:
     runs-on: ubuntu-latest
     steps:
@@ -13,6 +30,12 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node_version: '18'
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
       - name: npm install
         env:
           CI: true
@@ -38,11 +61,11 @@ jobs:
           zip dist/AWS/Lambda/deploy/packages-post.zip dist/AWS/Lambda/packages/post/index.js
           zip dist/AWS/Lambda/deploy/reset-delete.zip dist/AWS/Lambda/reset/delete/index.js
 
-          aws lambda update-function-code --function-name=authenticate-put --zip-file=fileb:/dist/AWS/Lambda/deloy/authenticate-put.zip
-          aws lambda update-function-code --function-name=package-post --zip-file=fileb:/dist/AWS/Lambda/deloy/package-post.zip
-          aws lambda update-function-code --function-name=package-byName-delete --zip-file=fileb:/dist/AWS/Lambda/deloy/package-byName-delete.zip
-          aws lambda update-function-code --function-name=package-byName-get --zip-file=fileb:/dist/AWS/Lambda/deloy/package-byName-get.zip
-          aws lambda update-function-code --function-name=package-byRegEx-post --zip-file=fileb:/dist/AWS/Lambda/deloy/package-byRegEx-post.zip
-          aws lambda update-function-code --function-name=package-id-rate-get --zip-file=fileb:/dist/AWS/Lambda/deloy/package-id-rate-get .zip
-          aws lambda update-function-code --function-name=packages/post --zip-file=fileb:/dist/AWS/Lambda/deloy/packages/post.zip
-          aws lambda update-function-code --function-name=reset-delete --zip-file=fileb:/dist/AWS/Lambda/deloy/reset-delete.zip
+          aws lambda update-function-code --function-name=authenticate-put --zip-file=fileb:/dist/AWS/Lambda/deploy/authenticate-put.zip
+          aws lambda update-function-code --function-name=package-post --zip-file=fileb:/dist/AWS/Lambda/deploy/package-post.zip
+          aws lambda update-function-code --function-name=package-byName-delete --zip-file=fileb:/dist/AWS/Lambda/deploy/package-byName-delete.zip
+          aws lambda update-function-code --function-name=package-byName-get --zip-file=fileb:/dist/AWS/Lambda/deploy/package-byName-get.zip
+          aws lambda update-function-code --function-name=package-byRegEx-post --zip-file=fileb:/dist/AWS/Lambda/deploy/package-byRegEx-post.zip
+          aws lambda update-function-code --function-name=package-id-rate-get --zip-file=fileb:/dist/AWS/Lambda/deploy/package-id-rate-get .zip
+          aws lambda update-function-code --function-name=packages/post --zip-file=fileb:/dist/AWS/Lambda/deploy/packages/post.zip
+          aws lambda update-function-code --function-name=reset-delete --zip-file=fileb:/dist/AWS/Lambda/deploy/reset-delete.zip
