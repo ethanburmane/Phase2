@@ -1,22 +1,33 @@
-name: Deploy
+name: CI/CD
 
 on:
   push:
     branches:
       - main
-  
 
 jobs:
-  echo_deploy:
+
+  test-package:
     runs-on: ubuntu-latest
     steps:
-      - name:
-        run: echo "Waiting for test cases."
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Test
+        run: npm test
 
   deploy_lambda:
-    needs: run-test/test-job
+    needs: test-package
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.test-job.result == 'success'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.test-package.result == 'success'
 
     steps:
       - name: Checkout Code
