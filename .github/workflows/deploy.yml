@@ -22,7 +22,7 @@ jobs:
         run: |
           npm install
       - name: Lint
-        run: | 
+        run: |
           npm run lint
 
   deploy_lambda:
@@ -59,7 +59,7 @@ jobs:
           npx ncc build src/AWS/Lambda/reset/delete.ts -o dist/AWS/Lambda/reset/delete/
 
           mkdir dist/AWS/Lambda/deploy
-            
+          
           zip dist/AWS/Lambda/deploy/authenticate-put.zip dist/AWS/Lambda/authenticate/put/index.js
           zip dist/AWS/Lambda/deploy/package-post.zip dist/AWS/Lambda/package/post/index.js
           zip dist/AWS/Lambda/deploy/package-byName-delete.zip dist/AWS/Lambda/package/byName/delete/index.js
