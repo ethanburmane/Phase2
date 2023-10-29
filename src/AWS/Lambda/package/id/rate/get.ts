@@ -6,3 +6,15 @@
  * (part 1 and new metrics) as well as the net score.
  * 
  */
+
+export const handler = async (event: any) => {
+    // TODO implement
+    const response = {
+        statusCode: 200,
+        body: JSON.stringify('Hello from Lambda!'),
+    };
+    console.log(event);
+    return response;
+};
+
+  

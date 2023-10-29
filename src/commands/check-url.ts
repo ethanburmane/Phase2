@@ -25,16 +25,15 @@ export default class CheckUrl extends Command {
         .filter((line) => line.trim() !== '')
       let count = 0
       for (const url of urls) {
-        assignMetrics(url).then((Metrics) => {
-          console.log(
-            `{"URL": "${url}", "NET_SCORE":${Metrics.NetScore}, "RAMP_UP_SCORE":${Metrics.RampUp}, "CORRECTNESS_SCORE":${Metrics.Correctness}, "BUS_FACTOR_SCORE":${Metrics.BusFactor}, "RESPONSIVE_MAINTAINER_SCORE":${Metrics.Responsiveness}, "LICENSE_SCORE":${Metrics.License}}`,
-          )
-          count += 1
-        })
+        let Metrics = await assignMetrics(url);
+        console.log(
+          `{"URL": "${url}", "NET_SCORE":${Metrics.NetScore}, "RAMP_UP_SCORE":${Metrics.RampUp}, "CORRECTNESS_SCORE":${Metrics.Correctness}, "BUS_FACTOR_SCORE":${Metrics.BusFactor}, "RESPONSIVE_MAINTAINER_SCORE":${Metrics.Responsiveness}, "LICENSE_SCORE":${Metrics.License}}`,
+        );
+        count += 1;
       }
 
       if (count === urls.length) {
-        process.exit(0)
+        return;
       }
     } else {
       console.log(
