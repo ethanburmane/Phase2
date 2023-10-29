@@ -4,11 +4,19 @@ on:
   push:
     branches:
       - main
+  
 
 jobs:
-  deploy_lambda:
-    needs: run-test/test-job
+  echo_deploy:
     runs-on: ubuntu-latest
+    steps:
+      - name:
+        run: echo "Waiting for test cases."
+
+  deploy_lambda:
+    needs: test-job
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.test-job.result == 'success'
 
     steps:
       - name: Checkout Code
