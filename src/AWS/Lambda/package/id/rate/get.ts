@@ -4,7 +4,7 @@
  * 
  * This Lambda function should take the package, then calculate and display the individual metric scores 
  * (part 1 and new metrics) as well as the net score.
- * 
+ *
  */
 
 export const handler = async (event: any) => {
@@ -16,5 +16,4 @@ export const handler = async (event: any) => {
     console.log(event);
     return response;
 };
-
   

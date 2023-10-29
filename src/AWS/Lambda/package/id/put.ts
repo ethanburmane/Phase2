@@ -1,6 +1,6 @@
 /**
  * This file hosts the code for executing the code for PUT host/package/{id}
- * 
+ *
  * This Lambda function should update the package given, much match name version, etc
  */
 
@@ -13,5 +13,3 @@ export const handler = async (event: any) => {
     console.log(event);
     return response;
 };
-  
-  

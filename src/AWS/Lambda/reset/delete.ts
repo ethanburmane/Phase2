@@ -2,7 +2,7 @@
  * This file hosts the code for executing the code for DELETE host/reset
  * 
  * This Lambda function should reset the system to a default state. This includes clearing all stored users and packages.
- * 
+ *
  */
 
 export const handler = async (event: any) => {
@@ -14,5 +14,3 @@ export const handler = async (event: any) => {
     console.log(event);
     return response;
 };
-  
-  
