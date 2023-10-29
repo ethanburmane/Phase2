@@ -1,4 +1,4 @@
-name: CI/CD
+name: Deploy
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
           CI: true
           GITHUB_TOKEN: $API_TOKEN
         run: |
-          npm ci
+          npm install
       - name: deploy
         run: |
           npx ncc build src/AWS/Lambda/authenticate/put.ts -o dist/AWS/Lambda/authenticate/put/
