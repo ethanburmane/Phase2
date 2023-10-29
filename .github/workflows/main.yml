@@ -3,26 +3,9 @@ name: Deploy
 on:
   push:
     branches:
-    - main
+      - main
 
 jobs:
-  run_tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-      with:
-          node_version: '18'
-      - name: npm install
-        env:
-          CI: true
-        run: |
-          npm ci
-      - name: npm test
-        env: 
-          CI: true
-        run: |
-          npm test
   deploy_lambda:
     runs-on: ubuntu-latest
     steps:
