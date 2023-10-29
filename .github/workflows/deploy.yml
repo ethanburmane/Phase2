@@ -59,7 +59,7 @@ jobs:
           npx ncc build src/AWS/Lambda/reset/delete.ts -o dist/AWS/Lambda/reset/delete/
 
           mkdir dist/AWS/Lambda/deploy
-          
+
           zip dist/AWS/Lambda/deploy/authenticate-put.zip dist/AWS/Lambda/authenticate/put/index.js
           zip dist/AWS/Lambda/deploy/package-post.zip dist/AWS/Lambda/package/post/index.js
           zip dist/AWS/Lambda/deploy/package-byName-delete.zip dist/AWS/Lambda/package/byName/delete/index.js
@@ -74,6 +74,6 @@ jobs:
           aws lambda update-function-code --function-name=package-byName-delete --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-delete.zip
           aws lambda update-function-code --function-name=package-byName-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-get.zip
           aws lambda update-function-code --function-name=package-byRegEx-post --zip-file=fileb://dist/AWS/Lambda/deploy/package-byRegEx-post.zip
-          aws lambda update-function-code --function-name=package-id-rate-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-rate-get .zip
+          aws lambda update-function-code --function-name=package-id-rate-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-rate-get.zip
           aws lambda update-function-code --function-name=packages/post --zip-file=fileb://dist/AWS/Lambda/deploy/packages/post.zip
           aws lambda update-function-code --function-name=reset-delete --zip-file=fileb://dist/AWS/Lambda/deploy/reset-delete.zip
