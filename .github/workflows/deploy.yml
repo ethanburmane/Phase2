@@ -69,11 +69,11 @@ jobs:
           zip dist/AWS/Lambda/deploy/packages-post.zip dist/AWS/Lambda/packages/post/index.js
           zip dist/AWS/Lambda/deploy/reset-delete.zip dist/AWS/Lambda/reset/delete/index.js
 
-          aws lambda update-function-code --function-name=authenticate-put --zip-file=fileb:/dist/AWS/Lambda/deploy/authenticate-put.zip
-          aws lambda update-function-code --function-name=package-post --zip-file=fileb:/dist/AWS/Lambda/deploy/package-post.zip
-          aws lambda update-function-code --function-name=package-byName-delete --zip-file=fileb:/dist/AWS/Lambda/deploy/package-byName-delete.zip
-          aws lambda update-function-code --function-name=package-byName-get --zip-file=fileb:/dist/AWS/Lambda/deploy/package-byName-get.zip
-          aws lambda update-function-code --function-name=package-byRegEx-post --zip-file=fileb:/dist/AWS/Lambda/deploy/package-byRegEx-post.zip
-          aws lambda update-function-code --function-name=package-id-rate-get --zip-file=fileb:/dist/AWS/Lambda/deploy/package-id-rate-get .zip
-          aws lambda update-function-code --function-name=packages/post --zip-file=fileb:/dist/AWS/Lambda/deploy/packages/post.zip
-          aws lambda update-function-code --function-name=reset-delete --zip-file=fileb:/dist/AWS/Lambda/deploy/reset-delete.zip
+          aws lambda update-function-code --function-name=authenticate-put --zip-file=fileb://dist/AWS/Lambda/deploy/authenticate-put.zip
+          aws lambda update-function-code --function-name=package-post --zip-file=fileb://dist/AWS/Lambda/deploy/package-post.zip
+          aws lambda update-function-code --function-name=package-byName-delete --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-delete.zip
+          aws lambda update-function-code --function-name=package-byName-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-get.zip
+          aws lambda update-function-code --function-name=package-byRegEx-post --zip-file=fileb://dist/AWS/Lambda/deploy/package-byRegEx-post.zip
+          aws lambda update-function-code --function-name=package-id-rate-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-rate-get .zip
+          aws lambda update-function-code --function-name=packages/post --zip-file=fileb://dist/AWS/Lambda/deploy/packages/post.zip
+          aws lambda update-function-code --function-name=reset-delete --zip-file=fileb://dist/AWS/Lambda/deploy/reset-delete.zip
