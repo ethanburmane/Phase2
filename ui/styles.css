@@ -1,0 +1,78 @@
+/* Global variables*/
+:root {
+    --background-color: #e0e5e4;
+    --white-color: #fbfcfc;
+    --text-color: #000000;
+    --font-main: Georgia, sans-serif;
+    --font-weight-light: 300;
+    --font-weight-regular: 500;
+    --font-weight-bold: 700;
+}
+
+title {
+    font-family: var(--font-main);
+    font-weight: var(--font-weight-bold);
+    font-size: 24px;
+    color: var(--text-color);
+}
+
+form {
+    background-color: var(--white-color);
+    width: 600px;
+    height: 30px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+input {
+    all: unset;
+    font: 16px system-ui;
+    color: var(--text-color);
+    height: 100%;
+    width: 100%;
+    padding: 6px 10px;
+}
+
+::placeholder {
+    color: var(--text-color);
+    opacity: 0.7; 
+}
+
+button {
+    all: unset;
+    cursor: pointer;
+    width: 44px;
+    height: 44px;
+}
+  
+svg {
+    color: var(--text-color);
+    fill: var(--text-color);
+    width: 24px;
+    height: 24px;
+    padding: 10px;
+}
+
+.parent {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: left;
+    align-items: center;
+    align-content: center;
+}
+
+.child {
+    width: 30%;
+    height: 500px;
+    border: 1px solid var(--text-color);
+    padding: 1rem;
+    margin: 3px;
+}
+.inline-block-child {
+    display: inline-block;
+}
