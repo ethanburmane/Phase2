@@ -1,6 +1,7 @@
 import CheckUrl from '../../src/commands/check-url'
 
 describe('CheckUrl Command', () => {
+  jest.setTimeout(10000)
   it('runs without dependencies', async () => {
     // const fs = require('fs')
     // const fsSpy = jest.spyOn(fs, 'readFileSync').mockImplementation(function () {

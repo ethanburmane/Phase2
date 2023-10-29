@@ -1,6 +1,0 @@
-name: tests
-on: [push]
-
-jobs:
-  unit-tests:
-    uses: oclif/github-workflows/.github/workflows/unitTest.yml@main

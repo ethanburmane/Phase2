@@ -1,0 +1,79 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      - name: npm install
+        env:
+          CI: true
+        run: |
+          npm install
+      - name: Lint
+        run: |
+          npm run lint
+
+  deploy_lambda:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - name: npm install
+        env:
+          CI: true
+          GITHUB_TOKEN: $API_TOKEN
+        run: |
+          npm install
+      - name: deploy
+        run: |
+          npx ncc build src/AWS/Lambda/authenticate/put.ts -o dist/AWS/Lambda/authenticate/put/
+          npx ncc build src/AWS/Lambda/package/post.ts -o dist/AWS/Lambda/package/post/
+          npx ncc build src/AWS/Lambda/package/byName/delete.ts -o dist/AWS/Lambda/package/byName/delete/
+          npx ncc build src/AWS/Lambda/package/byName/get.ts -o dist/AWS/Lambda/package/byName/get/
+          npx ncc build src/AWS/Lambda/package/byRegEx/post.ts -o dist/AWS/Lambda/package/byRegEx/post/
+          npx ncc build src/AWS/Lambda/package/id/rate/get.ts -o dist/AWS/Lambda/package/id/rate/get/
+          npx ncc build src/AWS/Lambda/packages/post.ts -o dist/AWS/Lambda/packages/post/
+          npx ncc build src/AWS/Lambda/reset/delete.ts -o dist/AWS/Lambda/reset/delete/
+
+          mkdir dist/AWS/Lambda/deploy
+
+          zip dist/AWS/Lambda/deploy/authenticate-put.zip dist/AWS/Lambda/authenticate/put/index.js
+          zip dist/AWS/Lambda/deploy/package-post.zip dist/AWS/Lambda/package/post/index.js
+          zip dist/AWS/Lambda/deploy/package-byName-delete.zip dist/AWS/Lambda/package/byName/delete/index.js
+          zip dist/AWS/Lambda/deploy/package-byName-get.zip dist/AWS/Lambda/package/byName/get/index.js
+          zip dist/AWS/Lambda/deploy/package-byRegEx-post.zip dist/AWS/Lambda/package/byRegEx/post/index.js
+          zip dist/AWS/Lambda/deploy/package-id-rate-get.zip dist/AWS/Lambda/package/id/rate/get/index.js
+          zip dist/AWS/Lambda/deploy/packages-post.zip dist/AWS/Lambda/packages/post/index.js
+          zip dist/AWS/Lambda/deploy/reset-delete.zip dist/AWS/Lambda/reset/delete/index.js
+
+          aws lambda update-function-code --function-name=authenticate-put --zip-file=fileb://dist/AWS/Lambda/deploy/authenticate-put.zip
+          aws lambda update-function-code --function-name=package-post --zip-file=fileb://dist/AWS/Lambda/deploy/package-post.zip
+          aws lambda update-function-code --function-name=package-byName-delete --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-delete.zip
+          aws lambda update-function-code --function-name=package-byName-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-get.zip
+          aws lambda update-function-code --function-name=package-byRegEx-post --zip-file=fileb://dist/AWS/Lambda/deploy/package-byRegEx-post.zip
+          aws lambda update-function-code --function-name=package-id-rate-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-rate-get.zip
+          aws lambda update-function-code --function-name=packages-post --zip-file=fileb://dist/AWS/Lambda/deploy/packages-post.zip
+          aws lambda update-function-code --function-name=reset-delete --zip-file=fileb://dist/AWS/Lambda/deploy/reset-delete.zip
