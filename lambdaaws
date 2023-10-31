@@ -1,0 +1,175 @@
+
+import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { S3 } from 'aws-sdk';
+
+const s3 = new S3();
+const dynamoDB = new DynamoDB.DocumentClient(); 
+
+export async function uploadPackageHandler(event: APIGatewayEvent): Promise<APIGatewayProxyResult> {
+  try {
+    // Validate package data (Example: Check if required fields exist)
+
+    // Handle package upload to Amazon S3
+    const params = {
+      Bucket: 'your-s3-bucket-name',
+      Key: 'path/to/package.zip', // Set a unique key
+      Body: event.body, // Assuming the binary package data is in the request body
+    };
+    await s3.upload(params).promise();
+
+    // Record the upload in the database (We would need to set up your database client)
+    const uploadRecordParams = {
+        TableName: 'your-dynamodb-table',
+        Item: {
+          // Define the attributes you want to store, e.g., packageId, timestamp, user, etc.
+          packageId: 'your-unique-package-id',
+          timestamp: new Date().toISOString(),
+          // Add other relevant attributes here
+        },
+      };
+      await dynamoDB.put(uploadRecordParams).promise();
+  
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Package uploaded successfully' }),
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal Server Error' }),
+    };
+  }
+} // Uploading a Package 
+
+import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { S3 } from 'aws-sdk';
+
+const s3 = new S3();
+
+export async function updatePackageHandler(event: APIGatewayEvent): Promise<APIGatewayProxyResult> {
+  try {
+    // Validate update data and package existence
+    // ...
+
+    // Handle package update in Amazon S3 (similar to the upload process)
+    const params = {
+        Bucket: 'your-s3-bucket-name',
+        Key: 'path/to/package.zip', // Set a unique key
+        Body: event.body, // Assuming the binary package data is in the request body
+      };
+      await s3.update(params).promise();
+  
+
+    // Update the package in the storage and database (you'd need to set up your database client)
+    const updateRecordParams = {
+        TableName: 'your-dynamodb-table',
+        Item: {
+          // Define the attributes you want to update, e.g., packageId, timestamp, user, etc.
+          packageId: 'your-unique-package-id',
+          timestamp: new Date().toISOString(),
+          // Add other relevant attributes here
+        },
+      };
+      await dynamoDB.put(updateRecordParams).promise();
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Package updated successfully' }),
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal Server Error' }),
+    };
+  }
+} // updating a package 
+
+import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { S3 } from 'aws-sdk';
+
+const s3 = new S3();
+
+export async function downloadPackageHandler(event: APIGatewayEvent): Promise<APIGatewayProxyResult> {
+  try {
+    const packageKey = 'path/to/package.zip'; // Set the correct key for the package
+
+    // Check package availability
+    const headObjectParams = {
+      Bucket: 'your-s3-bucket-name',
+      Key: packageKey,
+    };
+    await s3.headObject(headObjectParams).promise();
+
+    // Retrieve the zipped package file from storage
+    const getObjectParams = {
+      Bucket: 'your-s3-bucket-name',
+      Key: packageKey,
+    };
+    const packageData = await s3.getObject(getObjectParams).promise();
+
+    // Record the download in the database (you'd need to set up your database client)
+    // ...
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="package.zip"`,
+      },
+      body: packageData.Body.toString('base64'),
+      isBase64Encoded: true,
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal Server Error' }),
+    };
+  }
+}
+// downloading a package 
+
+import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { DynamoDB } from 'aws-sdk';
+
+const dynamoDB = new DynamoDB.DocumentClient();
+
+export async function searchPackagesHandler(event: APIGatewayEvent): Promise<APIGatewayProxyResult> {
+  try {
+    // Process the search query (extract search parameters from event.queryStringParameters)
+    const { searchQuery } = event.queryStringParameters;
+
+    // Query the database for matching packages
+    const queryParams = {
+      TableName: 'your-dynamodb-table',
+      IndexName: 'SearchIndex', // If you have a secondary index for searching
+      KeyConditionExpression: 'SearchField = :query',
+      ExpressionAttributeValues: {
+        ':query': searchQuery,
+      },
+    };
+
+    const searchResults = await dynamoDB.query(queryParams).promise();
+
+    // Generate search results
+    // ...
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(searchResults),
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal Server Error' }),
+    };
+  }
+}
+// searching a package 
+
+
+
