@@ -7,6 +7,17 @@
 
 export const handler = async (event: any) => {
   // TODO implement
+  
+  //Validate bearer token
+
+  //Extract regex
+
+  //Validate regex
+
+  //Run the regex against the registry
+
+  //Craft response with matched packages
+
   const response = {
     statusCode: 200,
     body: JSON.stringify('Hello from Lambda!'),

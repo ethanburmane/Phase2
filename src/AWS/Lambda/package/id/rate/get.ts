@@ -8,6 +8,21 @@
 
 export const handler = async (event: any) => {
   // TODO implement
+
+  //Authenticate credentials
+
+  //Extract the id
+
+  //Check if the id is in the database
+
+  // - Handle id DNE
+
+  // - Handle id exists
+
+  // -- Run metrics on the package 
+  
+  //Create response with the package score
+
   const response = {
     statusCode: 200,
     body: JSON.stringify('Hello from Lambda!'),
