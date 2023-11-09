@@ -8,6 +8,21 @@
 
 export const handler = async (event: any) => {
   // TODO implement
+
+  //Authenticate Credentials
+
+  //Validate request
+
+  // - Handle validation failed
+
+  // - Handle validation success
+
+  // -- Upload package into the registry
+
+  // -- Update DB with information
+
+  //Create response
+
   const response = {
     statusCode: 200,
     body: JSON.stringify('Hello from Lambda!'),
