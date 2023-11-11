@@ -5,6 +5,11 @@
  *
  */
 import * as crypto from 'crypto';
+import * as AWS from 'aws-sdk';
+
+const dynamoDb = new AWS.DynamoDB.DocumentClient();
+const s3 = new AWS.S3();
+
 export const handler = async (event: any) => {
   // TODO implement
 
@@ -24,8 +29,37 @@ export const handler = async (event: any) => {
   
   // Create response
   const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-  const bearerToken = 'bearer ${user}.${hashedPassword}';   //Generate bearer token
+  const bearerToken = '${user}.${hashedPassword}';   //Generate bearer token
   
+  // Update Database
+  const tokenTimestamp = new Date().toISOString();
+
+  // DynamoDB update
+  const dynamoParams = {
+    TableName: 'YourDynamoDBTableName',
+    Item: {
+      'UserID': user, // Assuming you use UserID as a primary key
+      'LastBearer': {
+        'date': tokenTimestamp,
+        'value': bearerToken
+      }
+    }
+  };
+
+  // S3 Update
+  const s3Params = {
+    Bucket: 'YourBucketName', // replace with your bucket name
+    Key: `bearerTokens/${user}.txt`, // the file will be named after the user
+    Body: JSON.stringify({
+      token: bearerToken,
+      timestamp: new Date().toISOString()
+    }),
+    ContentType: 'application/json'
+  };
+
+  await dynamoDb.put(dynamoParams).promise();
+  await s3.putObject(s3Params).promise();
+
   // Send response
   // Return code 200 and bearer token if successful
   const response = {
