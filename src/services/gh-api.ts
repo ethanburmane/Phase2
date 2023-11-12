@@ -1,8 +1,44 @@
 import * as dotenv from 'dotenv'
 import axios from 'axios'
 import logger from '../logger'
+import { version } from 'os';
 
 dotenv.config() // load enviroment variables
+
+
+export async function getDependencies(
+  repoUrl: string,
+): Promise<Array<{ name: string; version: string }>> {
+  logger.info('GH_API: running getDependencies');
+
+  const instance = axios.create({
+    baseURL: 'https://api.github.com/repos/',
+    timeout: 10000,
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    },
+  });
+
+  const repoOwner = repoUrl.split('/')[3];
+  const repoName = repoUrl.split('/')[4];
+
+  try {
+    const response = await instance.get(`${repoOwner}/${repoName}/contents/package.json`);
+    const packageJson = JSON.parse(Buffer.from(response.data.content, 'base64').toString());
+
+    const dependencies = packageJson.dependencies || {};
+    const devDependencies = packageJson.devDependencies || {};
+
+    const combinedDependencies = {...dependencies, ...devDependencies};
+
+    return Object.entries(combinedDependencies).map(([name, version]) => ({ name, version: version as string }));
+  } catch (error) {
+    logger.error('GH_API: getDependencies failed', error);
+    return [];
+  }
+}
+
 
 /**
  * Get the commits made by the top contributor and the total contributions across
@@ -65,7 +101,7 @@ export async function getCommitData(
 export async function getPullRequestData(
   repoUrl: string,
   critUser: string,
-): Promise<readonly [number, number]> {
+): Promise<readonly [number, number, number]> {
   logger.info('GH_API: running getPullRequestData')
   const instance = axios.create({
     baseURL: 'https://api.github.com/repos/',
@@ -86,24 +122,33 @@ export async function getPullRequestData(
       },
     )
     let crituserpullrequests: number = 0
+    let reviewedpullrequests: number = 0
     const totalpullrequests: number = response.data.length
 
     for (let i = 0; i < totalpullrequests; i += 1) {
       if (response.data[i].user.login === critUser) {
         crituserpullrequests += 1
       }
+      // get the number of reviewed pull requests
+      if (response.data[i].requested_reviewers.length > 0) {
+        logger.debug('GH_API: getRequestedReviewers {', response.data[i].requested_reviewers, '}')
+        reviewedpullrequests += 1
+      }
     }
+  
+
 
     logger.debug(
       'GH_API: getPullRequestData {',
       crituserpullrequests,
+      reviewedpullrequests,
       totalpullrequests,
       '}',
     )
-    return [crituserpullrequests, totalpullrequests] as const
+    return [crituserpullrequests, reviewedpullrequests, totalpullrequests] as const
   } catch {
     logger.info('GH_API: getPullRequestData failed')
-    return [-1, -1] as const
+    return [-1, -1, -1] as const
   }
 }
 

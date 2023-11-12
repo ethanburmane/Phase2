@@ -3,6 +3,7 @@ import {
   BusFactorData,
   CorrectnessData,
   ResponsesivenessData,
+  ReviewPercentageData,
 } from '../../src/models/middleware-inputs'
 import * as ghApi from '../../src/services/gh-api'
 import {
@@ -26,7 +27,7 @@ describe('test getBusFactorData', () => {
     getCommitDataMock.mockReturnValueOnce(
       Promise.resolve(['critUser', 100, 150]),
     )
-    getPullReqestDataMock.mockReturnValueOnce(Promise.resolve([2, 4]))
+    getPullReqestDataMock.mockReturnValueOnce(Promise.resolve([2,0, 4]))
 
     const result: BusFactorData = await getBusFactorData('')
     const expected: BusFactorData = {

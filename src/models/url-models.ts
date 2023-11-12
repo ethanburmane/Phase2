@@ -2,6 +2,7 @@
 export class Urlmetrics {
   // fields to store the different metrics and URL
   URL!: string
+  ReviewPercentage!: number
   BusFactor!: number
   Correctness!: number
   RampUp!: number

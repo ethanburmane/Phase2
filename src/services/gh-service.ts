@@ -3,9 +3,63 @@ import {
   BusFactorData,
   CorrectnessData,
   ResponsesivenessData,
+  ReviewPercentageData,
 } from '../models/middleware-inputs'
 import * as ghApi from './gh-api'
 import logger from '../logger'
+
+
+
+export async function getDependencyScore(repoUrl: string): Promise<number> {
+  logger.info('GH_SERVICE: running getDependencyScore');
+
+  // Fetch the list of dependencies from the repo
+  const dependencies = await ghApi.getDependencies(repoUrl);
+
+  if (dependencies.length === 0) {
+    return 1.0; // If no dependencies, score is 1.0
+  }
+
+  let pinnedCount = 0;
+  dependencies.forEach(dep => {
+    if (isPinnedToMajorMinor(dep.version)) {
+      pinnedCount++;
+    }
+  });
+
+  const score = pinnedCount / dependencies.length;
+  return score;
+}
+
+/**
+ * Gets the data required to calculate the reviewed code percentage.
+ *
+ * @param repoUrl Github repository url.
+ * @returns The data required to calculate the bus factor.
+ */
+export async function getReviewData(
+  repoUrl: string,
+): Promise<ReviewPercentageData> {
+  logger.info('GH_SERVICE: running getReviewData')
+  const [criticalUserLogin, criticalContrubitorCommits, totalCommits] =
+    await ghApi.getCommitData(repoUrl)
+  const [crituserPulls, reviewedPulls, totalPulls] =
+    await ghApi.getPullRequestData(repoUrl, criticalUserLogin)
+  
+  //print type of reviewedPulls
+  console.log(typeof reviewedPulls)
+
+  return {
+    numReviewedPullRequests: reviewedPulls, 
+    numPullRequests: totalPulls,
+  }
+}
+
+
+
+
+
+
 
 /**
  * Gets the data required to calculate the bus factor.
@@ -19,7 +73,7 @@ export async function getBusFactorData(
   logger.info('GH_SERVICE: running getBusFactorData')
   const [criticalUserLogin, criticalContrubitorCommits, totalCommits] =
     await ghApi.getCommitData(repoUrl)
-  const [criticalContributorPullRequests, totalPullRequests] =
+  const [criticalContributorPullRequests, reviewedpullrequests,  totalPullRequests] =
     await ghApi.getPullRequestData(repoUrl, criticalUserLogin)
 
   return <BusFactorData>{
@@ -78,6 +132,7 @@ export async function getResponsivenessData(
   const monthlyCommitCount = await ghApi.getMonthlyCommitCount(repoUrl)
   const annualCommitCount: number = await ghApi.getAnualCommitCount(repoUrl)
 
+  
   return <ResponsesivenessData>{
     monthlyCommitCount,
     annualCommitCount,

@@ -62,12 +62,12 @@ describe('test getPullReqestData', () => {
     ]
     mockedAxios.get.mockReturnValueOnce(Promise.resolve({data}))
     const result = await getPullRequestData('', 'critUser')
-    expect(result).toStrictEqual([2, 4])
+    expect(result).toStrictEqual([2, 0, 4])
   })
   it('get pull request data failure', async () => {
     mockedAxios.get.mockRejectedValue(new Error('error'))
     const result = await getPullRequestData('', 'critUser')
-    expect(result).toStrictEqual([-1, -1])
+    expect(result).toStrictEqual([-1, -1,-1])
   })
 })
 
