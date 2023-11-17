@@ -12,9 +12,21 @@ export const handler = async (event: any) => {
   //Authenticate Credentials
 
   //Validate request
+  const headers = event.headers
+  const authorizationHeader = headers["X-Authorization"]
+
+  const body = JSON.parse(event.body)
+  if ((body["Content"] && body["URL"]) || (!body["Content"] && !body["URL"]))
+  {
+    //Return 4xx code since the body is not formatted correctly
+  }
+  
+  //const url = extractURLFromBody(body)
+
+  
+
 
   // - Handle validation failed
-
   // - Handle validation success
 
   // -- Upload package into the registry
