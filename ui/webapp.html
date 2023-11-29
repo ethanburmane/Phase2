@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="./styles.css">
+        <style>body {background-color: var(--background-color);}</style>
+    </head>
+    <body>
+        <div>
+            <link href="./styles.css" rel="stylesheet" />
+            <header class="frontpage-container">
+              <div class="frontpage-header">
+                <h1 class="frontpage-title">
+                  <br />
+                  <span>ECE 46100 Package Registry</span>
+                  <br />
+                </h1>
+                <form role="search" id="search">
+                    <input id="query" type="text" name="query" placeholder="Search for module">
+                    <button id="searchbarButton">
+                      <svg viewBox="0 0 1024 1024"><path class="path1" d="M848.471 928l-263.059-263.059c-48.941 36.706-110.118 55.059-177.412 55.059-171.294 0-312-140.706-312-312s140.706-312 312-312c171.294 0 312 140.706 312 312 0 67.294-24.471 128.471-55.059 177.412l263.059 263.059-79.529 79.529zM189.623 408.078c0 121.364 97.091 218.455 218.455 218.455s218.455-97.091 218.455-218.455c0-121.364-103.159-218.455-218.455-218.455-121.364 0-218.455 97.091-218.455 218.455z"></path></svg>
+                    </button>
+                </form>
+              </div>
+              <div class="frontpage-ingestion">
+                <button id="uploadButton"class="frontpage-upload input hidden">Upload</button>        
+                <div class="frontpage-select">
+                  <h1 class="frontpage-select-heading">
+                    <span>Upload a Package</span>
+                    <br />
+                    <br />
+                  </h1>
+                  <div id="buttonContainer" class="frontpage-select-content input">
+                    <label class="fileInputLabel" for="selectButton">Upload a file:</label>
+                    <input id="contentButton" type="file" accept=".zip" onchange="fileUploadChange()">
+                    </div>     
+                    <br />
+                    <br /> 
+                  <div id="urlContainer" class="frontpage-select-url input">
+                    <label class="urlInputLabel" for="urlInput">Enter a URL:</label>
+                    <input id="urlInput" type="text" name="urlInput" placeholder="Enter a URL" onchange="urlUploadChange()">        
+                    </div>
+                </div>
+              </div>
+            </header>
+          </div>
+    </body> 
+    <script src="webapp.js" defer></script>
+</html>
+
+
+
+
+  
+
+
+<!--
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="./styles.css">
+        <style>body {background-color: var(--background-color);}</style>
+    </head>
+    <body>
+        <h1>ECE 461 Module Registry</h1>
+        <form role="search" id="search">
+            <input id="query" type="text" name="query" placeholder="Search for module">
+            <button id="searchbarButton">
+              <svg viewBox="0 0 1024 1024"><path class="path1" d="M848.471 928l-263.059-263.059c-48.941 36.706-110.118 55.059-177.412 55.059-171.294 0-312-140.706-312-312s140.706-312 312-312c171.294 0 312 140.706 312 312 0 67.294-24.471 128.471-55.059 177.412l263.059 263.059-79.529 79.529zM189.623 408.078c0 121.364 97.091 218.455 218.455 218.455s218.455-97.091 218.455-218.455c0-121.364-103.159-218.455-218.455-218.455-121.364 0-218.455 97.091-218.455 218.455z"></path></svg>
+            </button>
+        </form>
+        <br>
+        <form id="buttons"></form>
+            <div id="buttonContainer">
+                <label class="fileInputLabel" for="selectButton">Upload a file:</label>
+                <input id="selectButton" type="file" accept=".zip" onchange="fileUploadChange()">
+                <button id="uploadButton" class="hidden">Upload</button>
+            </div>
+            <div id="urlContainer">
+                <label class="urlInputLabel" for="urlInput">Enter a URL:</label>
+                <input id="urlInput" type="text" name="urlInput" placeholder="Enter a URL" onchange="urlUploadChange()">        
+                <button id="urlButton" class="hidden">Upload</button>        
+            </div>
+        </form>
+    </body> 
+    <script src="webapp.js" defer></script>
+</html>
+
+-->
