@@ -6,7 +6,7 @@
   "bin": {
     "run": "./bin/run"
   },
-  "homepage": "https://github.com/ayushuk/ece461-project",
+  "homepage": "https://github.com/JNicho206/461-Phase2",
   "license": "GNU",
   "main": "dist/index.js",
   "repository": "ayushuk/ece461-project",
@@ -17,6 +17,8 @@
     "/oclif.manifest.json"
   ],
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.454.0",
+    "@aws-sdk/client-s3": "^3.456.0",
     "@oclif/core": "^2",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^3.4.2",
@@ -25,6 +27,7 @@
     "cloc": "^1.98.0-cloc",
     "dotenv": "^16.3.1",
     "eslint-config-airbnb": "^19.0.4",
+    "jszip": "^3.10.1",
     "sinon": "^16.0.0",
     "winston": "^3.10.0"
   },
