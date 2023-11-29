@@ -15,25 +15,19 @@ const config = {}
 const s3_client = new S3Client(config)
 
 export const handler = async (event: any) => {
-  // TODO implement
 
-  //Validate bearer token --- SECURITY
+  // The package name is in the path parameters
 
-  //Grab the target name from the path parameters
+  const params = event.pathParameters
 
-  //Check if the package exists in the registry
+  if (!params) {
 
-  // - Handle package DNE
+  }
 
-  // - Handle package exists
 
-  // -- Remove all versions from S3
+  const target = params.name
 
-  // -- Update DB 
 
-  //Return success code
-
-  const target = "test.zip"
   const s3_cmd_input = {
   Bucket: "main-storage-bucket", // required
   Key: "packages/test/test.zip" // required

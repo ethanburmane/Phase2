@@ -19,40 +19,40 @@ export const handler = async (event: any) => {
   const bucket_name = "main-storage-bucket"
   const folder_key = "packages/"
 
-  const s3 = new S3Client({ region, s3_credentials });
+  const s3 = new S3Client({ "region": region });
 
-  try {
-    const listObjectsCommand = new ListObjectsV2Command({
-      Bucket: bucket_name,
-      Prefix: folder_key,
-    });
+  // try {
+  //   const listObjectsCommand = new ListObjectsV2Command({
+  //     Bucket: bucket_name,
+  //     Prefix: folder_key,
+  //   });
 
-    const resp = await s3.send(listObjectsCommand);
+  //   const resp = await s3.send(listObjectsCommand);
 
-    const contents = resp.Contents;
+  //   const contents = resp.Contents;
 
-    contents.forEach((object: any) => {
-      console.log('Object Key:', object.Key);
-    });
-  }
-  catch (error) {
-    console.error('Error listing contents of the folder:', error);
-  }
-  try
-  {
-    const command = new DeleteObjectsCommand({
-      Bucket: bucket_name,
-      Delete: {
-        Objects:[
+  //   contents.forEach((object: any) => {
+  //     console.log('Object Key:', object.Key);
+  //   });
+  // }
+  // catch (error) {
+  //   console.error('Error listing contents of the folder:', error);
+  // }
+  // try
+  // {
+  //   const command = new DeleteObjectsCommand({
+  //     Bucket: bucket_name,
+  //     Delete: {
+  //       Objects:[
 
-        ]
-      }
-      });
-  }
-  catch (error)
-  {
-    //Return 500
-  }
+  //       ]
+  //     }
+  //     });
+  // }
+  // catch (error)
+  // {
+  //   //Return 500
+  // }
   
   //Empty the DB
 

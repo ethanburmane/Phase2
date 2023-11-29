@@ -57,6 +57,68 @@ describe('parseGHRepoName', () => {
   })
 })
 
+describe('extractUrlFromBody', () => {
+  it('It should return the url directly from the body if there is only a url field.', () => {
+    //Body with url field and no content field
+    const testBody = {URL: 'https://github.com/octocat/Spoon-Knife'}
+    //URL matching the field in the body
+    const testResult = 'https://github.com/octocat/Spoon-Knife'
+
+    expect(utils.extractUrlFromBody(testBody)).toBe(testResult)
+  })
+
+  it('It should return the url extracted from the unzipped content field.', () => {
+    //Body with content field and no url field
+    const testBody = {Content: 'base64 zip'}
+    //URL matching the url found inside the unzipped package's package.json
+    const testResult = 'https://github.com/octocat/Spoon-Knife'
+  })
+
+  it('It should return an error if content and url are both present.', () => {
+    //Body with both content and url set
+    const testBody = {Content: 'aaaa', URL: 'ex.com'}
+    //Expected error result
+    const testResult = 'error'
+  })
+
+  it('It should return an error if the package.json is missing from the unzipped content.', () => {
+    //Body that has only content set with a package that does not have a package.json
+    const testBody = {Content: 'base64 of package with no package.json'}
+    //Expected error result
+    const testResult = 'error'
+  })
+
+  it('It should return an error if the url cannot be gotten from the package.json.', () => {
+    //Body that only has content set with a package that has no url inside its package.json
+    const testBody = {Content: 'base64 of pacakge without url in package.json'}
+    //Expected error result
+    const testResult = 'error'
+  })
+})
+
+describe('extractUrlFromContent', () => {
+  it('If url exists then it should be returned.', () => {
+    const testContent = ''
+    const testResult = 'url'
+  })
+
+  it('If package.json doest not exist, an error should be returned', () => {
+    const testContent = ''
+    const testResult = 'error'
+  })
+
+  it('If content is not valid base64 an error will be returned', () => {
+    const testContent = ''
+    const testResult = 'error'
+  })
+
+  it('If url is not present inside package.json, an error should be returned', () =>
+  {
+    const testContent = ''
+    const testResult = 'url'
+  })
+})
+
 // describe('cloneRepo', () => {
 //   // test case 1: valid gh link
 //   it('should clone a github repo', () => {
