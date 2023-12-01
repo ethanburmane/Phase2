@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateDependencies = exports.calculateCodeReview = exports.calculateLicenseCompliance = exports.calculateResponsiveness = exports.calculateCorrectness = exports.calculateBusFactor = void 0;
+exports.calculateLicenseCompliance = exports.calculateResponsiveness = exports.calculateCorrectness = exports.calculateBusFactor = void 0;
 const tslib_1 = require("tslib");
 // funciton imports
 const utils = tslib_1.__importStar(require("./utils"));
@@ -214,13 +214,3 @@ async function calculateLicenseCompliance(url) {
     return licenseCompliantScore;
 }
 exports.calculateLicenseCompliance = calculateLicenseCompliance;
-async function calculateCodeReview(url) {
-    logger_1.default.info('Calculating Code Review');
-    return 0;
-}
-exports.calculateCodeReview = calculateCodeReview;
-async function calculateDependencies(url) {
-    logger_1.default.info('Calculating Dependencies');
-    return 0;
-}
-exports.calculateDependencies = calculateDependencies;

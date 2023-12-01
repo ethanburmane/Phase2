@@ -5,8 +5,6 @@ export declare class Urlmetrics {
     RampUp: number;
     Responsiveness: number;
     License: number;
-    CodeReview: number;
-    Dependencies: number;
     NetScore: number;
     constructor(URL: string);
 }

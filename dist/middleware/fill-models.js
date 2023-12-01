@@ -12,8 +12,6 @@ async function assignMetrics(data) {
     newURL.RampUp = /* await calculateRampUpTime(newURL.URL) */ -1;
     newURL.Responsiveness = await (0, metric_calculations_1.calculateResponsiveness)(newURL.URL);
     newURL.License = await (0, metric_calculations_1.calculateLicenseCompliance)(newURL.URL);
-    newURL.CodeReview = /* await calculateCodeReview(newURL.URL) */ -1;
-    newURL.Dependencies = /* await calculateDependencies(newURL.URL) */ -1;
     newURL.NetScore = await (0, net_score_1.calculateNetScore)(newURL.URL);
     return newURL;
 }
