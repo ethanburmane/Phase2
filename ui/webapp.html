@@ -14,29 +14,44 @@
                   <span>ECE 46100 Package Registry</span>
                   <br />
                 </h1>
-                <form role="search" id="search">
+                <div class="frontpage-container1">
+                  <form role="search" id="search">
                     <input id="query" type="text" name="query" placeholder="Search for module">
                     <button id="searchbarButton">
                       <svg viewBox="0 0 1024 1024"><path class="path1" d="M848.471 928l-263.059-263.059c-48.941 36.706-110.118 55.059-177.412 55.059-171.294 0-312-140.706-312-312s140.706-312 312-312c171.294 0 312 140.706 312 312 0 67.294-24.471 128.471-55.059 177.412l263.059 263.059-79.529 79.529zM189.623 408.078c0 121.364 97.091 218.455 218.455 218.455s218.455-97.091 218.455-218.455c0-121.364-103.159-218.455-218.455-218.455-121.364 0-218.455 97.091-218.455 218.455z"></path></svg>
                     </button>
-                </form>
+                  </form>
+                  <button
+                    type="reset"
+                    id="resetButton"
+                    name="Reset registry"
+                    class="frontpage-reset-registry button"
+                  >
+                  <span>
+                    <span>Reset registry</span>
+                    <br />
+                  </span>
+                </button>
+                </div>
               </div>
               <div class="frontpage-ingestion">
-                <button id="uploadButton"class="frontpage-upload input hidden">Upload</button>        
+                <button id="uploadButton"class="frontpage-upload-button input hidden">Upload</button>        
                 <div class="frontpage-select">
                   <h1 class="frontpage-select-heading">
-                    <span>Upload a Package</span>
+                    <span>
+                    <b>Upload a Package</b>
+                    </span>
                     <br />
                     <br />
                   </h1>
                   <div id="buttonContainer" class="frontpage-select-content input">
-                    <label class="fileInputLabel" for="selectButton">Upload a file:</label>
-                    <input id="contentButton" type="file" accept=".zip" onchange="fileUploadChange()">
+                    <label class="fileInputLabel" for="selectButton"><b>Upload a file:</b></label>
+                    <input id="contentButton" class="left-align" type="file" accept=".zip" onchange="fileUploadChange()">
                     </div>     
                     <br />
                     <br /> 
                   <div id="urlContainer" class="frontpage-select-url input">
-                    <label class="urlInputLabel" for="urlInput">Enter a URL:</label>
+                    <label class="urlInputLabel" for="urlInput"><b>Enter a URL:</b></label>
                     <input id="urlInput" type="text" name="urlInput" placeholder="Enter a URL" onchange="urlUploadChange()">        
                     </div>
                 </div>
