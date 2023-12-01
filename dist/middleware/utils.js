@@ -87,8 +87,8 @@ exports.cloneRepo = cloneRepo;
 function calcRepoLines(repoPath, callback) {
     logger_1.default.info(`Calculating lines of code for ${repoPath}`);
     const excludePatterns = [
-        'node_modules',
-        'dist',
+        'node_modules', // Exclude the node_modules directory
+        'dist', // Exclude the dist directory
         '.*\\.spec\\.ts', // Exclude TypeScript test files with .spec.ts extension
     ];
     // Construct the exclude arguments for cloc

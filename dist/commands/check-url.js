@@ -33,7 +33,6 @@ class CheckUrl extends core_1.Command {
         }
     }
 }
-exports.default = CheckUrl;
 CheckUrl.description = 'describe the command here';
 CheckUrl.args = {
     urls: core_1.Args.string({
@@ -41,3 +40,4 @@ CheckUrl.args = {
         required: true,
     }),
 };
+exports.default = CheckUrl;

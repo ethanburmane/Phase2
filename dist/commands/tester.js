@@ -42,5 +42,5 @@ class Test extends core_1.Command {
         }
     }
 }
-exports.default = Test;
 Test.description = 'describe the command here';
+exports.default = Test;
