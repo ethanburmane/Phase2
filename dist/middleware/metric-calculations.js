@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateLicenseCompliance = exports.calculateResponsiveness = exports.calculateRampUpTime = exports.calculateCorrectness = exports.calculateBusFactor = void 0;
+exports.calculateDependencies = exports.calculateCodeReview = exports.calculateLicenseCompliance = exports.calculateResponsiveness = exports.calculateCorrectness = exports.calculateBusFactor = void 0;
 const tslib_1 = require("tslib");
 // funciton imports
 const utils = tslib_1.__importStar(require("./utils"));
@@ -72,63 +72,62 @@ async function calculateCorrectness(url) {
     return correctnessScore;
 }
 exports.calculateCorrectness = calculateCorrectness;
-// Ramp-up Time Calculations
-async function calculateRampUpTime(url) {
-    //   logger.info('Calculating Ramp Up Time')
-    //   // checks to see if link is a npm link and if so, converts it to a github link
-    //   let link = await utils.evaluateLink(url)
-    //   if (link) {
-    //     link = link?.split('github.com').pop() ?? null
-    //     link = 'https://github.com' + link // eslint-disable-line prefer-template
-    //   }
-    //   let linesOfCode = 0
-    //   // get data using ./services/gh-service.ts
-    //   if (link) {
-    //     // clones the repo into ./cloned-repos
-    //     const repoName = utils.parseGHRepoName(link)
-    //     let localPath = '../ece461-project/src/middleware/cloned-repos'
-    //     // format local path name
-    //     if (repoName) {
-    //       localPath = path.join(localPath, repoName)
-    //     }
-    //     // add .git to end of url
-    //     let repoUrl = link
-    //     if (!link.includes('.git')) {
-    //       repoUrl = `${link}.git`
-    //     }
-    //     await utils.cloneRepo(link, localPath, repoUrl)
-    //     utils.calcRepoLines(localPath, (totalLines) => {
-    //       linesOfCode = totalLines
-    //       // console.log(totalLines)
-    //       logger.debug(`linesOfCode: ${linesOfCode}`)
-    //       let rampUpScore = 0
-    //       // console.log(linesOfCode)
-    //       if (linesOfCode <= 500) {
-    //         rampUpScore = 1
-    //       } else if (linesOfCode <= 1000) {
-    //         rampUpScore = 0.9
-    //       } else if (linesOfCode <= 5000) {
-    //         rampUpScore = 0.8
-    //       } else if (linesOfCode <= 10_000) {
-    //         rampUpScore = 0.7
-    //       } else if (linesOfCode <= 50_000) {
-    //         rampUpScore = 0.6
-    //       } else if (linesOfCode <= 100_000) {
-    //         rampUpScore = 0.5
-    //       } else if (linesOfCode <= 500_000) {
-    //         rampUpScore = 0.4
-    //       } else if (linesOfCode <= 1_000_000) {
-    //         rampUpScore = 0.3
-    //       } else if (linesOfCode <= 5_000_000) {
-    //         rampUpScore = 0.2
-    //       }
-    //       return rampUpScore
-    //     })
-    //   } else {
-    //     return () => 0
-    //   }
-}
-exports.calculateRampUpTime = calculateRampUpTime;
+// // Ramp-up Time Calculations
+// export async function calculateRampUpTime(url: string) {
+//   logger.info('Calculating Ramp Up Time')
+//   // checks to see if link is a npm link and if so, converts it to a github link
+//   let link = await utils.evaluateLink(url)
+//   if (link) {
+//     link = link?.split('github.com').pop() ?? null
+//     link = 'https://github.com' + link // eslint-disable-line prefer-template
+//   }
+//   let linesOfCode = 0
+//   // get data using ./services/gh-service.ts
+//   if (link) {
+//     // clones the repo into ./cloned-repos
+//     const repoName = utils.parseGHRepoName(link)
+//     let localPath = '../ece461-project/src/middleware/cloned-repos'
+//     // format local path name
+//     if (repoName) {
+//       localPath = path.join(localPath, repoName)
+//     }
+//     // add .git to end of url
+//     let repoUrl = link
+//     if (!link.includes('.git')) {
+//       repoUrl = `${link}.git`
+//     }
+//     await utils.cloneRepo(link, localPath, repoUrl)
+//     utils.calcRepoLines(localPath, (totalLines) => {
+//       linesOfCode = totalLines
+//       // console.log(totalLines)
+//       logger.debug(`linesOfCode: ${linesOfCode}`)
+//       let rampUpScore = 0
+//       // console.log(linesOfCode)
+//       if (linesOfCode <= 500) {
+//         rampUpScore = 1
+//       } else if (linesOfCode <= 1000) {
+//         rampUpScore = 0.9
+//       } else if (linesOfCode <= 5000) {
+//         rampUpScore = 0.8
+//       } else if (linesOfCode <= 10_000) {
+//         rampUpScore = 0.7
+//       } else if (linesOfCode <= 50_000) {
+//         rampUpScore = 0.6
+//       } else if (linesOfCode <= 100_000) {
+//         rampUpScore = 0.5
+//       } else if (linesOfCode <= 500_000) {
+//         rampUpScore = 0.4
+//       } else if (linesOfCode <= 1_000_000) {
+//         rampUpScore = 0.3
+//       } else if (linesOfCode <= 5_000_000) {
+//         rampUpScore = 0.2
+//       }
+//       return rampUpScore
+//     })
+//   } else {
+//     return () => 0
+//   }
+// }
 // Responsiveness Calculations
 async function calculateResponsiveness(url) {
     var _a;
@@ -215,3 +214,13 @@ async function calculateLicenseCompliance(url) {
     return licenseCompliantScore;
 }
 exports.calculateLicenseCompliance = calculateLicenseCompliance;
+async function calculateCodeReview(url) {
+    logger_1.default.info('Calculating Code Review');
+    return 0;
+}
+exports.calculateCodeReview = calculateCodeReview;
+async function calculateDependencies(url) {
+    logger_1.default.info('Calculating Dependencies');
+    return 0;
+}
+exports.calculateDependencies = calculateDependencies;
