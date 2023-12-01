@@ -54,6 +54,9 @@ svg {
 .button-container {
     display: flex;
 }
+left-align {
+    align-self: flex-start;
+}
 .hidden {
     display: none;
 }
@@ -85,7 +88,7 @@ svg {
   width: auto;
   height: 52px;
   display: flex;
-  position: relative;
+  position: center;
   align-items: flex-start;
   justify-content: center;
 }
@@ -114,7 +117,7 @@ svg {
 .frontpage-upload-button {
   left: 714px;
   width: 125px;
-  bottom: 3px;
+  bottom: -50px;
   height: 92px;
   margin: auto;
   position: absolute;
@@ -142,3 +145,4 @@ svg {
   width: 100%;
   height: 43px;
 }
+

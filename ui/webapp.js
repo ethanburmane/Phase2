@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const postUrl =
   'https://xepn4jkrbf.execute-api.us-east-2.amazonaws.com/beta/package'
 const searchBar = document.getElementById('query')
@@ -42,6 +43,7 @@ function uploadPackage() {
     const url = urlInput.value
     const formData = new FormData()
     formData.append('url', url)
+    console.log(url)
 
     fetch(postUrl, {
       method: 'POST',
@@ -54,6 +56,7 @@ function uploadPackage() {
     const file = contentButton.files[0]
     const formData = new FormData()
     formData.append('file', file)
+    console.log(file)
 
     fetch(postUrl, {
       method: 'POST',
