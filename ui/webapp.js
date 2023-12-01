@@ -1,10 +1,12 @@
 const postUrl =
   'https://xepn4jkrbf.execute-api.us-east-2.amazonaws.com/beta/package'
-// const searchBar = document.getElementById('query')
+const searchBar = document.getElementById('query')
 const contentButton = document.getElementById('contentButton')
 const uploadButton = document.getElementById('uploadButton')
 const urlInput = document.getElementById('urlInput')
+const resetButton = document.getElementById('resetButton')
 
+// change this
 function submitQuery(event) {
   event.preventDefault()
   const url = `${'https://github.com/search?q='}
@@ -38,7 +40,6 @@ function urlUploadChange() {
 function uploadPackage() {
   if (contentButton.files.length === 0) {
     const url = urlInput.value
-    console.log(url)
     const formData = new FormData()
     formData.append('url', url)
 
@@ -51,7 +52,6 @@ function uploadPackage() {
     })
   } else {
     const file = contentButton.files[0]
-    console.log(file)
     const formData = new FormData()
     formData.append('file', file)
 
@@ -65,12 +65,20 @@ function uploadPackage() {
   }
 }
 
-// search packages in database
+function resetRegistry() {
+  fetch(postUrl, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+}
 
 // TODO: implement delete and reset
 
 // event listeners
-document.getElementById('search').addEventListener('submit', submitQuery)
+searchBar.addEventListener('submit', submitQuery)
 contentButton.addEventListener('change', fileUploadChange)
-urlInput.addEventListener('change', urlUploadChange)
+urlInput.addEventListener('input', urlUploadChange)
 uploadButton.addEventListener('click', uploadPackage)
+resetButton.addEventListener('click', resetRegistry)
