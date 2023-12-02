@@ -1,5 +1,4 @@
 import { boolean } from "@oclif/core/lib/flags";
-import JSZip from "jszip";
 
 /**
  * This file hosts the code for executing the code for POST host/package
@@ -12,7 +11,7 @@ import JSZip from "jszip";
  const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
  const axios = require('axios')
 //import { calculateNetScore } from '../../../middleware/net-score'
-const JSZip = require('jszip')
+const {JSZip} = require('jszip')
 
 const MIN_PKG_SCORE = 0.5
 const AWS_REGION = "us-east-2"
