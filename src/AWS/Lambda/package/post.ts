@@ -146,7 +146,7 @@ export const handler = async (event: any, context: any) => {
 
     const base64Content = base64FromZip(zipContent)
     // TODO check base64
-    
+
     response = {
       statusCode: 201,
       body: {
@@ -295,17 +295,6 @@ function isSuccessfulDBResponse(response: Record<string, any>)
   return response.$metadata.httpStatusCode == 200
 }
 
-
-async function zipContentFromEventBody(body: Record<string, any>)
-{
-  if (body.Content)
-  {
-    return zipFromBase64(body.Content)
-  }
-
-  return await fetchGitHubRepoAsZip(body.URL)
-}
-
 async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
   const zipURL = `${repoURL}/archive/main.zip`;
 
@@ -321,7 +310,7 @@ function createPackageID(packageName: string, packageVersion: string)
 async function packageInfoFromBody(body: Record<string, any>)
 {
   if (body.Content) { return await packageInfoFromContent(body.Content) }
-  return await packageInfoFromContent(body.URL)
+  return await packageInfoFromURL(body.URL)
 }
 
 async function packageInfoFromURL(url: string)
