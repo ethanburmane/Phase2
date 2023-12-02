@@ -204,15 +204,12 @@ async function extractUrlFromContent(content: any)
   //TODO add try catch
   let jszip = new JSZip()
   const unzip_result = await jszip.loadAsync(binaryData)  
-  let packageJsonFile = getPackageJson(unzip_result)
+  let packageJsonFile = findPackageJson(unzip_result)
   const root = rootFromZip(unzip_result)
 
   //Need package.json file
   if (packageJsonFile) {
-    const file = unzip_result.files[root + '/package.json'];
-    const content = await file.async('text');
-    // Parse package.json content to extract the URL
-    const packageData = JSON.parse(content);
+    const packageData = await packageDataFromZip(unzip_result, root)
 
     // Need the url from the package data
     url = packageData.homepage || (packageData.repository && packageData.repository.url);
@@ -324,21 +321,30 @@ async function packageInfoFromBody(body: Record<string, any>)
   return await packageInfoFromURL(body.URL)
 }
 
+async function packageDataFromZip(zip: any, root: string)
+{
+  const file = zip.files[root + '/package.json'];
+  const content = await file.async('text');
+  // Parse package.json content to extract the URL
+  const packageData = JSON.parse(content);
+
+  return packageData
+}
+
 async function packageInfoFromURL(url: string)
 {
   const zip = await fetchGitHubRepoAsZip(url)
   return await packageInfoFromZip(zip)
 }
 
-function getPackageJson(unzipped: any)
+function findPackageJson(unzipped: any)
 {
   const fileNames = Object.keys(unzipped.files);
   const root = fileNames[0].split('/')[0]
   let packageJsonFile = undefined
-  console.log(fileNames)
+  console.log("Files found:\n" + fileNames)
   for (let i = 0; i < fileNames.length; i++) {
       const split = fileNames[i].split('/')
-      console.log(split)
       if (split.length >= 2) { 
           if (split[1] === 'package.json') { 
               packageJsonFile = true 
@@ -355,7 +361,7 @@ async function packageInfoFromZip(zip: Buffer)
   const unzipped = await jszip.loadAsync(zip)
 
   // Locate and read the package.json file
-  const packageJsonFile = getPackageJson(unzipped)
+  const packageJsonFile = findPackageJson(unzipped)
 
 
   const packageJsonContent = await packageJsonFile.async('text');
