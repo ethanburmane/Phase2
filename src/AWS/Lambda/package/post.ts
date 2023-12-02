@@ -11,7 +11,7 @@ import { boolean } from "@oclif/core/lib/flags";
  const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
  const axios = require('axios')
 //import { calculateNetScore } from '../../../middleware/net-score'
-const {JSZip} = require('jszip')
+const JSZip = require('jszip')
 
 const MIN_PKG_SCORE = 0.5
 const AWS_REGION = "us-east-2"
@@ -191,7 +191,8 @@ async function extractUrlFromContent(content: any)
 
   //Unzip the package
   //TODO add try catch
-  const unzip_result = await JSZip.loadAsync(binaryData)  
+  let jszip = new JSZip()
+  const unzip_result = await jszip.loadAsync(binaryData)  
   const fileNames = Object.keys(unzip_result.files);
   const root = fileNames[0].split('/')[0]
   let packageJsonFile = undefined
@@ -335,7 +336,8 @@ function getPackageJson(unzipped: any)
 
 async function packageInfoFromZip(zip: Buffer)
 {
-  const unzipped = await JSZip.loadAsync(zip)
+  let jszip = new JSZip()
+  const unzipped = await jszip.loadAsync(zip)
 
   // Locate and read the package.json file
   const packageJsonFile = getPackageJson(unzipped)
