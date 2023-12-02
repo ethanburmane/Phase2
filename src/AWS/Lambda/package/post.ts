@@ -361,9 +361,15 @@ async function packageInfoFromZip(zip: Buffer)
   const unzipped = await jszip.loadAsync(zip)
 
   // Locate and read the package.json file
-  const packageJsonFile = findPackageJson(unzipped)
+  const packageJsonFound = findPackageJson(unzipped)
 
-
+  if (!packageJsonFound)
+  {
+    throw new Error("Package json not found in zip file")
+  }
+  
+  let packageJsonFile
+  packageJsonFile = await packageDataFromZip(unzipped, rootFromZip(unzipped))
   const packageJsonContent = await packageJsonFile.async('text');
 
   // Parse the package.json content
