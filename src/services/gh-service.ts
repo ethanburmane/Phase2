@@ -7,6 +7,66 @@ import {
 import * as ghApi from './gh-api'
 import logger from '../logger'
 
+<<<<<<< Updated upstream
+=======
+
+
+export async function getDependencyScore(repoUrl: string): Promise<number> {
+  logger.info('GH_SERVICE: running getDependencyScore')
+
+  // Fetch the list of dependencies from the repo
+  const dependencies = await ghApi.getDependencies(repoUrl)
+
+  if (dependencies.length === 0) {
+    return 1.0; // If no dependencies, score is 1.0
+  }
+
+  let pinnedCount = 0;
+  dependencies.forEach(dep => {
+    if ( 0/*isPinnedToMajorMinor(dep.version)*/) {
+      pinnedCount++;
+    }
+  });
+
+  const score = pinnedCount / dependencies.length
+  return score;
+}
+
+/**
+ * Gets the data required to calculate the reviewed code percentage.
+ *
+ * @param repoUrl Github repository url.
+ * @returns The data required to calculate the bus factor.
+ */
+export async function getReviewData(
+  repoUrl: string,
+): Promise<ReviewPercentageData> {
+  logger.info('GH_SERVICE: running getReviewData')
+  const [criticalUserLogin, criticalContrubitorCommits, totalCommits] =
+    await ghApi.getCommitData(repoUrl)
+  console.log("critical user login", criticalUserLogin)
+  console.log("critical contributor commits", criticalContrubitorCommits)
+  const [crituserPulls, reviewedPulls, totalPulls] =
+    await ghApi.getPullRequestData(repoUrl, criticalUserLogin)
+  
+  
+  //print type of reviewedPulls
+  console.log("reviewed pulls", reviewedPulls)
+  console.log("totalpulls", totalPulls)
+
+  return {
+    numReviewedPullRequests: reviewedPulls, 
+    numPullRequests: totalPulls,
+  }
+}
+
+
+
+
+
+
+
+>>>>>>> Stashed changes
 /**
  * Gets the data required to calculate the bus factor.
  *

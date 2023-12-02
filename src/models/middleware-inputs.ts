@@ -18,3 +18,17 @@ export interface ResponsesivenessData {
   monthlyCommitCount: Array<number>
   annualCommitCount: number
 }
+<<<<<<< Updated upstream
+=======
+
+export interface ReviewPercentageData{
+  numReviewedPullRequests: number
+  numPullRequests: number
+}
+
+export interface RampUpData {
+  numContributors: number
+  numCommits: number
+  numPullRequests: number
+}
+>>>>>>> Stashed changes

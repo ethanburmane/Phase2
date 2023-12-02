@@ -7,7 +7,65 @@ import {
   getLiscenseComplianceData,
 } from '../services/gh-service'
 import logger from '../logger'
+import * as path from "path";
 
+<<<<<<< Updated upstream
+=======
+
+
+//Code Review Pull Percentage Calculations
+export async function calculateReviewPercentage(url: string) {
+  logger.info('Calculating Review Pull Percentage')
+
+  // checks to see if link is a npm link and if so, converts it to a github link
+  let link = await utils.evaluateLink(url)
+  if (link) {
+    link = link?.split('github.com').pop() ?? null
+    link = 'https://github.com' + link // eslint-disable-line prefer-template
+  }
+
+  let data = null
+
+  // get data using ./services/gh-service.ts
+  if (link) {
+    data = await getReviewData(link)
+  } else {
+    return 0
+  }
+
+   // get data from returned object
+   const {
+    numPullRequests,
+    numReviewedPullRequests,
+  } = data
+  console.log(numPullRequests)
+  console.log(numReviewedPullRequests)
+  logger.debug(
+    `number of Pull Requests: ${numPullRequests}, Number of Reviewed Pull Requests: ${numReviewedPullRequests}`,
+  )
+
+ 
+
+  //if there are no pull requests, return 0
+  if(numPullRequests === 0){
+    return 0
+  }
+  //if there were no reviewed pull requests, return 0
+  else if(numReviewedPullRequests === 0){
+    return 0
+  }else
+  return numReviewedPullRequests/numPullRequests
+
+  //return reviewed pull requests / total pull requests
+
+
+
+
+}
+
+
+
+>>>>>>> Stashed changes
 // Bus Factor Calculations
 export async function calculateBusFactor(url: string) {
   logger.info('Calculating Bus Factor')
