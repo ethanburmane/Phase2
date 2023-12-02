@@ -122,7 +122,7 @@ export const handler = async (event: any, context: any) => {
         {
           "S": dateString
         },
-        "ActionHistory":
+        "History":
         {
           "L": [
             {
@@ -139,7 +139,7 @@ export const handler = async (event: any, context: any) => {
     console.log("Sending dynamo command")
     const db = new DynamoDBClient(config)
     const dbcommand = new PutItemCommand(itemParams)
-    const dbcmdResponse = db.send(dbcommand)
+    const dbcmdResponse = await db.send(dbcommand)
 
     if (!isSuccessfulDBResponse(dbcmdResponse)) {
       // TODO log response info
