@@ -83,6 +83,13 @@ export const handler = async (event: any, context: any) => {
       // TODO log response info
 
       // TODO send response to client
+      response = {
+        statusCode: 500,
+        body: {
+          error: 'Unable to upload package',
+        },
+      }
+      return response
     }
     
     const itemId = createPackageID(packageName, packageVersion)
@@ -129,10 +136,17 @@ export const handler = async (event: any, context: any) => {
       // TODO log response info
 
       // TODO send response to client
+      response = {
+        statusCode: 500,
+        body: {
+          error: "Unable to upload package",
+        },
+      }
     }
 
     const base64Content = base64FromZip(zipContent)
     // TODO check base64
+    
     response = {
       statusCode: 201,
       body: {

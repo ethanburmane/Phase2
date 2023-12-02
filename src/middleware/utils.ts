@@ -4,6 +4,7 @@ import * as url from 'node:url'
 import {exec} from 'node:child_process'
 import {getGithubLinkFromNpm} from '../services/gh-service'
 import logger from '../logger'
+import axios from 'axios'
 
 export function round(value: number, decimals: number): number {
   logger.info(`Rounding ${value} to ${decimals} decimal places`)
@@ -157,3 +158,4 @@ export async function evaluateLink(link: string) {
 
   return null
 }
+
