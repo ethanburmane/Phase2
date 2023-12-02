@@ -9,7 +9,8 @@ const { DynamoDBClient, GetItemCommand, UpdateItemCommand } = require('@aws-sdk/
 const AWS_REGION = "us-east-2";
 const s3Client = new S3Client({ region: AWS_REGION });
 const dynamoDBClient = new DynamoDBClient({ region: AWS_REGION });
-export const handler = async (event) => {
+
+export const handler = async (event: any, context: any) => {
   const packageId = event.pathParameters?.id;
   const bearerToken = event.headers?.Authorization;
   const body = JSON.parse(event.body);
@@ -28,7 +29,7 @@ export const handler = async (event) => {
 
   // Update package in S3 and DB
     try {
-        await updatePackageInS3(packageId, body.data.Content);
+        await updatePackageInS3(packageId, body.metadata.version, body.data.Content);
         await updatePackageInDB(packageId, body.metadata);
 
         return {
@@ -48,30 +49,41 @@ function isValidToken(token: string) {
 
 async function checkPackageExists(packageId: string) {
   const params = {
-      TableName: "<your_dynamodb_table>",
+      TableName: "Packages",
       Key: { 'ID': { S: packageId } }
   };
   const { Item } = await dynamoDBClient.send(new GetItemCommand(params));
   return !!Item;
 }
 
-async function updatePackageInS3(packageId: string, content) {
+async function updatePackageInS3(packageId: string, packageVersion: string, content: string) {
   const cmdInput = {
       Body: Buffer.from(content, 'base64'), // assuming content is base64 encoded
       Bucket: "main-storage-bucket",
-      Key: `packages/${packageId}/content.zip`
+      Key: `package/${packageId}/${packageVersion}.zip`
   };
+
   await s3Client.send(new PutObjectCommand(cmdInput));
 }
 
-async function updatePackageInDB(packageId: string, metadata) {
+
+async function updatePackageInDB(packageId: string, metadata: any) {
+  const uploadDate = new Date()
+  const dateString = uploadDate.toISOString()
+  const history = {
+    "type": {S: "UPDATE"},
+    "date": {S: dateString},
+  }
+
   const params = {
-      TableName: "<your_dynamodb_table>",
-      Key: { 'ID': { S: packageId } },
-      UpdateExpression: "set Name = :n, Version = :v",
+      TableName: "Packages",
+      Key: { 'id': { S: packageId } },
+      UpdateExpression: "set Name = :n, Version = :v, LastModified = :l, History = :h",
       ExpressionAttributeValues: {
           ":n": { S: metadata.Name },
-          ":v": { S: metadata.Version }
+          ":v": { S: metadata.Version },
+          ":l": { S: dateString},
+          ":h": { L: [history] } // might be wrong b/c of "L:" [{M:{}}]
       }
   };
   await dynamoDBClient.send(new UpdateItemCommand(params));
