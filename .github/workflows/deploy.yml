@@ -72,7 +72,7 @@ jobs:
           zip ../../deploy/packages-post.zip index.js
           
           cd ../../reset/delete
-          zip ../deploy/reset-delete.zip index.js
+          zip ../../deploy/reset-delete.zip index.js
 
           cd ../../../../..
 
