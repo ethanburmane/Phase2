@@ -68,13 +68,13 @@ jobs:
           cd ../../id/put
           zip ../../../deploy/package-id-put.zip index.js
           
-          cd ../../../packages
-          zip ../deploy/packages-post.zip index.js
+          cd ../../../packages/post
+          zip ../../deploy/packages-post.zip index.js
           
-          cd ../reset
+          cd ../../reset/delete
           zip ../deploy/reset-delete.zip index.js
 
-          cd ../../../..
+          cd ../../../../..
 
           aws lambda update-function-code --function-name=package-post --zip-file=fileb://dist/AWS/Lambda/deploy/package-post.zip
           aws lambda update-function-code --function-name=package-byName-delete --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-delete.zip
