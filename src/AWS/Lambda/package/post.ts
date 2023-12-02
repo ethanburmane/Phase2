@@ -318,7 +318,7 @@ async function packageInfoFromURL(url: string)
   return await packageInfoFromZip(zip)
 }
 
-function getPackageJson(unzipped: JSZip)
+function getPackageJson(unzipped: any)
 {
   const packageJsonFile = unzipped.file('package.json');
   if (!packageJsonFile) {
