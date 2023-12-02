@@ -119,6 +119,46 @@ describe('extractUrlFromContent', () => {
   })
 })
 
+describe("zipFromBase64", () =>
+{
+  
+})
+
+describe("base64FromZip", () =>
+{
+  
+})
+
+describe("fetchGithubRepoAsZip", () =>
+{
+  
+})
+
+describe("packageInfoFromBody", () =>
+{
+  
+})
+
+describe("packageInfoFromURL", () =>
+{
+  
+})
+
+describe("getPackageJson", () =>
+{
+  
+})
+
+describe("packageInfoFromZip", () =>
+{
+  
+})
+
+describe("packageInfoFromContent", () =>
+{
+  
+})
+
 // describe('cloneRepo', () => {
 //   // test case 1: valid gh link
 //   it('should clone a github repo', () => {
