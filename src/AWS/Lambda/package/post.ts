@@ -35,7 +35,7 @@ export const handler = async (event: any, context: any) => {
       statusCode: 400,
       headers: {
         "Access-Control-Allow-Headers" : "Content-Type",
-        "Access-Control-Allow-Origin": "http://ece461packageregistry.s3-website.us-east-2.amazonaws.com",
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "OPTIONS,POST"
       },
       body: {
@@ -99,7 +99,7 @@ export const handler = async (event: any, context: any) => {
         statusCode: 500,
         headers: {
           "Access-Control-Allow-Headers" : "Content-Type",
-          "Access-Control-Allow-Origin": "http://ece461packageregistry.s3-website.us-east-2.amazonaws.com",
+          "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "OPTIONS,POST"
         },
         body: {
@@ -166,7 +166,7 @@ export const handler = async (event: any, context: any) => {
         statusCode: 500,
         headers: {
           "Access-Control-Allow-Headers" : "Content-Type",
-          "Access-Control-Allow-Origin": "http://ece461packageregistry.s3-website.us-east-2.amazonaws.com",
+          "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "OPTIONS,POST"
         },
         body: {
@@ -182,7 +182,7 @@ export const handler = async (event: any, context: any) => {
       statusCode: 201,
       headers: {
         "Access-Control-Allow-Headers" : "Content-Type",
-        "Access-Control-Allow-Origin": "http://ece461packageregistry.s3-website.us-east-2.amazonaws.com",
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "OPTIONS,POST"
       },
       body: {
@@ -202,6 +202,11 @@ export const handler = async (event: any, context: any) => {
     // TODO log response
     response = {
       statusCode: 424,
+      headers: {
+        "Access-Control-Allow-Headers" : "Content-Type",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "OPTIONS,POST"
+      },
       body: {
         error: 'Package rating was not high enough',
         score: score
@@ -245,7 +250,7 @@ async function extractUrlFromContent(content: any)
         statusCode: 400,
         headers: {
           "Access-Control-Allow-Headers" : "Content-Type",
-          "Access-Control-Allow-Origin": "http://ece461packageregistry.s3-website.us-east-2.amazonaws.com",
+          "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "OPTIONS,POST"
         },
         body: {
@@ -271,7 +276,7 @@ async function extractUrlFromContent(content: any)
         statusCode: 400,
         headers: {
           "Access-Control-Allow-Headers" : "Content-Type",
-          "Access-Control-Allow-Origin": "http://ece461packageregistry.s3-website.us-east-2.amazonaws.com",
+          "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "OPTIONS,POST"
         },
         body: {

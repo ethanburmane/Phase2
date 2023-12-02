@@ -7,6 +7,10 @@
 
 import { ListObjectsV2Command, DeleteObjectsCommand, S3Client } from '@aws-sdk/client-s3'
 
+const AWS_REGION = "us-east-2"
+const PACKAGE_S3 = "main-storage-bucket"
+const S3_PACKAGE_ROOT = "packages/"
+
 export const handler = async (event: any) => {
   // TODO implement
 
@@ -15,7 +19,6 @@ export const handler = async (event: any) => {
   //Empty the S3
   const s3_credentials = {}
   
-  const region = "us-east-2"
   const bucket_name = "main-storage-bucket"
   const folder_key = "packages/"
 
