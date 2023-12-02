@@ -34,7 +34,7 @@ export const handler = async (event: any, context: any) => {
     response = {
       statusCode: 400,
       headers: {
-        "Access-Control-Allow-Headers" : "Content-Type",
+        "Access-Control-Allow-Headers": "*",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "OPTIONS,POST"
       },
@@ -98,7 +98,7 @@ export const handler = async (event: any, context: any) => {
       response = {
         statusCode: 500,
         headers: {
-          "Access-Control-Allow-Headers" : "Content-Type",
+          "Access-Control-Allow-Headers": "*",
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "OPTIONS,POST"
         },
@@ -165,7 +165,7 @@ export const handler = async (event: any, context: any) => {
       response = {
         statusCode: 500,
         headers: {
-          "Access-Control-Allow-Headers" : "Content-Type",
+          "Access-Control-Allow-Headers": "*",
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "OPTIONS,POST"
         },
@@ -181,7 +181,7 @@ export const handler = async (event: any, context: any) => {
     response = {
       statusCode: 201,
       headers: {
-        "Access-Control-Allow-Headers" : "Content-Type",
+        "Access-Control-Allow-Headers": "*",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "OPTIONS,POST"
       },
@@ -203,7 +203,7 @@ export const handler = async (event: any, context: any) => {
     response = {
       statusCode: 424,
       headers: {
-        "Access-Control-Allow-Headers" : "Content-Type",
+        "Access-Control-Allow-Headers": "*",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "OPTIONS,POST"
       },
@@ -249,7 +249,7 @@ async function extractUrlFromContent(content: any)
       const response = {
         statusCode: 400,
         headers: {
-          "Access-Control-Allow-Headers" : "Content-Type",
+          "Access-Control-Allow-Headers": "*",
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "OPTIONS,POST"
         },
@@ -275,7 +275,7 @@ async function extractUrlFromContent(content: any)
       const response = {
         statusCode: 400,
         headers: {
-          "Access-Control-Allow-Headers" : "Content-Type",
+          "Access-Control-Allow-Headers": "*",
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "OPTIONS,POST"
         },
