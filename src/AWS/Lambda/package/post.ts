@@ -1,4 +1,5 @@
 import { boolean } from "@oclif/core/lib/flags";
+import { unzip } from "zlib";
 
 /**
  * This file hosts the code for executing the code for POST host/package
@@ -197,27 +198,14 @@ async function extractUrlFromContent(content: any)
   // extractPackageJSON(unzipped)
   // extractURLFromPackageJSON(packageJSON)
   let url
-  const binaryData = Buffer.from(content, 'base64');
+  const binaryData = zipFromBase64(content);
 
   //Unzip the package
   //TODO add try catch
   let jszip = new JSZip()
   const unzip_result = await jszip.loadAsync(binaryData)  
-  const fileNames = Object.keys(unzip_result.files);
-  const root = fileNames[0].split('/')[0]
-  let packageJsonFile = undefined
-  console.log(fileNames)
-  for (let i = 0; i < fileNames.length; i++) {
-      const split = fileNames[i].split('/')
-      console.log(split)
-      if (split.length >= 2) { 
-          if (split[1] === 'package.json') { 
-              packageJsonFile = true 
-              break
-          }
-      }
-  }
-  
+  let packageJsonFile = getPackageJson(unzip_result)
+  const root = rootFromZip(unzip_result)
 
   //Need package.json file
   if (packageJsonFile) {
@@ -291,6 +279,13 @@ function isValidRequest(event: any)
   return true
 }
 
+function rootFromZip(zip: any)
+{
+  const fileNames = Object.keys(zip.files);
+  const root = fileNames[0].split('/')[0]
+  return root
+}
+
 function zipFromBase64(base64: string)
 {
   return Buffer.from(base64, "base64")
@@ -337,9 +332,19 @@ async function packageInfoFromURL(url: string)
 
 function getPackageJson(unzipped: any)
 {
-  const packageJsonFile = unzipped.file('package.json');
-  if (!packageJsonFile) {
-    throw new Error('package.json not found in the zip');
+  const fileNames = Object.keys(unzipped.files);
+  const root = fileNames[0].split('/')[0]
+  let packageJsonFile = undefined
+  console.log(fileNames)
+  for (let i = 0; i < fileNames.length; i++) {
+      const split = fileNames[i].split('/')
+      console.log(split)
+      if (split.length >= 2) { 
+          if (split[1] === 'package.json') { 
+              packageJsonFile = true 
+              break
+          }
+      }
   }
   return packageJsonFile
 }
