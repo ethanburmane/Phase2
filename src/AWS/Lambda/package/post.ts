@@ -177,7 +177,7 @@ export const handler = async (event: any, context: any) => {
 async function extractUrlFromBody(body: any)
 {
   if (body.URL) { return [true, body.URL] }
-  return await extractUrlFromContent(body.content)
+  return await extractUrlFromContent(body.Content)
 }
 
 async function extractUrlFromContent(content: any)
@@ -191,59 +191,65 @@ async function extractUrlFromContent(content: any)
 
   //Unzip the package
   //TODO add try catch
-  const unzip_result = await JSZip.loadAsync(binaryData).then(async (zip: any) => {   
-    const fileNames = Object.keys(zip.files);
-    const root = fileNames[0].split('/')[0]
-    let packageJsonFile = undefined
-    console.log(fileNames)
-    for (let i = 0; i < fileNames.length; i++) {
-        const split = fileNames[i].split('/')
-        console.log(split)
-        if (split.length >= 2) { 
-            if (split[1] === 'package.json') { 
-                packageJsonFile = true 
-                break
-            }
-        }
-    }
-    
-
-    //Need package.json file
-    if (packageJsonFile) {
-      const file = zip.files[root + '/package.json'];
-      const content = await file.async('text');
-      // Parse package.json content to extract the URL
-      const packageData = JSON.parse(content);
-
-      // Need the url from the package data
-      url = packageData.homepage || (packageData.repository && packageData.repository.url);
-      if (!url)
-      {
-        const response = {
-          statusCode: 400,
-          body: {
-            error: "URL not found inside package.json"
+  const unzip_result = await JSZip.loadAsync(binaryData)  
+  const fileNames = Object.keys(unzip_result.files);
+  const root = fileNames[0].split('/')[0]
+  let packageJsonFile = undefined
+  console.log(fileNames)
+  for (let i = 0; i < fileNames.length; i++) {
+      const split = fileNames[i].split('/')
+      console.log(split)
+      if (split.length >= 2) { 
+          if (split[1] === 'package.json') { 
+              packageJsonFile = true 
+              break
           }
-        }
-        return [false, response]
       }
+  }
+  
 
-      console.log('URL found inside package.json:', url);
-    } else {
-        console.log('No package.json found in the ZIP package.');
-        const response = {
-          statusCode: 400,
-          body: {
-            error: "No package.json found in the ZIP package."
-          }
+  //Need package.json file
+  if (packageJsonFile) {
+    const file = unzip_result.files[root + '/package.json'];
+    const content = await file.async('text');
+    // Parse package.json content to extract the URL
+    const packageData = JSON.parse(content);
+
+    // Need the url from the package data
+    url = packageData.homepage || (packageData.repository && packageData.repository.url);
+    if (!url)
+    {
+      const response = {
+        statusCode: 400,
+        body: {
+          error: "URL not found inside package.json"
         }
-        return [false, response]
+      }
+      return [false, response]
+    }
+    if (packageData.homepage)
+    {
+      url = packageData.homepage
+    }
+    else 
+    {
+      url = packageData.repository.url
     }
 
-    return [true, url]
-  })
+    console.log('URL found inside package.json:', url);
+    // TODO log url found
+  } else {
+      console.log('No package.json found in the ZIP package.');
+      const response = {
+        statusCode: 400,
+        body: {
+          error: "No package.json found in the ZIP package."
+        }
+      }
+      return [false, response]
+  }
 
-  return unzip_result
+  return [true, url]
 }
 
 function calculateNetScore(url: any)
