@@ -18,11 +18,9 @@ export const handler = async (event: any) => {
 
   //Empty the S3
   const s3_credentials = {}
-  
-  const bucket_name = "main-storage-bucket"
-  const folder_key = "packages/"
 
-  const s3 = new S3Client({ "region": region });
+
+  const s3 = new S3Client({ "region": AWS_REGION });
 
   // try {
   //   const listObjectsCommand = new ListObjectsV2Command({
