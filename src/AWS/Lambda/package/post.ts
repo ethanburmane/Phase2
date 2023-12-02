@@ -1,3 +1,6 @@
+import { boolean } from "@oclif/core/lib/flags";
+import JSZip from "jszip";
+
 /**
  * This file hosts the code for executing the code for POST host/package
  *
@@ -7,21 +10,24 @@
  */
  const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
  const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
- 
+ const axios = require('axios')
 //import { calculateNetScore } from '../../../middleware/net-score'
 const JSZip = require('jszip')
 
 const MIN_PKG_SCORE = 0.5
 const AWS_REGION = "us-east-2"
+const PACKAGE_S3 = "main-storage-bucket"
 
 export const handler = async (event: any, context: any) => {
   let response
-  console.log(event)
+
+  // TODO: Log request
+
   const headers = event.headers
   const body = event.body
 
   // Validate request
-  if ((body.Content && body.URL) || (!(body.Content) && !(body.URL))) {
+  if (!isValidRequest(event)) {
     // Return 4xx code since the body is not formatted correctly
     response = {
       statusCode: 400,
@@ -29,60 +35,89 @@ export const handler = async (event: any, context: any) => {
         error: 'Invalid request format.',
       },
     }
+    // TODO: Log response
+
     return response
   }
-  // [bool, HTTPresp || url(string)]
+
   let urlResult = await extractUrlFromBody(body)  
   if (urlResult[0] == false)
   {
     return urlResult[1]
   }
-
   let url = urlResult[1]
 
-  // Get the zipped content 
 
+  // TODO log "scoring url"
   const score = await calculateNetScore(url)
 
   if (score > MIN_PKG_SCORE) {
     // Perform S3 update let s3response = 
+
+    // TODO log "package has valid score of ..."
+
+    let packageInfo = await packageInfoFromBody(body)
+    const zipContent = packageInfo.zip
+    const packageName = packageInfo.name
+    const packageVersion = packageInfo.version
+
+    const objKey =  "package/" + packageName + "/" + packageVersion + ".zip"
+
     const cmdInput = {
-      Body: "zipped binary",
-      Bucket: "main-storage-bucket",
-      Key: "filename",
+      Body: zipContent,
+      Bucket: PACKAGE_S3,
+      Key: objKey,
     }
 
     const config = {
       "region": AWS_REGION
     }
 
+    // TODO log "sending PutObjectCommand for ..."
     const s3Client = new S3Client(config)
     const s3command = new PutObjectCommand(cmdInput)
     const cmdResponse = await s3Client.send(s3command)
 
+    if (!isSuccessfulS3Response(cmdResponse))
+    {
+      // TODO log response info
 
-    // Perform DB update
-    const pkgName = "test-name"
-    const pkgVersion = "1.0.0"
-    const uploadDate = "11/25/2023"
+      // TODO send response to client
+    }
+    
+    const itemId = createPackageID(packageName, packageVersion)
+
+    const uploadDate = new Date()
+    const dateString = uploadDate.toISOString()
     const itemParams = {
       "TableName": "Packages",
       "Item": {
         "id": {
-          "S": "hash:name+version"
+          "S": itemId
         },
         "Name": {
-          "S": pkgName
+          "S": packageName
         },
         "Version": {
-          "S": pkgVersion
+          "S": packageVersion
         },
         "UploadedOn": {
-          "S": uploadDate
+          "S": dateString
         },
         "LastModified":
         {
-          "S": uploadDate
+          "S": dateString
+        },
+        "ActionHistory":
+        {
+          "L": [
+            {
+              M: {
+                "type": { S: "CREATE" },
+                "date": { S: dateString },
+              }
+            }
+          ]
         }
       }
     }
@@ -90,11 +125,31 @@ export const handler = async (event: any, context: any) => {
     const dbcommand = new PutItemCommand(itemParams)
     const dbcmdResponse = db.send(dbcommand)
 
-    response = {
-      statusCode: 200,
-      body: JSON.stringify('Hello from Lambda!'),
+    if (!isSuccessfulDBResponse(dbcmdResponse)) {
+      // TODO log response info
+
+      // TODO send response to client
     }
+
+    const base64Content = base64FromZip(zipContent)
+    // TODO check base64
+    response = {
+      statusCode: 201,
+      body: {
+        "metadata": {
+          "Name": packageName,
+          "Version": packageVersion,
+          "ID": itemId
+        },
+        "data": {
+          "Content": base64Content
+        }
+      },
+    }
+    // TODO log response
+
   } else {
+    // TODO log response
     response = {
       statusCode: 424,
       body: {
@@ -103,7 +158,6 @@ export const handler = async (event: any, context: any) => {
       },
     }
   }
-
   return response
 }
 
@@ -182,4 +236,121 @@ async function extractUrlFromContent(content: any)
 function calculateNetScore(url: any)
 {
   return 1
+}
+
+function isValidRequest(event: any)
+{
+  /**
+   * Validates event for 
+   *    - body existing
+   *    - Neither both content & url or neither of them
+   *    - Maybe add checking github url or base64 content as well
+   */
+
+  const body = event.body
+  if (!body)
+  {
+    return false
+  }
+
+  if ((body.Content && body.URL) || (!(body.Content) && !(body.URL)))
+  {
+    return false
+  }
+
+  return true
+}
+
+function zipFromBase64(base64: string)
+{
+  return Buffer.from(base64, "base64")
+}
+
+function base64FromZip(zipContent: Buffer)
+{
+  return zipContent.toString("base64")
+}
+
+function isSuccessfulS3Response(response: Record<string, any>)
+{
+  return response.$metadata.httpStatusCode == 200
+}
+
+function isSuccessfulDBResponse(response: Record<string, any>)
+{
+  return response.$metadata.httpStatusCode == 200
+}
+
+
+async function zipContentFromEventBody(body: Record<string, any>)
+{
+  if (body.Content)
+  {
+    return zipFromBase64(body.Content)
+  }
+
+  return await fetchGitHubRepoAsZip(body.URL)
+}
+
+async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
+  const zipURL = `${repoURL}/archive/main.zip`;
+
+  const response = await axios.get(zipURL, { responseType: 'arraybuffer' });
+  return Buffer.from(response.data, 'binary');
+}
+
+function createPackageID(packageName: string, packageVersion: string)
+{
+  return packageName + packageVersion
+}
+
+async function packageInfoFromBody(body: Record<string, any>)
+{
+  if (body.Content) { return await packageInfoFromContent(body.Content) }
+  return await packageInfoFromContent(body.URL)
+}
+
+async function packageInfoFromURL(url: string)
+{
+  const zip = await fetchGitHubRepoAsZip(url)
+  return await packageInfoFromZip(zip)
+}
+
+function getPackageJson(unzipped: JSZip)
+{
+  const packageJsonFile = unzipped.file('package.json');
+  if (!packageJsonFile) {
+    throw new Error('package.json not found in the zip');
+  }
+  return packageJsonFile
+}
+
+async function packageInfoFromZip(zip: Buffer)
+{
+  const unzipped = await JSZip.loadAsync(zip)
+
+  // Locate and read the package.json file
+  const packageJsonFile = getPackageJson(unzipped)
+
+
+  const packageJsonContent = await packageJsonFile.async('text');
+
+  // Parse the package.json content
+  const parsedPackageJson = JSON.parse(packageJsonContent);
+
+  // Extract package name and version
+  const packageName: string = parsedPackageJson.name;
+  const packageVersion: string = parsedPackageJson.version;
+
+  return {
+    "name": packageName,
+    "version": packageVersion,
+    "zip": zip
+  }
+}
+
+async function packageInfoFromContent(content: string)
+{
+  const zipped = zipFromBase64(content)
+  return packageInfoFromZip(zipped)
 }
