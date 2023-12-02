@@ -6,33 +6,33 @@
  */
 
 
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { DynamoDBClient, GetItemCommand } = require('@aws-sdk/client-dynamodb');
 
 const AWS_REGION = "us-east-2";
+const s3Client = new S3Client({ region: AWS_REGION });
+const dynamoDBClient = new DynamoDBClient({ region: AWS_REGION });
 
 export const handler = async (event: any, context: any) => {
-  const s3Client = new S3Client({ region: AWS_REGION });
-  const dynamoDBClient = new DynamoDBClient({ region: AWS_REGION });
   let response;
   console.log(event);
   // TODO implement
   //Extract id
-  const packageId = event.queryStringParameters.id;
-  const bearerToken = event.headers.Authorization;
+  const packageId = event.pathParameters?.id;
+  const bearerToken = event.headers?.Authorization;
+
 
   //Validate bearer token --- SECURITY TEAM
   if (!isValidToken(bearerToken)) {
     response = {
         statusCode: 400,
         body: JSON.stringify({
-            error: 'Invalid Authentication Token'
+            error: 'The AuthenticationToken is invalid.'
         }),
     };
     return response;
   }
   
-
   // - Handle id exists
   // -- Grab the package with the given id
   //Create response with package data
@@ -48,9 +48,12 @@ export const handler = async (event: any, context: any) => {
         return response;
     }
 
+    const packageName = packageMetadata.Name;
+    const packageVersion = packageMetadata.Version;
+
     const s3Response = await s3Client.send(new GetObjectCommand({
         Bucket: "main-storage-bucket",
-        Key: `packages/${packageId}/content.zip`
+        Key: `package/${packageName}/${packageVersion}.zip`
     }));
 
     response = {
@@ -68,7 +71,7 @@ export const handler = async (event: any, context: any) => {
     response = {
         statusCode: 400,
         body: JSON.stringify({
-            error: 'There was an error processing your request'
+            error: 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'
         }),
     };
 }
@@ -81,11 +84,22 @@ function isValidToken(token: string) {
   return true; // Placeholder
 }
 
-async function getPackageMetadata(packageId: string, dynamoDBClient: string) {
+async function getPackageMetadata(packageId: string, dynamoDBClient: typeof DynamoDBClient) {
   const params = {
-      TableName: "<your_dynamodb_table>",
-      Key: { 'ID': { S: packageId } }
+      TableName: "Packages",
+      Key: { 'ID': { S: packageId } },
   };
   const { Item } = await dynamoDBClient.send(new GetItemCommand(params));
-  return Item ? AWS.DynamoDB.Converter.unmarshall(Item) : null;
+  return Item ? DynamoDBClient.Converter.unmarshall(Item) : null;
 }
+
+/*
+async function getPackageContent(packageId: string, s3Client: string) {
+    const params = {
+        Bucket: "main-storage-bucket",
+        Key: `package/${packageName}/${packageVersion}.zip`
+    };
+    const { Body } = await s3Client.send(new GetObjectCommand(params));
+    return Body ? Body.toString('base64') : null;
+}
+*/
