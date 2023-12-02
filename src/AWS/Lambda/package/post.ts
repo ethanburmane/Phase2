@@ -209,7 +209,7 @@ async function extractUrlFromContent(content: any)
 
   //Need package.json file
   if (packageJsonFile) {
-    const packageData = await packageDataFromZip(unzip_result, root)
+    const packageData = await packageJsonDataFromZip(unzip_result, root)
 
     // Need the url from the package data
     url = packageData.homepage || (packageData.repository && packageData.repository.url);
@@ -321,7 +321,7 @@ async function packageInfoFromBody(body: Record<string, any>)
   return await packageInfoFromURL(body.URL)
 }
 
-async function packageDataFromZip(zip: any, root: string)
+async function packageJsonDataFromZip(zip: any, root: string)
 {
   const file = zip.files[root + '/package.json'];
   const content = await file.async('text');
@@ -368,12 +368,7 @@ async function packageInfoFromZip(zip: Buffer)
     throw new Error("Package json not found in zip file")
   }
   
-  let packageJsonFile
-  packageJsonFile = await packageDataFromZip(unzipped, rootFromZip(unzipped))
-  const packageJsonContent = await packageJsonFile.async('text');
-
-  // Parse the package.json content
-  const parsedPackageJson = JSON.parse(packageJsonContent);
+  const parsedPackageJson = await packageJsonDataFromZip(unzipped, rootFromZip(unzipped))
 
   // Extract package name and version
   const packageName: string = parsedPackageJson.name;
