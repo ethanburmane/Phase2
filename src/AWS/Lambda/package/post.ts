@@ -26,8 +26,10 @@ export const handler = async (event: any, context: any) => {
   const body = event.body
 
   // Validate request
+  console.log("Validating event" + event)
   if (!isValidRequest(event)) {
     // Return 4xx code since the body is not formatted correctly
+    console.log("Event was not valid")
     response = {
       statusCode: 400,
       body: {
@@ -39,22 +41,25 @@ export const handler = async (event: any, context: any) => {
     return response
   }
 
+  console.log("Extracing URL from body")
   let urlResult = await extractUrlFromBody(body)  
   if (urlResult[0] == false)
   {
+    console.log("Unable to get url from body")
     return urlResult[1]
   }
   let url = urlResult[1]
 
 
   // TODO log "scoring url"
+  console.log("Calculating score for url" + url)
   const score = await calculateNetScore(url)
 
   if (score > MIN_PKG_SCORE) {
     // Perform S3 update let s3response = 
 
     // TODO log "package has valid score of ..."
-
+    console.log("Getting package info from body")
     let packageInfo = await packageInfoFromBody(body)
     const zipContent = packageInfo.zip
     const packageName = packageInfo.name
@@ -73,12 +78,14 @@ export const handler = async (event: any, context: any) => {
     }
 
     // TODO log "sending PutObjectCommand for ..."
+    console.log("Sending command to s3")
     const s3Client = new S3Client(config)
     const s3command = new PutObjectCommand(cmdInput)
     const cmdResponse = await s3Client.send(s3command)
 
     if (!isSuccessfulS3Response(cmdResponse))
     {
+      console.log("s3 upload failed. Response:\n" + cmdResponse)
       // TODO log response info
 
       // TODO send response to client
@@ -90,7 +97,7 @@ export const handler = async (event: any, context: any) => {
       }
       return response
     }
-    
+
     const itemId = createPackageID(packageName, packageVersion)
 
     const uploadDate = new Date()
@@ -127,12 +134,15 @@ export const handler = async (event: any, context: any) => {
         }
       }
     }
+
+    console.log("Sending dynamo command")
     const db = new DynamoDBClient(config)
     const dbcommand = new PutItemCommand(itemParams)
     const dbcmdResponse = db.send(dbcommand)
 
     if (!isSuccessfulDBResponse(dbcmdResponse)) {
       // TODO log response info
+      console.log("Upload to db failed. Response:\n" + dbcmdResponse)
 
       // TODO send response to client
       response = {
