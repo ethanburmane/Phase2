@@ -33,6 +33,11 @@ export const handler = async (event: any, context: any) => {
     console.log("Event was not valid")
     response = {
       statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "OPTIONS,POST"
+      },
       body: {
         error: 'Invalid request format.',
       },
@@ -66,7 +71,7 @@ export const handler = async (event: any, context: any) => {
     const packageName = packageInfo.name
     const packageVersion = packageInfo.version
 
-    const objKey =  "package/" + packageName + "/" + packageVersion + ".zip"
+    const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
     const cmdInput = {
       Body: zipContent,
@@ -92,6 +97,11 @@ export const handler = async (event: any, context: any) => {
       // TODO send response to client
       response = {
         statusCode: 500,
+        headers: {
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
         body: {
           error: 'Unable to upload package',
         },
@@ -101,6 +111,8 @@ export const handler = async (event: any, context: any) => {
 
     const itemId = createPackageID(packageName, packageVersion)
 
+    // TODO create item score formatted for db entry
+    let itemScore = {}
     const uploadDate = new Date()
     const dateString = uploadDate.toISOString()
     const itemParams = {
@@ -126,12 +138,16 @@ export const handler = async (event: any, context: any) => {
         {
           "L": [
             {
-              M: {
+              "M": {
                 "type": { S: "CREATE" },
                 "date": { S: dateString },
               }
             }
           ]
+        },
+        "Score":
+        {
+          "M": itemScore
         }
       }
     }
@@ -148,6 +164,11 @@ export const handler = async (event: any, context: any) => {
       // TODO send response to client
       response = {
         statusCode: 500,
+        headers: {
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
         body: {
           error: "Unable to upload package",
         },
@@ -159,6 +180,11 @@ export const handler = async (event: any, context: any) => {
 
     response = {
       statusCode: 201,
+      headers: {
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "OPTIONS,POST"
+      },
       body: {
         "metadata": {
           "Name": packageName,
@@ -176,6 +202,11 @@ export const handler = async (event: any, context: any) => {
     // TODO log response
     response = {
       statusCode: 424,
+      headers: {
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "OPTIONS,POST"
+      },
       body: {
         error: 'Package rating was not high enough',
         score: score
@@ -217,6 +248,11 @@ async function extractUrlFromContent(content: any)
     {
       const response = {
         statusCode: 400,
+        headers: {
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
         body: {
           error: "URL not found inside package.json"
         }
@@ -238,6 +274,11 @@ async function extractUrlFromContent(content: any)
       console.log('No package.json found in the ZIP package.');
       const response = {
         statusCode: 400,
+        headers: {
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
         body: {
           error: "No package.json found in the ZIP package."
         }
