@@ -114,16 +114,15 @@ export const handler = async (event: any, context: any) => {
 
     // TODO create item score formatted for db entry
     let itemScore = {
-      "BusFactor": 0.5,
-      "Correctness": 0.7,
-      "RampUp": 0.7,
-      "ResponsiveMaintainer": 0.7,
-      "LicenseScore": 1,
-      "GoodPinningPractice": 0.7,
-      "PullRequest": 0.6,
-      "NetScore": 0.65
+      "BusFactor": {"S": "0.5"},
+      "Correctness": {"S": "0.7"},
+      "RampUp": {"S": "0.7"},
+      "ResponsiveMaintainer": {"S": "0.7"},
+      "LicenseScore": {"S": "1.0"},
+      "GoodPinningPractice": {"S": "0.7"},
+      "PullRequest": {"S": "0.6"},
+      "NetScore": {"S": "0.65"}
     }
-    
     const uploadDate = new Date()
     const dateString = uploadDate.toISOString()
     const itemParams = {
