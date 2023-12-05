@@ -34,8 +34,8 @@ export const handler = async (event: any, context: any) => {
     response = {
       statusCode: 400,
       headers: {
-        "Access-Control-Allow-Headers": "*",
         "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
         "Access-Control-Allow-Methods": "OPTIONS,POST"
       },
       body: {
@@ -71,7 +71,7 @@ export const handler = async (event: any, context: any) => {
     const packageName = packageInfo.name
     const packageVersion = packageInfo.version
 
-    const objKey =  "package/" + packageName + "/" + packageVersion + ".zip"
+    const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
     const cmdInput = {
       Body: zipContent,
