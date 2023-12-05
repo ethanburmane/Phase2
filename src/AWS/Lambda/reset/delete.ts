@@ -7,7 +7,7 @@
 
 
 
- const { DynamoDBClient, DeleteItemCommand } = require("@aws-sdk/client-dynamodb")
+ const { DynamoDBClient, DeleteItemCommand, ScanCommand } = require("@aws-sdk/client-dynamodb")
  const {S3Client, DeleteObjectsCommand, ListObjectsCommand } = require("@aws-sdk/client-s3")
  const AWS_REGION = "us-east-2"
  const S3_NAME = "main-storage-bucket"
@@ -18,11 +18,8 @@
  
  export const handler = async (event: any) => {
    let response
-   // TODO implement
- 
-   // Authenticate credentials
- 
-   // Returns 'ls AWS/S3/Packages/*'
+
+   // TODO Log clearing table
    const clearTableResult = await clearTable(DB_TABLE_NAME)
  
    if (!clearTableResult)
@@ -38,6 +35,7 @@
      return response
    }
  
+   // TODO log clearing s3
    const clearS3Result = await clearS3(S3_NAME, S3_ROOT)
  
    if (!clearS3Result)
@@ -65,31 +63,43 @@
    let scanResult;
    let deleteResult
    do {
- 
-     scanResult = await DB.scan(scanParams);
-     if (scanResult.Items) {
-         const deletePromises = scanResult.Items.map((item: any) => {
-             const deleteParams = {
-                 TableName: tableName,
-                 Key: {
-                     // Adjust this according to your table's primary key structure
-                     primaryKey: item.primaryKey
-                 }
-             };
-             return DB.send(new DeleteItemCommand(deleteParams));
-         });
-         deleteResult = await Promise.all(deletePromises);
-     }
-     if (!isDBDeleteSuccess(deleteResult)) {
-       return false
-     }
-     scanParams.ExclusiveStartKey = scanResult.LastEvaluatedKey;
-   } while (scanResult.LastEvaluatedKey);
- }
+    const scanParams: any = {
+        TableName: tableName,
+        ExclusiveStartKey: scanResult ? scanResult.LastEvaluatedKey : undefined
+    };
+
+    // TODO Log scanning DB
+    scanResult = await DB.send(new ScanCommand(scanParams));
+
+    // TODO Log items scanned
+    if (scanResult.Items && scanResult.Items.length > 0) {
+        const deletePromises = scanResult.Items.map((item: any) => {
+            const deleteParams = {
+                TableName: tableName,
+                Key: {
+                    // Adjust according to your table's primary key structure
+                    id: item.id
+                }
+            };
+            // TODO Log deleting items
+            return DB.send(new DeleteItemCommand(deleteParams));
+        });
+
+        deleteResult = await Promise.all(deletePromises);
+
+        if (!isDBDeleteSuccess(deleteResult)) {
+            // TODO log deletion failure
+            return false;
+        }
+    }
+  } while (scanResult.LastEvaluatedKey);
+  // TODO Log deletion success
+  return true
+}
  
  function isDBDeleteSuccess(result: any)
  {
-   return result.$metadata.httpStatusCode === 200
+   return result[0].$metadata.httpStatusCode === 200
  }
  
  function isS3DeleteSuccess(result: any)
