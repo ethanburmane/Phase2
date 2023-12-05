@@ -112,7 +112,17 @@ export const handler = async (event: any, context: any) => {
     const itemId = createPackageID(packageName, packageVersion)
 
     // TODO create item score formatted for db entry
-    let itemScore = {}
+    let itemScore = {
+      "BusFactor": 0.5,
+      "Correctness": 0.7,
+      "RampUp": 0.7,
+      "ResponsiveMaintainer": 0.7,
+      "LicenseScore": 1,
+      "GoodPinningPractice": 0.7,
+      "PullRequest": 0.6,
+      "NetScore": 0.65
+    }
+    
     const uploadDate = new Date()
     const dateString = uploadDate.toISOString()
     const itemParams = {

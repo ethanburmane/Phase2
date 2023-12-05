@@ -78,7 +78,7 @@
                 TableName: tableName,
                 Key: {
                     // Adjust according to your table's primary key structure
-                    primaryKey: item.primaryKey
+                    id: item.id
                 }
             };
             return DB.send(new DeleteItemCommand(deleteParams));
