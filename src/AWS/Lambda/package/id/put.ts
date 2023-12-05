@@ -12,15 +12,9 @@ const dynamoDBClient = new DynamoDBClient({ region: AWS_REGION });
 
 export const handler = async (event: any, context: any) => {
   const packageId = event.pathParameters?.id;
-  const bearerToken = event.headers?.Authorization;
   const body = JSON.parse(event.body);
 
   // TODO implement
-  //Validate credentials
-  if (!isValidToken(bearerToken)) {
-    return { statusCode: 400, body: JSON.stringify("Invalid Authentication Token") };
-  }
-
   // Check if the package exists
   const packageExists = await checkPackageExists(packageId);
   if (!packageExists) {
@@ -40,11 +34,6 @@ export const handler = async (event: any, context: any) => {
         console.error(error);
         return { statusCode: 400, body: JSON.stringify("Error updating the package") };
     }
-}
-
-function isValidToken(token: string) {
-  // Implement token validation logic here
-  return true; // Placeholder
 }
 
 async function checkPackageExists(packageId: string) {
