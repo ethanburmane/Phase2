@@ -7,7 +7,7 @@
 
 
 
- const { DynamoDBClient, DeleteItemCommand } = require("@aws-sdk/client-dynamodb")
+ const { DynamoDBClient, DeleteItemCommand, ScanCommand } = require("@aws-sdk/client-dynamodb")
  const {S3Client, DeleteObjectsCommand, ListObjectsCommand } = require("@aws-sdk/client-s3")
  const AWS_REGION = "us-east-2"
  const S3_NAME = "main-storage-bucket"
@@ -65,26 +65,32 @@
    let scanResult;
    let deleteResult
    do {
- 
-     scanResult = await DB.scan(scanParams);
-     if (scanResult.Items) {
-         const deletePromises = scanResult.Items.map((item: any) => {
-             const deleteParams = {
-                 TableName: tableName,
-                 Key: {
-                     // Adjust this according to your table's primary key structure
-                     primaryKey: item.primaryKey
-                 }
-             };
-             return DB.send(new DeleteItemCommand(deleteParams));
-         });
-         deleteResult = await Promise.all(deletePromises);
-     }
-     if (!isDBDeleteSuccess(deleteResult)) {
-       return false
-     }
-     scanParams.ExclusiveStartKey = scanResult.LastEvaluatedKey;
-   } while (scanResult.LastEvaluatedKey);
+    const scanParams: any = {
+        TableName: tableName,
+        ExclusiveStartKey: scanResult ? scanResult.LastEvaluatedKey : undefined
+    };
+
+    scanResult = await DB.send(new ScanCommand(scanParams));
+
+    if (scanResult.Items && scanResult.Items.length > 0) {
+        const deletePromises = scanResult.Items.map((item: any) => {
+            const deleteParams = {
+                TableName: tableName,
+                Key: {
+                    // Adjust according to your table's primary key structure
+                    primaryKey: item.primaryKey
+                }
+            };
+            return DB.send(new DeleteItemCommand(deleteParams));
+        });
+
+        deleteResult = await Promise.all(deletePromises);
+
+        if (!isDBDeleteSuccess(deleteResult)) {
+            return false;
+        }
+    }
+} while (scanResult.LastEvaluatedKey);
  }
  
  function isDBDeleteSuccess(result: any)
