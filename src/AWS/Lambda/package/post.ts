@@ -73,6 +73,7 @@ export const handler = async (event: any, context: any) => {
 
     const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
+    
     const cmdInput = {
       Body: zipContent,
       Bucket: PACKAGE_S3,
@@ -112,7 +113,16 @@ export const handler = async (event: any, context: any) => {
     const itemId = createPackageID(packageName, packageVersion)
 
     // TODO create item score formatted for db entry
-    let itemScore = {}
+    let itemScore = {
+      "BusFactor": {"S": "0.5"},
+      "Correctness": {"S": "0.7"},
+      "RampUp": {"S": "0.7"},
+      "ResponsiveMaintainer": {"S": "0.7"},
+      "LicenseScore": {"S": "1.0"},
+      "GoodPinningPractice": {"S": "0.7"},
+      "PullRequest": {"S": "0.6"},
+      "NetScore": {"S": "0.65"}
+    }
     const uploadDate = new Date()
     const dateString = uploadDate.toISOString()
     const itemParams = {
