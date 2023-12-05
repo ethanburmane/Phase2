@@ -29,7 +29,7 @@ export const handler = async (event: any, context: any) => {
 
   // Update package in S3 and DB
     try {
-        await updatePackageInS3(packageId, body.metadata.version, body.data.Content);
+        await updatePackageInS3(body.metadata.Name, body.metadata.version, body.data.Content);
         await updatePackageInDB(packageId, body.metadata);
 
         return {
@@ -56,11 +56,11 @@ async function checkPackageExists(packageId: string) {
   return !!Item;
 }
 
-async function updatePackageInS3(packageId: string, packageVersion: string, content: string) {
+async function updatePackageInS3(packageName: string, packageVersion: string, content: string) {
   const cmdInput = {
       Body: Buffer.from(content, 'base64'), // assuming content is base64 encoded
       Bucket: "main-storage-bucket",
-      Key: `package/${packageId}/${packageVersion}.zip`
+      Key: `package/${packageName}/${packageVersion}.zip`
   };
 
   await s3Client.send(new PutObjectCommand(cmdInput));
