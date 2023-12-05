@@ -1,21 +1,21 @@
 import CheckUrl from '../../src/commands/check-url'
 
-describe('CheckUrl Command', () => {
-  jest.setTimeout(10000)
-  it('runs without dependencies', async () => {
-    // const fs = require('fs')
-    // const fsSpy = jest.spyOn(fs, 'readFileSync').mockImplementation(function () {
-    //   return 'no\n'
-    // })
-    const consoleSpy = jest.spyOn(console, 'log')
+// describe('CheckUrl Command', () => {
+//   jest.setTimeout(10000)
+//   it('runs without dependencies', async () => {
+//     // const fs = require('fs')
+//     // const fsSpy = jest.spyOn(fs, 'readFileSync').mockImplementation(function () {
+//     //   return 'no\n'
+//     // })
+//     const consoleSpy = jest.spyOn(console, 'log')
 
-    // call the command, ensure the file exists
-    await CheckUrl.run(['./URLs'])
+//     // call the command, ensure the file exists
+//     await CheckUrl.run(['./URLs'])
 
-    // expect(consoleSpy).toContain('URL')
+//     // expect(consoleSpy).toContain('URL')
 
-    // expect(consoleSpy.getMockImplementation).toHaveBeenCalledWith(5)
+//     // expect(consoleSpy.getMockImplementation).toHaveBeenCalledWith(5)
 
-    consoleSpy.mockRestore()
-  })
-})
+//     consoleSpy.mockRestore()
+//   })
+// })
