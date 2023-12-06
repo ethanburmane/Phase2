@@ -58,13 +58,13 @@ export const handler = async (event: any, context: any) => {
     console.log("content:", s3Response.Body.toString('base64'));
     return {
       statusCode: 200,
-      body: JSON.stringify({
+      body: {
         metadata: packageMetadata,
         data: {
           Content: s3Response.Body.toString('base64'),
           JSProgram: "<your_js_program_here>"
         }
-      })
+      }
     }
   }  catch (error) {
       console.error(error);
