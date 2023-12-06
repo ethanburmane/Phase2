@@ -59,7 +59,7 @@ function queryArrayIsValid(query: any[]) : boolean
 
 function queryIsValid(query: any)
 {
-  return typeof query === 'object' && query.Name && query.Name instanceof String 
+  return typeof query === 'object' && query.Name && typeof query.Name === 'string' 
 }
 
 function validateRequest(event: any)
@@ -291,7 +291,7 @@ function formatScanItems(scanItems: any)
     items.push({
       Name: item.Name.S,
       Version: item.Version.S,
-      id: item.id.S
+      ID: item.id.S
     })
   })
   return items
