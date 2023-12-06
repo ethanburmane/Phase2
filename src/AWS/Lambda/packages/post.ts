@@ -59,7 +59,7 @@ function queryArrayIsValid(query: any[]) : boolean
 
 function queryIsValid(query: any)
 {
-  return typeof query === 'object' && query.Name && query.Name instanceof String 
+  return typeof query === 'object' && query.Name && typeof query.Name === 'string' 
 }
 
 function validateRequest(event: any)
