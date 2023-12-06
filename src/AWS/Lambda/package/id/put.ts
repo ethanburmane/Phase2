@@ -51,8 +51,8 @@ export const handler = async (event: any, context: any) => {
 async function checkPackageExists(packageId: string) {
   console.log("Checking if package exists: ", packageId);
   const params = {
-      TableName: "Packages",
-      Key: { 'ID': { S: packageId } }
+      "TableName": "Packages",
+      "Key": { "id": { S: packageId } }
   };
   const { Item } = await dynamoDBClient.send(new GetItemCommand(params));
   return !!Item;
@@ -63,9 +63,9 @@ async function updatePackageInS3(packageName: string, packageVersion: string, co
   let name = JSON.parse(packageName);
   let version = JSON.parse(packageVersion);
   const cmdInput = {
-      Body: Buffer.from(content, 'base64'), // assuming content is base64 encoded
-      Bucket: "main-storage-bucket",
-      Key: `package/${name}/${version}.zip`
+      "Body": Buffer.from(content, 'base64'), // assuming content is base64 encoded
+      "Bucket": "main-storage-bucket",
+      "Key": `package/${name}/${version}.zip`
   };
 
   const Item = await s3Client.send(new PutObjectCommand(cmdInput));
@@ -105,7 +105,7 @@ async function updatePackageInDB(packageId: string, metadata: any) {
   const params = {
       "TableName": "Packages",
       "Key": { "id": { S: packageId } },
-      "UpdateExpression": "SET #N = :n, #V = :v, #L = :l, History = :h",
+      "UpdateExpression": "SET #N = :n, #V = :v, #L = :l, #H = :h",
       "ExpressionAttributeNames": {
           "#N": "Name",
           "#V": "Version",
