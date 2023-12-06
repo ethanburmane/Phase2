@@ -11,8 +11,20 @@ const s3Client = new S3Client({ region: AWS_REGION });
 const dynamoDBClient = new DynamoDBClient({ region: AWS_REGION });
 
 export const handler = async (event: any, context: any) => {
-  const packageId = event.pathParameters?.id;
-  const body = JSON.parse(event.body);
+  console.log("UPDATE PACKAGE STARTING");
+  const path = event.pathParameters.proxy;
+  const segments = path.split("/");
+  const packageId = segments[segments.length - 2];
+  console.log("Package ID: ", packageId);
+
+  const body = event.body;
+  console.log("Body: ", JSON.stringify(body));
+  const metadata = body.metadata;
+  console.log("Metadata: ", JSON.stringify(metadata));
+  const packageName = JSON.stringify(metadata.Name);
+  console.log("Package Name: ", packageName);
+  const packageVersion = JSON.stringify(metadata.Version);
+  console.log("Package Version: ", packageVersion);
 
   // TODO implement
   // Check if the package exists
@@ -20,10 +32,10 @@ export const handler = async (event: any, context: any) => {
   if (!packageExists) {
       return { statusCode: 404, body: JSON.stringify("Package does not exist") };
   }
-
+  console.log("Package exists");
   // Update package in S3 and DB
     try {
-        await updatePackageInS3(body.metadata.Name, body.metadata.version, body.data.Content);
+        await updatePackageInS3(packageName, packageVersion, body.data.Content);
         await updatePackageInDB(packageId, body.metadata);
 
         return {
@@ -37,6 +49,7 @@ export const handler = async (event: any, context: any) => {
 }
 
 async function checkPackageExists(packageId: string) {
+  console.log("Checking if package exists: ", packageId);
   const params = {
       TableName: "Packages",
       Key: { 'ID': { S: packageId } }
@@ -46,34 +59,67 @@ async function checkPackageExists(packageId: string) {
 }
 
 async function updatePackageInS3(packageName: string, packageVersion: string, content: string) {
+  console.log("Updating package in S3");
+  let name = JSON.parse(packageName);
+  let version = JSON.parse(packageVersion);
   const cmdInput = {
       Body: Buffer.from(content, 'base64'), // assuming content is base64 encoded
       Bucket: "main-storage-bucket",
-      Key: `package/${packageName}/${packageVersion}.zip`
+      Key: `package/${name}/${version}.zip`
   };
 
-  await s3Client.send(new PutObjectCommand(cmdInput));
+  const Item = await s3Client.send(new PutObjectCommand(cmdInput));
+  console.log("Updated package in S3: ", Item);
 }
 
 
 async function updatePackageInDB(packageId: string, metadata: any) {
-  const uploadDate = new Date()
-  const dateString = uploadDate.toISOString()
-  const history = {
-    "type": {S: "UPDATE"},
-    "date": {S: dateString},
+  console.log("Updating package in DB");
+  const uploadDate = new Date();
+  const dateString = uploadDate.toISOString();
+  const new_history = {
+    M: {
+      "type": {S: "UPDATE"},
+      "date": {S: dateString},
+    }
   }
 
+  const get_item_params = {
+    "TableName": "Packages",
+    "Key": { "id": { S: packageId } },
+    "ProjectionExpression": "History"
+  };
+  
+  let curr_history;
+  try {
+    const data = await dynamoDBClient.send(new GetItemCommand(get_item_params));
+    curr_history = data.Item ? data.Item.History.L : [];
+  }
+  catch (error) {
+    console.error("Error getting package history", error);
+    throw error;
+  } 
+
+  curr_history.push(new_history);
+
   const params = {
-      TableName: "Packages",
-      Key: { 'id': { S: packageId } },
-      UpdateExpression: "set Name = :n, Version = :v, LastModified = :l, History = :h",
-      ExpressionAttributeValues: {
+      "TableName": "Packages",
+      "Key": { "id": { S: packageId } },
+      "UpdateExpression": "SET #N = :n, #V = :v, #L = :l, History = :h",
+      "ExpressionAttributeNames": {
+          "#N": "Name",
+          "#V": "Version",
+          "#L": "LastUpdated",
+          "#H": "History"
+      },
+      "ExpressionAttributeValues": {
           ":n": { S: metadata.Name },
           ":v": { S: metadata.Version },
           ":l": { S: dateString},
-          ":h": { L: [history] } // might be wrong b/c of "L:" [{M:{}}]
-      }
+          ":h": { L: curr_history }
+      },
+      "ReturnValues": "UPDATED_NEW"
   };
-  await dynamoDBClient.send(new UpdateItemCommand(params));
+  const Item = await dynamoDBClient.send(new UpdateItemCommand(params));
+  console.log("Updated package in DB: ", Item)
 }
