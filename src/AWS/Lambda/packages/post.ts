@@ -291,7 +291,7 @@ function formatScanItems(scanItems: any)
     items.push({
       Name: item.Name.S,
       Version: item.Version.S,
-      id: item.id.S
+      ID: item.id.S
     })
   })
   return items
