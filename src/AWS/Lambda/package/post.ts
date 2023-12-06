@@ -437,3 +437,7 @@ async function packageInfoFromContent(content: string)
   const zipped = zipFromBase64(content)
   return packageInfoFromZip(zipped)
 }
+
+async function doesPackageExist(id: string) {
+
+}
