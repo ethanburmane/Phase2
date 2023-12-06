@@ -14,10 +14,9 @@ const DB = new DynamoDBClient({ region: AWS_REGION })
 export const handler = async (event: any) => {
   let response
   
-  //const reqValidResult = validateRequest(event)
-  const reqValidResult = event.body && event.body instanceof Array && event.body[0].Name && event.body[0].Name === "*"
+  const reqValidResult = validateRequest(event)
 
-  if (!reqValidResult)
+  if (reqValidResult === false)
   {
     response = {
       statusCode: 400,
@@ -25,6 +24,7 @@ export const handler = async (event: any) => {
         error: "Bad request."
       }
     }
+    return response
   }
 
   const offset = extractOffset(event)
@@ -59,7 +59,7 @@ function queryArrayIsValid(query: any[]) : boolean
 
 function queryIsValid(query: any)
 {
-  return typeof query === 'object' && query.Name && query.Version && typeof query.Name === 'string' && typeof query.Version === 'string'
+  return typeof query === 'object' && query.Name && query.Name instanceof String 
 }
 
 function validateRequest(event: any)
@@ -72,14 +72,7 @@ function validateRequest(event: any)
 
   if (body instanceof Array)
   {
-    if (body.length == 1)
-    {
-      return (body[0] == "*")
-    }
-    else 
-    {
-      return queryArrayIsValid(body)
-    } 
+    return queryArrayIsValid(body)
   }
   return false
 }
@@ -97,7 +90,7 @@ async function performDBQuery(query: any[], offset: number)
 async function scanDB(query: any[], offset: number)
 {
   let scanResult
-  if (query[0] === "*")
+  if (query[0].Name === "*")
   {
     scanResult = await fullDBScan(offset)
   }
@@ -111,40 +104,48 @@ async function scanDB(query: any[], offset: number)
 
 async function partialDBScan(query: any[])
 {
-  let items: any[] = []
-  await query.forEach(async (pkg: any) =>
-  {  const params = {
-      TableName: DB_TABLE_NAME,
-      KeyConditionExpression: '#N = :n',
-      ExpressionAttributeNames: {
-        '#N': 'Name' // Replace 'Name' with your actual attribute name
-      },
-      ExpressionAttributeValues: {
-        ':n': { S: pkg.Name } // Replace 'S' with the appropriate data type of the attribute
-      }
-    };
+  let items = [];
+    for (const pkg of query) {
+        const params = {
+            TableName: DB_TABLE_NAME,
+            FilterExpression: '#N = :n',
+            ExpressionAttributeNames: {
+                '#N': 'Name'
+            },
+            ExpressionAttributeValues: {
+                ':n': { S: pkg.Name }
+            }
+        };
 
-    const command = new QueryCommand(params);
-    const result = await DB.send(command);
-    if (result.$metadata.httpStatusCode === 200 && result.Items)
-    {
-      let filtered = filterQuery(result.Items, pkg.Version)
-      filtered.forEach((item: any) =>
-      {
-        items.push(item)
-      })
-    }
-    else 
-    {
-      return false
-    }
-  })
+        console.log("Sending Scan command");
+        const command = new ScanCommand(params);
+        try {
+            const result = await DB.send(command);
 
-  return items;
+            if (result && result.Items && result.Items.length > 0) {
+                console.log("Scan successful", result);
+                items = filterQuery(result.Items, pkg.Version)
+                
+            } else {
+                console.log("No items found for Name:", pkg.Name);
+            }
+        } catch (error) {
+            console.error("Error occurred during scan:", error);
+            return false
+        }
+    }
+
+    console.log(items);
+    return items;
 }
 
 function filterQuery(items: any[], versionExp: string)
 {
+  if (!versionExp)
+  {
+    return items
+  }
+
   let filtered: any[] = []
   items.forEach((item: any) =>
   {
@@ -165,19 +166,19 @@ function versionMatch(exp: string, item: any) : boolean
 
   if (exactVersionRegex.test(exp))
   {
-    return isExactVersion(item.Version, exp)
+    return isExactVersion(item.Version.S, exp)
   }
   else if (boundedRangeRegex.test(exp))
   {
-    return isWithinBoundedRange(item.Version, exp)
+    return isWithinBoundedRange(item.Version.S, exp)
   }
   else if (caretRegex.test(exp))
   {
-    return isCaretVersion(item.Version, exp)
+    return isCaretVersion(item.Version.S, exp)
   }
   else if (tildeRegex.test(exp))
   {
-    return isTildeVersion(item.Version, exp)
+    return isTildeVersion(item.Version.S, exp)
   }
 
   return false
@@ -302,5 +303,5 @@ function extractOffset(event: any)
   {
     return event.queryStringParameters.offset
   }
-  return false
+  return 1
 }
