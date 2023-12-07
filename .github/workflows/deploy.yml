@@ -34,8 +34,11 @@ jobs:
       - name: deploy
         run: |
           echo "Test"
+          echo "$(git diff-tree --no-commit-id --name-only -r HEAD..origin/main)"
           changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD..origin/main)
+          echo "Test2"
           changed_files=$(echo "$changed_files" | grep '^src/AWS/Lambda/')
+          echo "Test3"
           echo "Changed Files"
           echo "$changed_files"
           mkdir dist/deploy
