@@ -18,6 +18,7 @@ export const handler = async (event: any) => {
   let response
   const target = event.Name
 
+  console.log("Checking if package %s exists", target)
   const existenceResult = await getPackage(target)
 
   if (existenceResult === 500)
@@ -78,11 +79,14 @@ async function getPackage(target: string)
           ':n': { S: target }
       }
     }
+    console.log("Scanning db for name: ", target)
     const scanRes = await DB.send(new ScanCommand(itemParams))
     if (scanRes.$metadata.httpStatusCode === 200 && scanRes.Items.length > 0)
     {
+      console.log("Scan Result Successful.")
       return scanRes
     }
+    console.log("Scan Result Unsuccessful\n", scanRes)
     return 404
   }
   catch {

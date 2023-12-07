@@ -27,7 +27,8 @@ export const handler = async (event: any, context: any) => {
   const body = event.body
 
   // Validate request
-  console.log("Validating event" + event)
+  console.log("Validating event", event)
+
   if (!isValidRequest(event)) {
     // Return 4xx code since the body is not formatted correctly
     console.log("Event was not valid")
@@ -462,6 +463,7 @@ async function packageInfoFromContent(content: string)
 }
 
 async function doesPackageExist(id: string) {
+  console.log("Checking if package exists")
   try {
     const db = new DynamoDBClient({ region: AWS_REGION})
     const itemParams = {
@@ -479,7 +481,7 @@ async function doesPackageExist(id: string) {
         return 200
     }
 } catch (err) {
-    console.error("Error:", err);
+    console.error("Error when checking if package exists", err);
     return 500
 }
 }
