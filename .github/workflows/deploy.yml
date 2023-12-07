@@ -33,8 +33,6 @@ jobs:
           npm install
       - name: deploy
         run: |
-          echo "Test"
-          
           if ${{ github.event_name == 'pull_request' }}; then
             echo "Pull request"
             changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)
@@ -47,7 +45,7 @@ jobs:
           changed_files=$(echo "$changed_files" | grep '^src/AWS/Lambda/' || true)
           echo "Changed Lambda Files"
           echo "$changed_files"
-          mkdir /github/workspace/deploy
+          mkdir -p /github/workspace/deploy
           for file in $changed_files; do
             relative_path=$(echo "$file" | sed 's/^src\///')
             relative_path_without_extension="${relative_path%.ts}"
