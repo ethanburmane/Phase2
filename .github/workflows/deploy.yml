@@ -35,10 +35,10 @@ jobs:
         run: |
           if ${{ github.event_name == 'pull_request' }}; then
             echo "Pull request"
-            changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)
+            changed_files=$(git diff --name-only -r HEAD^1 HEAD)
           else
             echo "Pushing commits"
-            changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)
+            changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
           fi
           echo "All Changed Files"
           echo "$changed_files"
