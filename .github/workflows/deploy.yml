@@ -31,29 +31,19 @@ jobs:
           npm install
       - name: deploy
         run: |
-
-          changed_files=$(git diff --name-only main -- 'src/AWS/Lambda/*.ts')
-
+          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          changed_files=$(echo "$changed_files" | grep '^src/AWS/Lambda/')
           echo "Changed Files"
           echo "$changed_files"
-          # Loop through each changed file and deploy if it belongs to a specific directory
+          mkdir dist/deploy
           for file in $changed_files; do
-            case $file in
-              src/AWS/Lambda/*)
-                # Extract the path after 'src/' to use in build and deployment commands
-                relative_path=$(echo "$file" | cut -d'/' -f2-) 
-                npx ncc build "$file" -o "dist/$relative_path/"
-                cd "dist/$relative_path"
-                zip "../../../deploy/${relative_path//\//\-}.zip" index.js
-                function_name=$(echo "${relative_path//\//\-}" | cut -d'.' -f1)
-                aws lambda update-function-code --function-name="$function_name" --zip-file="fileb://dist/${relative_path//\//\-}.zip"
-                ;;
-              # Add cases for other changed files within src/AWS/Lambda here using similar logic
-              # ...
-              *)
-                echo "Skipping deployment for $file"
-                ;;
-            esac
+            relative_path=$(echo "$changed_file" | sed 's/^src\///')
+            relative_path_without_extension="${relative_path%.ts}"
+            npx ncc build "$file" -o "dist/$relative_path_without_extension/"
+            zip_name=$(echo "$relative_path_without_extension" | sed 's#^AWS/Lambda/##' | sed 's#/#-#g').zip
+            zip -j "/github/workspace/deploy/$zip_name" "dist/$relative_path_without_extension/index.js"
+            function_name=$(basename "$zip_name" .zip)
+            aws lambda update-function-code --function-name="$function_name" --zip-file="fileb://dist/AWS/Lambda/deploy/$zip_name"
           done
           # npx ncc build src/AWS/Lambda/package/post.ts -o dist/AWS/Lambda/package/post/
           # npx ncc build src/AWS/Lambda/package/byName/delete.ts -o dist/AWS/Lambda/package/byName/delete/
