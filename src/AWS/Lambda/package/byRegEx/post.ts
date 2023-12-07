@@ -73,25 +73,34 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
       ExclusiveStartKey: exclusiveStartKey,
     };
 
-    const scanResult = await DB.send(new ScanCommand(scanParams));
+    try {
+      const scanResult = await DB.send(new ScanCommand(scanParams));
 
-    // Check for empty results
-    if (!scanResult.Items || scanResult.Items.length === 0) {
-      console.log('No items found in DynamoDB scan result');
+      // Log scan result for debugging
+      console.log('DynamoDB Scan Result:', JSON.stringify(scanResult));
+
+      // Check for empty results
+      if (!scanResult.Items || scanResult.Items.length === 0) {
+        console.log('No items found in DynamoDB scan result');
+        return [];
+      }
+
+      // Handle potential undefined values during mapping
+      const packages = (scanResult.Items || []).map((item: DynamoDBItem) => ({
+        id: item.id?.S || '',
+        Name: item.Name?.S || '',
+        Readme: item.Readme?.S || '',
+        // Add more attributes as needed
+      }));
+
+      matchedPackages.push(...packages);
+
+      exclusiveStartKey = scanResult.LastEvaluatedKey;
+    } catch (error) {
+      // Log any errors during DynamoDB scan
+      console.error('Error during DynamoDB scan:', error);
       return [];
     }
-
-    // Handle potential undefined values during mapping
-    const packages = (scanResult.Items || []).map((item: DynamoDBItem) => ({
-      id: item.id?.S || '',
-      Name: item.Name?.S || '',
-      Readme: item.Readme?.S || '',
-      // Add more attributes as needed
-    }));
-
-    matchedPackages.push(...packages);
-
-    exclusiveStartKey = scanResult.LastEvaluatedKey;
   } while (exclusiveStartKey);
 
   return matchedPackages;
