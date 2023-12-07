@@ -3,8 +3,8 @@
 This file hosts the code for executing the code for GET host/package/{id}*
 This Lambda function should return the package with the given id.
 **/
+
 const { DynamoDBClient, GetItemCommand } = require("@aws-sdk/client-dynamodb");
- // Import AWS SDK for unmarshalling
 const AWS_REGION = "us-east-2";
 
 const DB = new DynamoDBClient({ region: AWS_REGION });
@@ -12,10 +12,7 @@ const DB = new DynamoDBClient({ region: AWS_REGION });
 const handler = async (event) => {
   console.log("event", event);
 
-  const path = event.path;
-  const pathSegments = path.split('/');
-  const itemID = pathSegments[pathSegments.length - 2]; // Adjust according to your path structure
-  
+  const itemID = event.id
   console.log("itemID", itemID);
 
   const itemParams = {
@@ -37,6 +34,7 @@ const handler = async (event) => {
       return {
         statusCode: 200,
         body: JSON.stringify(data),
+
       };
     } else {
       // Item not found
@@ -55,4 +53,3 @@ const handler = async (event) => {
   }
 };
 
-module.exports = { handler }; // Export the handler

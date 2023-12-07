@@ -9,7 +9,7 @@ import { unzip } from "zlib";
  *
  */
  const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
- const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
+ const { DynamoDBClient, PutItemCommand, GetItemCommand } = require('@aws-sdk/client-dynamodb');
  const axios = require('axios')
 //import { calculateNetScore } from '../../../middleware/net-score'
 const JSZip = require('jszip')
@@ -33,6 +33,11 @@ export const handler = async (event: any, context: any) => {
     console.log("Event was not valid")
     response = {
       statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "OPTIONS,POST"
+      },
       body: {
         error: 'Invalid request format.',
       },
@@ -51,6 +56,30 @@ export const handler = async (event: any, context: any) => {
   }
   let url = urlResult[1]
 
+  let packageInfo = await packageInfoFromBody(body)
+  const zipContent = packageInfo.zip
+  const packageName = packageInfo.name
+  const packageVersion = packageInfo.version
+
+  const itemId = createPackageID(packageName, packageVersion)
+  const existenceResult = await doesPackageExist(itemId)
+  if (existenceResult === 500)
+  {
+    console.log("Unable to check if pacakge exists")
+    return {
+      statusCode: 500,
+      error: "Server Error"
+    }
+  }
+  else if (existenceResult === 409)
+  {
+    console.log("Package exists")
+    return {
+      statusCode: 409,
+      error: "Package Already Exists"
+    }
+  }
+
 
   // TODO log "scoring url"
   console.log("Calculating score for url" + url)
@@ -61,13 +90,11 @@ export const handler = async (event: any, context: any) => {
 
     // TODO log "package has valid score of ..."
     console.log("Getting package info from body")
-    let packageInfo = await packageInfoFromBody(body)
-    const zipContent = packageInfo.zip
-    const packageName = packageInfo.name
-    const packageVersion = packageInfo.version
+    
 
-    const objKey =  "package/" + packageName + "/" + packageVersion + ".zip"
+    const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
+    
     const cmdInput = {
       Body: zipContent,
       Bucket: PACKAGE_S3,
@@ -92,6 +119,11 @@ export const handler = async (event: any, context: any) => {
       // TODO send response to client
       response = {
         statusCode: 500,
+        headers: {
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
         body: {
           error: 'Unable to upload package',
         },
@@ -99,8 +131,17 @@ export const handler = async (event: any, context: any) => {
       return response
     }
 
-    const itemId = createPackageID(packageName, packageVersion)
-
+    // TODO create item score formatted for db entry
+    let itemScore = {
+      "BusFactor": {"S": "0.5"},
+      "Correctness": {"S": "0.7"},
+      "RampUp": {"S": "0.7"},
+      "ResponsiveMaintainer": {"S": "0.7"},
+      "LicenseScore": {"S": "1.0"},
+      "GoodPinningPractice": {"S": "0.7"},
+      "PullRequest": {"S": "0.6"},
+      "NetScore": {"S": "0.65"}
+    }
     const uploadDate = new Date()
     const dateString = uploadDate.toISOString()
     const itemParams = {
@@ -126,12 +167,16 @@ export const handler = async (event: any, context: any) => {
         {
           "L": [
             {
-              M: {
+              "M": {
                 "type": { S: "CREATE" },
                 "date": { S: dateString },
               }
             }
           ]
+        },
+        "Score":
+        {
+          "M": itemScore
         }
       }
     }
@@ -148,6 +193,11 @@ export const handler = async (event: any, context: any) => {
       // TODO send response to client
       response = {
         statusCode: 500,
+        headers: {
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
         body: {
           error: "Unable to upload package",
         },
@@ -159,6 +209,11 @@ export const handler = async (event: any, context: any) => {
 
     response = {
       statusCode: 201,
+      headers: {
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "OPTIONS,POST"
+      },
       body: {
         "metadata": {
           "Name": packageName,
@@ -176,6 +231,11 @@ export const handler = async (event: any, context: any) => {
     // TODO log response
     response = {
       statusCode: 424,
+      headers: {
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "OPTIONS,POST"
+      },
       body: {
         error: 'Package rating was not high enough',
         score: score
@@ -217,6 +277,11 @@ async function extractUrlFromContent(content: any)
     {
       const response = {
         statusCode: 400,
+        headers: {
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
         body: {
           error: "URL not found inside package.json"
         }
@@ -238,6 +303,11 @@ async function extractUrlFromContent(content: any)
       console.log('No package.json found in the ZIP package.');
       const response = {
         statusCode: 400,
+        headers: {
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
         body: {
           error: "No package.json found in the ZIP package."
         }
@@ -385,4 +455,27 @@ async function packageInfoFromContent(content: string)
 {
   const zipped = zipFromBase64(content)
   return packageInfoFromZip(zipped)
+}
+
+async function doesPackageExist(id: string) {
+  try {
+    const db = new DynamoDBClient({ region: AWS_REGION})
+    const itemParams = {
+            TableName: "Packages",
+            Key: {
+                id: {"S": id}
+            }
+    }
+    const data = await db.send(new GetItemCommand(itemParams));
+    if (data.Item) {
+        console.log("Package already exists");
+        return 409
+    } else {
+        console.log("Package doesn't exists", data)
+        return 200
+    }
+} catch (err) {
+    console.error("Error:", err);
+    return 500
+}
 }
