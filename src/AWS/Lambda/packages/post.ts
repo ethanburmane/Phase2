@@ -14,6 +14,7 @@ const DB = new DynamoDBClient({ region: AWS_REGION })
 export const handler = async (event: any) => {
   let response
   
+  console.log("Validating Request")
   const reqValidResult = validateRequest(event)
 
   if (reqValidResult === false)
