@@ -6,7 +6,7 @@ interface DynamoDBItem {
   id: { S: string };
   Name: { S: string };
   Readme: { S: string };
-  // Add more attributes as needed
+  // Add more attributes as neededd
 }
 
 const AWS_REGION = "us-east-2";
@@ -15,42 +15,47 @@ const DB = new DynamoDBClient({ region: AWS_REGION });
 
 // Lambda function handler
 export const handler = async (event: any) => {
-  // Log the incoming event for debugging
-  console.log('Incoming event:', JSON.stringify(event));
+  try {
+    // Extract regex from the request body
+    const requestBody = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+    const regex: string | undefined = requestBody?.RegEx;
 
-  // Extract regex from the request body or query parameters
-  const requestBody = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
-  const regex: string | undefined = event.queryStringParameters?.regex || (requestBody && requestBody.regex);
+    if (!regex) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify('Missing or invalid RegEx parameter in the request body'),
+      };
+    }
 
-  if (!regex) {
+    // Validate regex
+    if (!isValidRegex(regex)) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify('Invalid RegEx'),
+      };
+    }
+
+    // Run the regex against the registry
+    const matchedPackages = await getPackagesByRegex(DB_TABLE_NAME, regex);
+
+    // Craft response with matched packages
+    const response = {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: 'Packages matching the regex',
+        packages: matchedPackages,
+      }),
+    };
+
+    console.log('Incoming event:', JSON.stringify(event));
+    return response;
+  } catch (error) {
+    console.error('Error:', error);
     return {
-      statusCode: 400,
-      body: JSON.stringify('Missing regex parameter'),
+      statusCode: 500,
+      body: JSON.stringify('Internal Server Error'),
     };
   }
-
-  // Validate regex
-  if (!isValidRegex(regex)) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify('Invalid regex'),
-    };
-  }
-
-  // Run the regex against the registry
-  const matchedPackages = await getPackagesByRegex(DB_TABLE_NAME, regex);
-
-  // Craft response with matched packages
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: 'Packages matching the regex',
-      packages: matchedPackages,
-    }),
-  };
-
-  console.log(event);
-  return response;
 };
 
 // Function to fetch packages from DynamoDB that match the given regex
