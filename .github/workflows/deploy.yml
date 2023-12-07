@@ -34,10 +34,13 @@ jobs:
       - name: deploy
         run: |
           echo "Test"
+
           if ${{ github.event_name == 'pull_request' }}; then
-            changed_files="$(git diff --name-only -r HEAD^1 HEAD | xargs)"
+            echo "Pull request"
+            changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)
           else
-              changed_files="$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)"
+            echo "Pushing commits"
+            changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)
           fi
           echo "Changed Files"
           echo "$changed_files"
