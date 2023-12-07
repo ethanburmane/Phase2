@@ -32,7 +32,7 @@ jobs:
       - name: deploy
         run: |
 
-          changed_files=$(git diff --name-only <commit-hash> -- 'src/AWS/Lambda/*.ts')
+          changed_files=$(git diff --name-only HEAD -- 'src/AWS/Lambda/*.ts')
 
           echo "Changed Files"
           echo "$changed_files"
