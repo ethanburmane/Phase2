@@ -65,7 +65,7 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
   const matchedPackages: any[] = [];
 
   do {
-    const scanParams = {
+    const scanParams: any = {
       TableName: tableName,
       FilterExpression: 'contains(Name, :regex) OR contains(Readme, :regex)',
       ExpressionAttributeValues: {

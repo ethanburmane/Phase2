@@ -26,9 +26,10 @@ export default class CheckUrl extends Command {
       let count = 0
       for (const url of urls) {
         let Metrics = await assignMetrics(url);
-        console.log(
-          `{"URL": "${url}", "NET_SCORE":${Metrics.NetScore}, "RAMP_UP_SCORE":${Metrics.RampUp}, "CORRECTNESS_SCORE":${Metrics.Correctness}, "BUS_FACTOR_SCORE":${Metrics.BusFactor}, "RESPONSIVE_MAINTAINER_SCORE":${Metrics.Responsiveness}, "LICENSE_SCORE":${Metrics.License}}`,
-        );
+        // console.log(
+        //   `{"URL": "${url}", "NET_SCORE":"${Metrics.NetScore}", "RAMP_UP_SCORE":${Metrics.RampUp}, "CORRECTNESS_SCORE":${Metrics.Correctness}, "BUS_FACTOR_SCORE":${Metrics.BusFactor}, 
+        //   "RESPONSIVE_MAINTAINER_SCORE":${Metrics.Responsiveness}, "LICENSE_SCORE":${Metrics.License}}`,"DEPENDENCY_SCORE": ${Metrics.Dependencies}, "REVIEW_SCORE": ${Metrics.Review},
+        // );
         count += 1;
       }
 

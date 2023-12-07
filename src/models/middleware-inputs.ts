@@ -18,3 +18,6 @@ export interface ResponsesivenessData {
   monthlyCommitCount: Array<number>
   annualCommitCount: number
 }
+export interface PR{
+  number: number
+}

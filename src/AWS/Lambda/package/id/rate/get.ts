@@ -1,3 +1,9 @@
+/**
+ 
+This file hosts the code for executing the code for GET host/package/{id}*
+This Lambda function should return the package with the given id.
+**/
+
 const { DynamoDBClient, GetItemCommand } = require("@aws-sdk/client-dynamodb");
 const AWS_REGION = "us-east-2";
 
@@ -7,7 +13,6 @@ const handler = async (event: any) => {
   console.log("event", event);
 
   const itemID = event.id
-
   console.log("itemID", itemID);
 
   const itemParams = {
@@ -22,11 +27,14 @@ const handler = async (event: any) => {
     console.log("Query Result: ", result);
 
     if (result.Item) {
-
+      // Convert DynamoDB format to standard JavaScript object
+      //const data = AWS.DynamoDB.Converter.unmarshall(result.Item);
+      console.log('Item', result.Item);
       // Assuming the result looks as described, create a response
       return {
         statusCode: 200,
         body: JSON.stringify(result.Item),
+
       };
     } else {
       // Item not found
@@ -44,3 +52,4 @@ const handler = async (event: any) => {
     };
   }
 };
+

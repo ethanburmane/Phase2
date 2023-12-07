@@ -4,10 +4,11 @@ import {
     getCorrectnessData,
     getResponsivenessData,
     getLiscenseComplianceData,
-    getReviewData,
+    
   } from '../src/services/gh-service'
   import axios from 'axios'
-  
+  const dotenv = require('dotenv');
+
   function isPinned(version): boolean {
       // Regex for an exact version (major.minor.patch)
       const exactVersionRegex = /^\d+\.\d+\.\d+$/;
@@ -18,10 +19,11 @@ import {
       return exactVersionRegex.test(version) || majorMinorWildcardRegex.test(version);
   }
   
-  import { calculateReviewPercentage } from '../src/middleware/metric-calculations'
+  //import { calculateReviewPercentage } from '../src/middleware/metric-calculations'
   async function main() {
-    const GITHUB_TOKEN = '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'
-    console.log(GITHUB_TOKEN)
+    dotenv.config();
+    const Token = process.env.GITHUB_TOKEN;
+    console.log(Token)
   
     
     const Django = 'https://github.com/django/django'
@@ -31,7 +33,7 @@ import {
         timeout: 10000,
         headers: {
           Accept: 'application/vnd.github+json',
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          Authorization: `Bearer ${Token}`,
         },
     });
     
@@ -44,10 +46,13 @@ import {
   
       const dependencies = packageJson.dependencies || {};
       const devDependencies = packageJson.devDependencies || {};
-      console.log('dependancies',dependencies);
+      //console.log('dependancies',dependencies);
+      
       const combinedDependencies = {...dependencies, ...devDependencies};
       const dev = Object.entries(combinedDependencies);
       console.log('dev',devDependencies); 
+      console.log('combined datatype', typeof combinedDependencies);
+      console.log('dev datatype', typeof dev);
       console.log('d0', dev[0][1]);
       console.log('d1', dev[1]);
       const d1 = dev[0];
@@ -59,6 +64,7 @@ import {
       let numPin = 0;
       for (const key in dev) {
           let pinned = isPinned(dev[key]);
+          console.log('entiry type', typeof dev[key]);
           console.log(`Dependency: ${key}, Version: ${dev[key]}`);
           console.log(isPinned(dev[key]));
           if (pinned) { // Check if the property is a direct property of the object
@@ -73,7 +79,7 @@ import {
       }else{
           return numPin / dev.length;
       }
-      return Object.entries(combinedDependencies).map(([name, version]) => ({ name, version: version as string }));
+      //return Object.entries(combinedDependencies).map(([name, version]) => ({ name, version: version as string }));
     } catch (error) {
       //logger.error('GH_API: getDependencies failed', error);
       return [];
