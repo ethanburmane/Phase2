@@ -481,8 +481,7 @@ async function doesPackageExist(id: string) {
         return 200
     }
 } catch (err) {
-  
-    console.error("Error:", err);
+    console.error("Error when checking if package exists", err);
     return 500
 }
 }

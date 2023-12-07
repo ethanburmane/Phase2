@@ -47,6 +47,7 @@ jobs:
           echo "$changed_files"
           mkdir -p deploy
           for file in $changed_files; do
+            echo "Deploying file $file"
             relative_path=$(echo "$file" | sed 's/^src\///')
             relative_path_without_extension="${relative_path%.ts}"
             npx ncc build "$file" -o "dist/$relative_path_without_extension/"
