@@ -8,25 +8,85 @@
  * Headers:
  *
  */
+const {DynamoDBClient, ScanCommand }= require("@aws-sdk/client-dynamodb")
 
-import { S3Client, GetObjectCommand, GetObjectLegalHoldCommand } from "@aws-sdk/client-s3"; // ES Modules import
-
-const config = {}
-const s3_client = new S3Client(config)
-const s3_cmd_input = {
-  Bucket: "main-storage-bucket", // required
-  Key: "packages/test/test.zip" // required
-}
-const command = new GetObjectCommand(s3_cmd_input)
+const AWS_REGION = "us-east-2"
+const DB_TABLE_NAME = "Packages"
+const DB = new DynamoDBClient({ region: AWS_REGION })
 
 export const handler = async (event: any) => {
+  let response
   const target = event.Name
 
-  const r = await s3_client.send(command)
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify('Hello from Lambda!'),
+  const existenceResult = await getPackage(target)
+
+  if (existenceResult === 500)
+  {
+    return {
+      statusCode: 500,
+      body: {
+        error: "Server Error"
+      }
+    }
   }
-  console.log(event)
+
+  if (existenceResult === 404)
+  {
+    return {
+      statusCode: 404,
+      body: {
+        error: "Package Not Found"
+      }
+    }
+  }
+
+  //Maybe sort by version
+  let history: any[] = []
+  existenceResult.Items.forEach((item: any) => {
+    item.History.L.forEach((M: any) => {
+      const actionItem = M.M
+      const temp = {
+        Date: actionItem.date.S,
+        PackageMetaData: {
+          Name: item.Name.S,
+          Version: item.Version.S,
+          ID: item.id.S
+        },
+        Action: actionItem.type.S
+      }
+      history.push(temp)
+    })
+  })
+  response = {
+    statusCode: 200,
+    body: history
+  }
   return response
+}
+
+
+async function getPackage(target: string)
+{
+  try {
+    const itemParams = {
+      TableName: DB_TABLE_NAME,
+      FilterExpression: '#N = :n',
+      ExpressionAttributeNames: {
+          '#N': 'Name'
+      },
+      ExpressionAttributeValues: {
+          ':n': { S: target }
+      }
+    }
+    const scanRes = await DB.send(new ScanCommand(itemParams))
+    if (scanRes.$metadata.httpStatusCode === 200 && scanRes.Items.length > 0)
+    {
+      return scanRes
+    }
+    return 404
+  }
+  catch {
+    console.error("Error occurred when checking if package exists.")
+    return 500
+  }
 }

@@ -51,7 +51,7 @@ export async function calculateNetScore(url: string): Promise<number> {
     busFactor * busFactorWeight +
       correctness * correctnessWeight +
       rampUpTime * rampUpTimeWeight +
-      responsiveness * responsivenessWeight + Dependencies * DependencyWeight + reviewPercentage * reviewPercentageWeight)
+      responsiveness * responsivenessWeight + DependencyWeight + reviewPercentage * reviewPercentageWeight)
 
   netScore = round(netScore, 3)
 
