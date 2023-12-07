@@ -36,25 +36,31 @@ jobs:
 
           echo "Changed Files"
           echo "$changed_files"
+  
+          # Get the root directory of the project
+          project_root=$(git rev-parse --show-toplevel)
+          
           # Loop through each changed file and deploy if it belongs to a specific directory
           for file in $changed_files; do
-            case $file in
-              src/AWS/Lambda/*)
-                # Extract the path after 'src/' to use in build and deployment commands
-                relative_path=$(echo "$file" | cut -d'/' -f2-) 
-                npx ncc build "$file" -o "dist/$relative_path/"
-                cd "dist/$relative_path"
-                zip "../../../deploy/${relative_path//\//\-}.zip" index.js
-                function_name=$(echo "${relative_path//\//\-}" | cut -d'.' -f1)
-                aws lambda update-function-code --function-name="$function_name" --zip-file="fileb://dist/${relative_path//\//\-}.zip"
-                ;;
-              # Add cases for other changed files within src/AWS/Lambda here using similar logic
-              # ...
-              *)
-                echo "Skipping deployment for $file"
-                ;;
-            esac
+              # Extract the directory structure within src/AWS/Lambda and the filename
+              relative_path=$(echo "$file" | grep -oP '^src/AWS/Lambda/\K.*')
+              file_name=$(basename "$file")
+              
+              if [ -n "$relative_path" ]; then
+                  npx ncc build "$file" -o "dist/AWS/Lambda/$relative_path/"
+                  cd "dist/AWS/Lambda/$relative_path"
+                  
+                  # Get the relative path from the project root to the deployment directory
+                  deploy_path=$(realpath --relative-to="$project_root" "../../../../deploy")
+                  zip "$deploy_path/${relative_path//\//\-}.zip" "$file_name"
+                  
+                  function_name=$(echo "${relative_path//\//\-}" | cut -d'.' -f1)
+                  aws lambda update-function-code --function-name="$function_name" --zip-file="fileb://$deploy_path/${relative_path//\//\-}.zip"
+              else
+                  echo "Skipping deployment for $file"
+              fi
           done
+          
           # npx ncc build src/AWS/Lambda/package/post.ts -o dist/AWS/Lambda/package/post/
           # npx ncc build src/AWS/Lambda/package/byName/delete.ts -o dist/AWS/Lambda/package/byName/delete/
           # npx ncc build src/AWS/Lambda/package/byName/get.ts -o dist/AWS/Lambda/package/byName/get/
