@@ -9,7 +9,7 @@ import { unzip } from "zlib";
  *
  */
  const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
- const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
+ const { DynamoDBClient, PutItemCommand, GetItemCommand } = require('@aws-sdk/client-dynamodb');
  const axios = require('axios')
 //import { calculateNetScore } from '../../../middleware/net-score'
 const JSZip = require('jszip')
@@ -56,7 +56,13 @@ export const handler = async (event: any, context: any) => {
   }
   let url = urlResult[1]
 
+  let packageInfo = await packageInfoFromBody(body)
+  const zipContent = packageInfo.zip
+  const packageName = packageInfo.name
+  const packageVersion = packageInfo.version
 
+  const itemId = createPackageID(packageName, packageVersion)
+  const existenceResult = doesPackageExist(itemId)
   // TODO log "scoring url"
   console.log("Calculating score for url" + url)
   const score = await calculateNetScore(url)
@@ -66,10 +72,7 @@ export const handler = async (event: any, context: any) => {
 
     // TODO log "package has valid score of ..."
     console.log("Getting package info from body")
-    let packageInfo = await packageInfoFromBody(body)
-    const zipContent = packageInfo.zip
-    const packageName = packageInfo.name
-    const packageVersion = packageInfo.version
+    
 
     const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
@@ -109,8 +112,6 @@ export const handler = async (event: any, context: any) => {
       }
       return response
     }
-
-    const itemId = createPackageID(packageName, packageVersion)
 
     // TODO create item score formatted for db entry
     let itemScore = {
@@ -439,5 +440,24 @@ async function packageInfoFromContent(content: string)
 }
 
 async function doesPackageExist(id: string) {
-
+  try {
+    const db = new DynamoDBClient({ region: AWS_REGION})
+    const itemParams = {
+            TableName: "Packages",
+            Key: {
+                id: {"S": id}
+            }
+    }
+    const data = await db.send(new GetItemCommand(getItemParams));
+    if (data.Item) {
+        console.log("Package already exists");
+        return 409
+    } else {
+        console.log("Package doesn't exists", data)
+        return 200
+    }
+} catch (err) {
+    console.error("Error:", err);
+    return 500
+}
 }

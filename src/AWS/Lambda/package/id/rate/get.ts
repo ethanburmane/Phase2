@@ -6,9 +6,7 @@ const DB = new DynamoDBClient({ region: AWS_REGION });
 const handler = async (event: any) => {
   console.log("event", event);
 
-  const path = event.path;
-  const pathSegments = path.split('/');
-  const itemID = pathSegments[pathSegments.length - 2]; // Adjust according to your path structure
+  const itemID = event.id
 
   console.log("itemID", itemID);
 
@@ -46,5 +44,3 @@ const handler = async (event: any) => {
     };
   }
 };
-
-module.exports = { handler }; // Export the handler
