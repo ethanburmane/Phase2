@@ -6,7 +6,7 @@ interface DynamoDBItem {
   id: { S: string };
   Name: { S: string };
   Readme: { S: string };
-  // Add more attributes as needed
+  // Add more attributes as neededd
 }
 
 const AWS_REGION = "us-east-2";
