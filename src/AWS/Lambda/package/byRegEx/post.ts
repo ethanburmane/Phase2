@@ -40,7 +40,7 @@ export const handler = async (event: any) => {//* format
     const matchedPackages = await getPackagesByRegex(DB_TABLE_NAME, regex);
 
     // Craft response with matched packages
-    const response: APIGatewayProxyResult = {
+    const response = {
       statusCode: 200,
       body: JSON.stringify({
         message: 'Packages matching the regex',
@@ -65,7 +65,7 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
   const matchedPackages: any[] = [];
 
   do {
-    const scanParams: any = {
+    const scanParams = {
       TableName: tableName,
       FilterExpression: 'contains(Name, :regex) OR contains(Readme, :regex)',
       ExpressionAttributeValues: {
@@ -74,7 +74,7 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
       ExclusiveStartKey: exclusiveStartKey,
     };
 
-    const scanResult: ScanCommandOutput = await DB.send(new ScanCommand(scanParams));
+    const scanResult = await DB.send(new ScanCommand(scanParams));
 
     if (scanResult.Items && scanResult.Items.length > 0) {
       // Extract relevant information from each item
