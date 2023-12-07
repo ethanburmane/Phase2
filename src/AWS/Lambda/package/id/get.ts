@@ -51,9 +51,11 @@ export const handler = async (event: any, context: any) => {
   console.log("Package Version: ", packageVersion);
 
   try {
+    let name = JSON.parse(packageName);
+    let version = JSON.parse(packageVersion);
     const s3Response = await s3Client.send(new GetObjectCommand({
       Bucket: "main-storage-bucket",
-      "Key": `package/${packageName}/${packageVersion}.zip`
+      "Key": `package/${name}/${version}.zip`
     }));
     console.log("content:", s3Response.Body.toString('base64'));
     return {
