@@ -9,7 +9,7 @@ const AWS_REGION = "us-east-2";
 
 const DB = new DynamoDBClient({ region: AWS_REGION });
 
-const handler = async (event) => {
+const handler = async (event: any) => {
   console.log("event", event);
 
   const itemID = event.id
@@ -33,7 +33,7 @@ const handler = async (event) => {
       // Assuming the result looks as described, create a response
       return {
         statusCode: 200,
-        body: JSON.stringify(data),
+        body: JSON.stringify(result.Item),
 
       };
     } else {
