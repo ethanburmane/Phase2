@@ -1,64 +1,65 @@
-/**
- * This file hosts the code for executing the code for POST host/package/byRegEx
- *
- * This Lambda function should return any packages matching the regex by name or readme.
- *
- */
+// use the require function
+const { DynamoDBClient, ScanCommand } = require("@aws-sdk/client-dynamodb");
 
- import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+// Define the DynamoDBItem interface based on your actual item structure
+interface DynamoDBItem {
+  id: { S: string };
+  Name: { S: string };
+  Readme: { S: string };
+  // Add more attributes as needed
+}
 
 const AWS_REGION = "us-east-2";
 const DB_TABLE_NAME = "Packages";
 const DB = new DynamoDBClient({ region: AWS_REGION });
 
+// Lambda function handler
 export const handler = async (event: any) => {
-  try {
-    // Extract regex from the request body or query parameters
-    const regex = event.queryStringParameters?.regex || (event.body && JSON.parse(event.body).regex);
-    if (!regex) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify('Missing regex parameter'),
-      };
-    }
+  // Log the incoming event for debugging
+  console.log('Incoming event:', JSON.stringify(event));
 
-    // Validate regex
-    if (!isValidRegex(regex)) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify('Invalid regex'),
-      };
-    }
+  // Extract regex from the request body or query parameters
+  const requestBody = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+  const regex: string | undefined = event.queryStringParameters?.regex || (requestBody && requestBody.regex);
 
-    // Run the regex against the registry
-    const matchedPackages = await getPackagesByRegex(DB_TABLE_NAME, regex);
-
-    // Craft response with matched packages
-    const response = {
-      statusCode: 200,
-      body: JSON.stringify({
-        message: 'Packages matching the regex',
-        packages: matchedPackages,
-      }),
-    };
-
-    console.log(event);
-    return response;
-  } catch (error) {
-    console.error('Error:', error);
+  if (!regex) {
     return {
-      statusCode: 500,
-      body: JSON.stringify('Internal Server Error'),
+      statusCode: 400,
+      body: JSON.stringify('Missing regex parameter'),
     };
   }
+
+  // Validate regex
+  if (!isValidRegex(regex)) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify('Invalid regex'),
+    };
+  }
+
+  // Run the regex against the registry
+  const matchedPackages = await getPackagesByRegex(DB_TABLE_NAME, regex);
+
+  // Craft response with matched packages
+  const response = {
+    statusCode: 200,
+    body: JSON.stringify({
+      message: 'Packages matching the regex',
+      packages: matchedPackages,
+    }),
+  };
+
+  console.log(event);
+  return response;
 };
 
-async function getPackagesByRegex(tableName: string, regex: string) {
-  let exclusiveStartKey = null;
-  const matchedPackages = [];
+// Function to fetch packages from DynamoDB that match the given regex
+async function getPackagesByRegex(tableName: string, regex: string): Promise<any[]> {
+  let exclusiveStartKey: any = null;
+  const matchedPackages: any[] = [];
 
   do {
-    const scanParams: any = {
+    const scanParams = {
       TableName: tableName,
       FilterExpression: 'contains(Name, :regex) OR contains(Readme, :regex)',
       ExpressionAttributeValues: {
@@ -71,8 +72,8 @@ async function getPackagesByRegex(tableName: string, regex: string) {
 
     if (scanResult.Items && scanResult.Items.length > 0) {
       // Extract relevant information from each item
-      const packages = scanResult.Items.map((item) => ({
-        id: item.id.S, // Adjust according to your table's primary key structure
+      const packages = scanResult.Items.map((item: DynamoDBItem) => ({
+        id: item.id.S,
         Name: item.Name.S,
         Readme: item.Readme.S,
         // Add more attributes as needed
@@ -87,6 +88,7 @@ async function getPackagesByRegex(tableName: string, regex: string) {
   return matchedPackages;
 }
 
+// Function to check if a given string is a valid regular expression
 function isValidRegex(regex: string): boolean {
   try {
     new RegExp(regex);
