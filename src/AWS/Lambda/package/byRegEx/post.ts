@@ -1,20 +1,26 @@
-/**
- * This file hosts the code for executing the code for POST host/package/byRegEx
- *
- * This Lambda function should return any packages matching the regex by name or readme.
- *
- */
 
- import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+// use the require function
+
+const {DynamoDBClient, ScanCommand} = require("@aws-sdk/client-dynamodb")
+
+
+// Define the DynamoDBItem interface based on your actual item structure
+interface DynamoDBItem {
+  id: { S: string };
+  Name: { S: string };
+  Readme: { S: string };
+  // Add more attributes as needed
+}
 
 const AWS_REGION = "us-east-2";
 const DB_TABLE_NAME = "Packages";
 const DB = new DynamoDBClient({ region: AWS_REGION });
 
-export const handler = async (event: any) => {
+// Lambda function handler
+export const handler = async (event: any) => {//* format 
   try {
     // Extract regex from the request body or query parameters
-    const regex = event.queryStringParameters?.regex || (event.body && JSON.parse(event.body).regex);
+    const regex: string | undefined = event.queryStringParameters?.regex || (event.body && JSON.parse(event.body).regex);
     if (!regex) {
       return {
         statusCode: 400,
@@ -34,7 +40,7 @@ export const handler = async (event: any) => {
     const matchedPackages = await getPackagesByRegex(DB_TABLE_NAME, regex);
 
     // Craft response with matched packages
-    const response = {
+    const response: APIGatewayProxyResult = {
       statusCode: 200,
       body: JSON.stringify({
         message: 'Packages matching the regex',
@@ -53,9 +59,10 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getPackagesByRegex(tableName: string, regex: string) {
-  let exclusiveStartKey = null;
-  const matchedPackages = [];
+// Function to fetch packages from DynamoDB that match the given regex
+async function getPackagesByRegex(tableName: string, regex: string): Promise<any[]> {
+  let exclusiveStartKey: any = null;
+  const matchedPackages: any[] = [];
 
   do {
     const scanParams = {
@@ -67,12 +74,12 @@ async function getPackagesByRegex(tableName: string, regex: string) {
       ExclusiveStartKey: exclusiveStartKey,
     };
 
-    const scanResult = await DB.send(new ScanCommand(scanParams));
+    const scanResult: ScanCommandOutput = await DB.send(new ScanCommand(scanParams));
 
     if (scanResult.Items && scanResult.Items.length > 0) {
       // Extract relevant information from each item
-      const packages = scanResult.Items.map((item) => ({
-        id: item.id.S, // Adjust according to your table's primary key structure
+      const packages = scanResult.Items.map((item: DynamoDBItem) => ({
+        id: item.id.S,
         Name: item.Name.S,
         Readme: item.Readme.S,
         // Add more attributes as needed
@@ -87,6 +94,7 @@ async function getPackagesByRegex(tableName: string, regex: string) {
   return matchedPackages;
 }
 
+// Function to check if a given string is a valid regular expression
 function isValidRegex(regex: string): boolean {
   try {
     new RegExp(regex);
