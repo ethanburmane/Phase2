@@ -32,7 +32,7 @@ jobs:
       - name: deploy
         run: |
           echo "Test"
-          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD..origin/main)
           changed_files=$(echo "$changed_files" | grep '^src/AWS/Lambda/')
           echo "Changed Files"
           echo "$changed_files"
