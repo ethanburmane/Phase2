@@ -63,17 +63,17 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
   let exclusiveStartKey: any = null;
   const matchedPackages: any[] = [];
 
-  do {
-    const scanParams = {
-      TableName: tableName,
-      FilterExpression: 'contains(Name, :regex) OR contains(Readme, :regex)',
-      ExpressionAttributeValues: {
-        ':regex': regex,
-      },
-      ExclusiveStartKey: exclusiveStartKey,
-    };
+  try {
+    do {
+      const scanParams = {
+        TableName: tableName,
+        FilterExpression: 'contains(Name, :regex) OR contains(Readme, :regex)',
+        ExpressionAttributeValues: {
+          ':regex': regex,
+        },
+        ExclusiveStartKey: exclusiveStartKey,
+      };
 
-    try {
       const scanResult = await DB.send(new ScanCommand(scanParams));
 
       // Log scan result for debugging
@@ -82,26 +82,24 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
       // Check for empty results
       if (!scanResult.Items || scanResult.Items.length === 0) {
         console.log('No items found in DynamoDB scan result');
-        return [];
+      } else {
+        // Handle potential undefined values during mapping
+        const packages = scanResult.Items.map((item: DynamoDBItem) => ({
+          id: item.id?.S || '',
+          Name: item.Name?.S || '',
+          Readme: item.Readme?.S || '',
+          // Add more attributes as needed
+        }));
+
+        matchedPackages.push(...packages);
       }
 
-      // Handle potential undefined values during mapping
-      const packages = (scanResult.Items || []).map((item: DynamoDBItem) => ({
-        id: item.id?.S || '',
-        Name: item.Name?.S || '',
-        Readme: item.Readme?.S || '',
-        // Add more attributes as needed
-      }));
-
-      matchedPackages.push(...packages);
-
       exclusiveStartKey = scanResult.LastEvaluatedKey;
-    } catch (error) {
-      // Log any errors during DynamoDB scan
-      console.error('Error during DynamoDB scan:', error);
-      return [];
-    }
-  } while (exclusiveStartKey);
+    } while (exclusiveStartKey);
+  } catch (error) {
+    // Log any errors during DynamoDB scan
+    console.error('Error during DynamoDB scan:', error);
+  }
 
   return matchedPackages;
 }
