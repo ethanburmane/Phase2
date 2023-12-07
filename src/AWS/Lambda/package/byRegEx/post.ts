@@ -15,6 +15,9 @@ const DB = new DynamoDBClient({ region: AWS_REGION });
 
 // Lambda function handler
 export const handler = async (event: any) => {
+  // Log the incoming event for debugging
+  console.log('Incoming event:', JSON.stringify(event));
+
   // Extract regex from the request body or query parameters
   const requestBody = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
   const regex: string | undefined = event.queryStringParameters?.regex || (requestBody && requestBody.regex);
