@@ -68,7 +68,9 @@ export const handler = async (event: any, context: any) => {
     console.log("Unable to check if pacakge exists")
     return {
       statusCode: 500,
-      error: "Server Error"
+      body: {                
+        error: "Server Error"            
+      }
     }
   }
   else if (existenceResult === 409)
@@ -76,7 +78,9 @@ export const handler = async (event: any, context: any) => {
     console.log("Package exists")
     return {
       statusCode: 409,
-      error: "Package Already Exists"
+      body: {                
+        error: "Package Already Exists"            
+      }
     }
   }
 
