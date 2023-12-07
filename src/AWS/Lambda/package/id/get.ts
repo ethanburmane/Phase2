@@ -15,9 +15,7 @@ export const handler = async (event: any, context: any) => {
   let response;
   console.log("GET PACKAGE STARTING");
   //Extract id
-  const path = event.pathParameters.proxy;
-  const segments = path.split("/");
-  const packageId = segments[segments.length - 2];
+  const packageId = event.id;
   console.log("Package ID: ", packageId);
 
   // Check if the package exists

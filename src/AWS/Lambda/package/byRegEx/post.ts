@@ -6,7 +6,7 @@ interface DynamoDBItem {
   id: { S: string };
   Name: { S: string };
   Readme: { S: string };
-  // Add more attributes as neededd
+  // Add more attributes as needed
 }
 
 const AWS_REGION = "us-east-2";
@@ -73,21 +73,34 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
       ExclusiveStartKey: exclusiveStartKey,
     };
 
-    const scanResult = await DB.send(new ScanCommand(scanParams));
+    try {
+      const scanResult = await DB.send(new ScanCommand(scanParams));
 
-    if (scanResult.Items && scanResult.Items.length > 0) {
-      // Extract relevant information from each item
-      const packages = scanResult.Items.map((item: DynamoDBItem) => ({
-        id: item.id.S,
-        Name: item.Name.S,
-        Readme: item.Readme.S,
+      // Log scan result for debugging
+      console.log('DynamoDB Scan Result:', JSON.stringify(scanResult));
+
+      // Check for empty results
+      if (!scanResult.Items || scanResult.Items.length === 0) {
+        console.log('No items found in DynamoDB scan result');
+        return [];
+      }
+
+      // Handle potential undefined values during mapping
+      const packages = (scanResult.Items || []).map((item: DynamoDBItem) => ({
+        id: item.id?.S || '',
+        Name: item.Name?.S || '',
+        Readme: item.Readme?.S || '',
         // Add more attributes as needed
       }));
 
       matchedPackages.push(...packages);
-    }
 
-    exclusiveStartKey = scanResult.LastEvaluatedKey;
+      exclusiveStartKey = scanResult.LastEvaluatedKey;
+    } catch (error) {
+      // Log any errors during DynamoDB scan
+      console.error('Error during DynamoDB scan:', error);
+      return [];
+    }
   } while (exclusiveStartKey);
 
   return matchedPackages;

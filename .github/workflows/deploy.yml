@@ -29,6 +29,9 @@ jobs:
           GITHUB_TOKEN: $API_TOKEN
         run: |
           npm install
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v40
       - name: deploy
         run: |
           changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
@@ -45,6 +48,7 @@ jobs:
             function_name=$(basename "$zip_name" .zip)
             aws lambda update-function-code --function-name="$function_name" --zip-file="fileb://dist/AWS/Lambda/deploy/$zip_name"
           done
+          
           # npx ncc build src/AWS/Lambda/package/post.ts -o dist/AWS/Lambda/package/post/
           # npx ncc build src/AWS/Lambda/package/byName/delete.ts -o dist/AWS/Lambda/package/byName/delete/
           # npx ncc build src/AWS/Lambda/package/byName/get.ts -o dist/AWS/Lambda/package/byName/get/
