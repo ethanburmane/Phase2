@@ -1,5 +1,4 @@
 const { DynamoDBClient, GetItemCommand } = require("@aws-sdk/client-dynamodb");
-const {DynamoDB} = require('aws-sdk'); // Import AWS SDK for unmarshalling
 const AWS_REGION = "us-east-2";
 
 const DB = new DynamoDBClient({ region: AWS_REGION });
@@ -25,13 +24,11 @@ const handler = async (event: any) => {
     console.log("Query Result: ", result);
 
     if (result.Item) {
-      // Convert DynamoDB format to standard JavaScript object
-      const data = DynamoDB.Converter.unmarshall(result.Item);
 
       // Assuming the result looks as described, create a response
       return {
         statusCode: 200,
-        body: JSON.stringify(data),
+        body: JSON.stringify(result.Item),
       };
     } else {
       // Item not found
