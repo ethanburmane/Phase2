@@ -12,9 +12,7 @@ const dynamoDBClient = new DynamoDBClient({ region: AWS_REGION });
 
 export const handler = async (event: any, context: any) => {
   console.log("UPDATE PACKAGE STARTING");
-  const path = event.pathParameters.proxy;
-  const segments = path.split("/");
-  const packageId = segments[segments.length - 2];
+  const packageId = event.id
   console.log("Package ID: ", packageId);
 
   const body = event.body;

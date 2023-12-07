@@ -20,21 +20,7 @@ const s3_cmd_input = {
 const command = new GetObjectCommand(s3_cmd_input)
 
 export const handler = async (event: any) => {
-  // TODO implement
-
-  //Authenticate request
-
-  //Grab name from path parameter
-
-  //Check if the package exists
-
-  // - Handle package DNE
-
-  // - Handle package exists
-
-  // -- Compress package contents
-
-  //Create and send response
+  const target = event.Name
 
   const r = await s3_client.send(command)
   const response = {

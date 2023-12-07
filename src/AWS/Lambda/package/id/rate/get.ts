@@ -1,5 +1,4 @@
 const { DynamoDBClient, GetItemCommand } = require("@aws-sdk/client-dynamodb");
-const {DynamoDB} = require('aws-sdk'); // Import AWS SDK for unmarshalling
 const AWS_REGION = "us-east-2";
 
 const DB = new DynamoDBClient({ region: AWS_REGION });
@@ -7,9 +6,7 @@ const DB = new DynamoDBClient({ region: AWS_REGION });
 const handler = async (event: any) => {
   console.log("event", event);
 
-  const path = event.path;
-  const pathSegments = path.split('/');
-  const itemID = pathSegments[pathSegments.length - 2]; // Adjust according to your path structure
+  const itemID = event.id
 
   console.log("itemID", itemID);
 
@@ -25,13 +22,11 @@ const handler = async (event: any) => {
     console.log("Query Result: ", result);
 
     if (result.Item) {
-      // Convert DynamoDB format to standard JavaScript object
-      const data = DynamoDB.Converter.unmarshall(result.Item);
 
       // Assuming the result looks as described, create a response
       return {
         statusCode: 200,
-        body: JSON.stringify(data),
+        body: JSON.stringify(result.Item),
       };
     } else {
       // Item not found
@@ -49,5 +44,3 @@ const handler = async (event: any) => {
     };
   }
 };
-
-module.exports = { handler }; // Export the handler
