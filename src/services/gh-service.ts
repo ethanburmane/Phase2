@@ -84,6 +84,19 @@ export async function getResponsivenessData(
   }
 }
 
+export async function getDependencyData(
+  repoUrl: string
+): Promise<Object> {
+  logger.info('GH_SERVICE: running getDependencyData')
+  console.log('GH_SERVICE: running getDependencyData')
+
+  const Dependencies = await ghApi.getDependencyList(repoUrl)
+
+
+  
+  return Dependencies
+}
+
 /**
  * Converts a NPM link into a Github repository url.
  *

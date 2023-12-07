@@ -8,6 +8,8 @@ export class Urlmetrics {
   Responsiveness!: number
   License!: number
   NetScore!: number
+  Dependencies!: number
+  Review!: number
 
   // fill in the field for the URL when creating the class
   constructor(URL: string) {
