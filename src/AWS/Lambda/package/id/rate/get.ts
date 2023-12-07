@@ -62,4 +62,3 @@ const handler = async (event) => {
     }
 };
 module.exports = { handler }; // Export the handler
-
