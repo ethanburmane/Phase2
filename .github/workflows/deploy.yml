@@ -34,7 +34,7 @@ jobs:
       - name: deploy
         run: |
           echo "Test"
-
+          
           if ${{ github.event_name == 'pull_request' }}; then
             echo "Pull request"
             changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)
@@ -42,7 +42,10 @@ jobs:
             echo "Pushing commits"
             changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)
           fi
-          echo "Changed Files"
+          echo "All Changed Files"
+          echo "$changed_files"
+          changed_files=$(echo "$changed_files" | grep '^src/AWS/Lambda/')
+          echo "Changed Lambda Files"
           echo "$changed_files"
           mkdir dist/deploy
           for file in $changed_files; do
