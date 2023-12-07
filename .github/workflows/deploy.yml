@@ -44,7 +44,7 @@ jobs:
           fi
           echo "All Changed Files"
           echo "$changed_files"
-          changed_files=$(echo "$changed_files" | grep '^src/AWS/Lambda/')
+          changed_files=$(echo "$changed_files" | grep '^src/AWS/Lambda/' || true)
           echo "Changed Lambda Files"
           echo "$changed_files"
           mkdir dist/deploy
