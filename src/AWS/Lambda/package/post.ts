@@ -27,7 +27,7 @@ export const handler = async (event: any, context: any) => {
   const body = event.body
 
   // Validate request
-  console.log("Validating event" + event)
+  console.log("Validating event", event)
   if (!isValidRequest(event)) {
     // Return 4xx code since the body is not formatted correctly
     console.log("Event was not valid")
