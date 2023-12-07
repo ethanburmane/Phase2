@@ -43,15 +43,16 @@ export const handler = async (event: any) => {
   //Maybe sort by version
   let history: any[] = []
   existenceResult.Items.forEach((item: any) => {
-    item.History.L.forEach((actionItem: any) => {
+    item.History.L.forEach((M: any) => {
+      const actionItem = M.M
       const temp = {
-        Date: actionItem.date,
+        Date: actionItem.date.S,
         PackageMetaData: {
           Name: item.Name.S,
           Version: item.Version.S,
           ID: item.id.S
         },
-        Action: actionItem.type
+        Action: actionItem.type.S
       }
       history.push(temp)
     })
@@ -77,8 +78,8 @@ async function getPackage(target: string)
           ':n': { S: target }
       }
     }
-    const scanRes = DB.send(new ScanCommand(itemParams))
-    if (scanRes.$metadata.httpStatusCode === 200)
+    const scanRes = await DB.send(new ScanCommand(itemParams))
+    if (scanRes.$metadata.httpStatusCode === 200 && scanRes.Items.length > 0)
     {
       return scanRes
     }
