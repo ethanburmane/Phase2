@@ -54,7 +54,7 @@ jobs:
             zip_name=$(echo "$relative_path_without_extension" | sed 's#^AWS/Lambda/##' | sed 's#/#-#g').zip
             zip -j "deploy/$zip_name" "dist/$relative_path_without_extension/index.js"
             function_name=$(basename "$zip_name" .zip)
-            aws lambda update-function-code --function-name="$function_name" --zip-file="fileb://dist/AWS/Lambda/deploy/$zip_name"
+            aws lambda update-function-code --function-name="$function_name" --zip-file="fileb://deploy/$zip_name"
           done
           
           # npx ncc build src/AWS/Lambda/package/post.ts -o dist/AWS/Lambda/package/post/
