@@ -62,7 +62,25 @@ export const handler = async (event: any, context: any) => {
   const packageVersion = packageInfo.version
 
   const itemId = createPackageID(packageName, packageVersion)
-  const existenceResult = doesPackageExist(itemId)
+  const existenceResult = await doesPackageExist(itemId)
+  if (existenceResult === 500)
+  {
+    console.log("Unable to check if pacakge exists")
+    return {
+      statusCode: 500,
+      error: "Server Error"
+    }
+  }
+  else if (existenceResult === 409)
+  {
+    console.log("Package exists")
+    return {
+      statusCode: 409,
+      error: "Package Already Exists"
+    }
+  }
+
+
   // TODO log "scoring url"
   console.log("Calculating score for url" + url)
   const score = await calculateNetScore(url)
@@ -448,7 +466,7 @@ async function doesPackageExist(id: string) {
                 id: {"S": id}
             }
     }
-    const data = await db.send(new GetItemCommand(getItemParams));
+    const data = await db.send(new GetItemCommand(itemParams));
     if (data.Item) {
         console.log("Package already exists");
         return 409
