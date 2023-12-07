@@ -9,50 +9,52 @@ const { DynamoDBClient, GetItemCommand } = require("@aws-sdk/client-dynamodb");
 
 const AWS_REGION = "us-east-2";
 const DB = new DynamoDBClient({ region: AWS_REGION });
+
+interface Scores {
+  [key: string]: string;
+}
+
 const handler = async (event: any) => {
-    //console.log("event", event);
-    const path = event.path;
+  //console.log("event", event);
+  const path = event.path;
     const pathSegments = path.split('/');
-    const itemID = event.id; // Adjust according to your path structure
+    const itemID = event.id;
     console.log("itemID", itemID);
-    
-   
-    
+
     const itemParams = {
         TableName: "Packages",
         Key: {
             "id": { S: event.id }
         }
     };
-    
+
     try {
         const result = await DB.send(new GetItemCommand(itemParams));
         console.log("Query Result: ", result);
-        
-        if (result.Item) {
-          const scores: { [key: string]: string } = {}; // Add index signature
-          for (const key in result.Item.M) {
-            if (result.Item.M.hasOwnProperty(key)) {
-              console.log(result.Item.M[key].S);
-              scores[key] = result.Item.M[key].S;
+
+        if (result.Item && result.Item.Score && result.Item.Score.M) {
+            const scoreMap = result.Item.Score.M as { [key: string]: { S?: string } };
+            const scores: Scores = {};
+
+            for (const [key, valueObj] of Object.entries(scoreMap)) {
+                if (valueObj && valueObj.S) {
+                    scores[key] = valueObj.S;
+                }
             }
-          }
-          console.log(scores);
-          return {
-            statusCode: 200,
-            body: JSON.stringify(scores),
-          };
-        }
-        else {
-            // Item not found
-            console.log("Item not found for ID:", itemID);
+
+            console.log("Scores: ", scores);
+            return {
+                statusCode: 200,
+                body: JSON.stringify(scores),
+            };
+        } else {
+            console.log("Item not found or Score attribute not in expected format for ID:", itemID);
             return {
                 statusCode: 404,
-                body: JSON.stringify({ error: 'ID not found' }),
+                body: JSON.stringify({ error: 'Item not found or Score attribute not in expected format' }),
             };
         }
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Error during database query:", error);
         return {
             statusCode: 500,
@@ -60,4 +62,5 @@ const handler = async (event: any) => {
         };
     }
 };
-module.exports = { handler }; // Export the handler
+
+export { handler };

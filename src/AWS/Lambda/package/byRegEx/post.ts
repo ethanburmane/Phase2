@@ -20,6 +20,9 @@ export const handler = async (event: any) => {
     const requestBody = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
     const regex: string | undefined = requestBody?.RegEx;
 
+    console.log('Incoming event:', JSON.stringify(event));
+    console.log('Extracted regex:', regex);
+
     if (!regex) {
       return {
         statusCode: 400,
@@ -47,7 +50,6 @@ export const handler = async (event: any) => {
       }),
     };
 
-    console.log('Incoming event:', JSON.stringify(event));
     return response;
   } catch (error) {
     console.error('Error:', error);
@@ -60,50 +62,40 @@ export const handler = async (event: any) => {
 
 // Function to fetch packages from DynamoDB that match the given regex
 async function getPackagesByRegex(tableName: string, regex: string): Promise<any[]> {
-  let exclusiveStartKey: any = null;
-  const matchedPackages: any[] = [];
-
-  do {
+  try {
     const scanParams = {
       TableName: tableName,
       FilterExpression: 'contains(Name, :regex) OR contains(Readme, :regex)',
       ExpressionAttributeValues: {
         ':regex': regex,
       },
-      ExclusiveStartKey: exclusiveStartKey,
     };
 
-    try {
-      const scanResult = await DB.send(new ScanCommand(scanParams));
+    const scanResult = await DB.send(new ScanCommand(scanParams));
 
-      // Log scan result for debugging
-      console.log('DynamoDB Scan Result:', JSON.stringify(scanResult));
+    // Log scan result for debugging
+    console.log('DynamoDB Scan Result:', JSON.stringify(scanResult));
 
-      // Check for empty results
-      if (!scanResult.Items || scanResult.Items.length === 0) {
-        console.log('No items found in DynamoDB scan result');
-        return [];
-      }
-
-      // Handle potential undefined values during mapping
-      const packages = (scanResult.Items || []).map((item: DynamoDBItem) => ({
-        id: item.id?.S || '',
-        Name: item.Name?.S || '',
-        Readme: item.Readme?.S || '',
-        // Add more attributes as needed
-      }));
-
-      matchedPackages.push(...packages);
-
-      exclusiveStartKey = scanResult.LastEvaluatedKey;
-    } catch (error) {
-      // Log any errors during DynamoDB scan
-      console.error('Error during DynamoDB scan:', error);
+    // Check for empty results
+    if (!scanResult.Items || scanResult.Items.length === 0) {
+      console.log('No items found in DynamoDB scan result');
       return [];
     }
-  } while (exclusiveStartKey);
 
-  return matchedPackages;
+    // Handle potential undefined values during mapping
+    const packages = scanResult.Items.map((item: DynamoDBItem) => ({
+      id: item.id?.S || '',
+      Name: item.Name?.S || '',
+      Readme: item.Readme?.S || '',
+      // Add more attributes as needed
+    }));
+
+    return packages;
+  } catch (error) {
+    // Log any errors during DynamoDB scan
+    console.error('Error during DynamoDB scan:', error);
+    return [];
+  }
 }
 
 // Function to check if a given string is a valid regular expression
