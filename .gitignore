@@ -13,3 +13,5 @@ oclif.manifest.json
 /.env
 /coverage
 /.vscode
+/cloned-repos
+```

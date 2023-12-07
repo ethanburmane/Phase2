@@ -1,165 +1,111 @@
-import logger from '../src/logger'
-import * as utils from '../src/middleware/utils'
+import logger from '../src/logger';
+import * as utils from '../src/middleware/utils';
 import * as path from "path";
 import * as fs from "fs";
 import { execSync } from "child_process";
-import axios from 'axios';
 
-export async function CloneReadme(url: string) {
-  try {
-    // Get the README file content from the GitHub API.
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `token ${process.env.GIT_TOKEN}`,
-        Accept: 'application/vnd.github.VERSION.raw', // Use the raw content type
-      },
+ 
+
+function countLinesOfCode(dirPath: string): number {
+  const codeExtensions = new Set([
+    '.js', '.py', '.java', '.cs', '.php', 
+    '.cpp', '.cc', '.cxx', '.h', '.hpp', '.hxx',
+    '.ts', '.rb', '.swift', '.c', 
+    '.m', '.mm', '.scala', '.sh', '.bash',
+    '.go', '.kt', '.kts', '.r', '.pl', 
+    '.rs', '.dart', '.lua', '.txt', '.env', 
+    '.config', '.xml', 'Makefile', '.md'
+  ]);
+  
+  const ignoreDirs = new Set(['node_modules', 'data', 'vendor', 'build', 'test','tests', 'docs', 'assets']);
+  
+  logger.info(`Starting line count in directory: ${dirPath}`);
+  let lineCount: number = 0;
+  const contents: string[] = fs.readdirSync(dirPath);
+
+  contents.forEach((item: string) => {
+      const itemPath: string = path.join(dirPath, item);
+      const itemStats = fs.statSync(itemPath);
+
+      if (itemStats.isDirectory()) {
+          // Check if the directory should be ignored
+          if (!ignoreDirs.has(item)) {
+              //console.log(`Traversing directory: ${itemPath}`);
+              lineCount += countLinesOfCode(itemPath);
+          }
+      } else if (codeExtensions.has(path.extname(itemPath))) {
+            try {
+                const fileContent: string = fs.readFileSync(itemPath, 'utf-8');
+                const fileLineCount: number = fileContent.split('\n').length;
+                console.log(`Counted ${fileLineCount} lines in file: ${itemPath}`);
+                lineCount += fileLineCount;
+            } catch (error) {
+                console.error(`Error reading file ${itemPath}: ${error.message}`);
+            }
+        }
     });
-
-    // Return the README file content as a string.
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error.response ? error.response.data : error.message);
-  }
+    logger.info(`Completed line count in directory: ${dirPath}`);
+    return lineCount;
 }
 
-function countFilesInDirectory(dirPath: string) {
-    let fileCount = 0;
-  
-    // Read the contents of the directory
-    const contents = fs.readdirSync(dirPath);
-  
-    contents.forEach((item) => {
-      const itemPath = path.join(dirPath, item);
-  
-      // Check if it's a directory
-      if (fs.statSync(itemPath).isDirectory()) {
-        // If it's a directory, recursively count files in it
-        fileCount += countFilesInDirectory(itemPath);
-      } else {
-        // If it's a file, increment the file count
-        fileCount++;
-      }
-    });
-  
-    return fileCount;
-  }
-async function get_num_files(url, location) {
-    
-    let fileCount = 0;
-    const repoPath = location//path.join(__dirname, location); // Specify the directory where you want to clone the repository
-    console.log('repoPath', repoPath);
 
-    if (!fs.existsSync(repoPath)) {
-        fs.mkdirSync(repoPath);
+export async function calculateRampUpTime(url: string): Promise<number> {
+    logger.info('Calculating Ramp Up Time');
+    let link: string | null = await utils.evaluateLink(url);
+    if (link) {
+        link = link?.split('github.com').pop() ?? null;
+        link = 'https://github.com' + link;
+    } else {
+        console.error('Invalid URL or unable to process the link.');
+        return 0;
+    }
+
+    console.log(`Processed link: ${link}`);
+
+    let localPath: string = 'dist/middleware/cloned-repos';
+    const parts: string[] = url.split('/');
+    const repoName: string = parts[parts.length - 1] || parts[parts.length - 2];
+
+    if (repoName) {
+        localPath = path.join(localPath, repoName);
     }
 
     try {
-        const files = fs.readdirSync(repoPath);
-    
-        // Check if the directory is not empty
-        if (files.length > 0) {
-        // Clear the directory by removing all files and subdirectories
-            for (const file of files) {
-                console.log('removing file');
-                const filePath = path.join(repoPath, file);
-                const stat = fs.statSync(filePath);
         
-                if (stat.isDirectory()) {
-                // Remove subdirectories and their contents
-                fs.rmSync(filePath, { recursive: true });
-                } else {
-                // Remove files
-                    fs.unlinkSync(filePath);
-                }
+        if (!fs.existsSync(localPath)) {
+            console.log(`Creating directory: ${localPath}`);
+            fs.mkdirSync(localPath, { recursive: true });
+            console.log(`Attempting to clone repository into: ${localPath}`);
+            execSync(`git clone ${link} ${localPath}`, { stdio: 'inherit' });
+          } else {
+            console.log(`Directory already exists: ${localPath}`);
+            // Check if the directory is empty
+            const files: string[] = fs.readdirSync(localPath);
+            if (files.length === 0) {
+                console.log(`Directory is empty. Cloning repository into: ${localPath}`);
+                execSync(`git clone ${link} ${localPath}`, { stdio: 'inherit' });
             }
         }
-    
-        // Clone the repository
-        execSync(`git clone ${url} ${repoPath}`);
-        console.log("repo cloned");
-        const fileCount = countFilesInDirectory(repoPath);
-        console.log("fileCount", fileCount);
-        
-        //report the number of files in the directory
-        
-    } catch (error : any) {
-        console.error(`An error occurred: ${error.message}`)
-    }
 
-    return fileCount;
+        
+
+        console.log(`Starting line count in: ${localPath}`);
+        let linesOfCode: number = countLinesOfCode(localPath);
+
+        console.log(`Total lines of code in the repository: ${linesOfCode}`);
+
+        return linesOfCode;
+    } catch (error: any) {
+        console.error(`An error occurred: ${error.message}`);
+        return 0;
+    }
 }
 
-
-// Ramp-up Time Calculations
-export async function calculateRampUpTime(url: string) {
-  logger.info('Calculating Ramp Up Time')
-
-  // checks to see if link is a npm link and if so, converts it to a github link
-  let link = await utils.evaluateLink(url)
-  if (link) {
-    link = link?.split('github.com').pop() ?? null
-    link = 'https://github.com' + link // eslint-disable-line prefer-template
-  }
-
-
-  console.log('link', link)
-  let ReadMeLen = 0
-
-  // get data using ./services/gh-service.ts
-  if (link) {
-    // clones the repo into ./cloned-repos
-    
-    let localPath = 'dist/middleware/cloned-repos'
-    const parts: string[] = url.split('/');
-    const repoName: string = parts[parts.length - 1] || parts[parts.length - 2]
-
-    console.log('repoName', repoName)
-    // format local path name
-    if (repoName) {
-      localPath = path.join(localPath, repoName)
-    }
-
-    // add .git to end of url
-    if (!link.endsWith('.git')) {
-        // Append '.git' if not present
-        link += '.git'
-    }
-
-    const README = await CloneReadme(link)
-    
-    ReadMeLen = README.length
-    console.log('ReadMe cloned len: ', ReadMeLen)
-
-
-    const num_files = await get_num_files(url, localPath)
-    console.log('num_files', num_files);
-    return num_files
-  
-  } else {
-    return () => 0
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-async function main() {
-    let url = 'https://github.com/django/django'
-    let rs = await calculateRampUpTime(url)
+async function main(): Promise<void> {
+    let url: string = 'https://github.com/facebook/react';
+    console.log(`Starting ramp-up time calculation for: ${url}`);
+    let linesOfCode: number = await calculateRampUpTime(url);
+    console.log(`Result: ${linesOfCode} lines of code`);
 }
 
 main();

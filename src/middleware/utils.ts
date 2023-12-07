@@ -4,7 +4,11 @@ import * as url from 'node:url'
 import {exec} from 'node:child_process'
 import {getGithubLinkFromNpm} from '../services/gh-service'
 import logger from '../logger'
+<<<<<<< Updated upstream
 import axios from 'axios'
+=======
+import * as path from 'path'
+>>>>>>> Stashed changes
 
 export function round(value: number, decimals: number): number {
   logger.info(`Rounding ${value} to ${decimals} decimal places`)
@@ -99,6 +103,48 @@ export function cloneRepo(ghUrl: string, localPath: string, repoUrl: string) {
   })
 }
 
+export function countLinesOfCode(dirPath: string): number {
+  const codeExtensions = new Set([
+    '.js', '.py', '.java', '.cs', '.php', 
+    '.cpp', '.cc', '.cxx', '.h', '.hpp', '.hxx',
+    '.ts', '.rb', '.swift', '.c', 
+    '.m', '.mm', '.scala', '.sh', '.bash',
+    '.go', '.kt', '.kts', '.r', '.pl', 
+    '.rs', '.dart', '.lua', '.txt', '.env', 
+    '.config', '.xml', 'Makefile', '.md'
+  ]);
+  
+  const ignoreDirs = new Set(['node_modules', 'data', 'vendor', 'build', 'test','tests', 'docs', 'assets']);
+  
+  logger.info(`Starting line count in directory: ${dirPath}`);
+  let lineCount: number = 0;
+  const contents: string[] = fs.readdirSync(dirPath);
+
+  contents.forEach((item: string) => {
+      const itemPath: string = path.join(dirPath, item);
+      const itemStats = fs.statSync(itemPath);
+
+      if (itemStats.isDirectory()) {
+          // Check if the directory should be ignored
+          if (!ignoreDirs.has(item)) {
+              //console.log(`Traversing directory: ${itemPath}`);
+              lineCount += countLinesOfCode(itemPath);
+          }
+      } else if (codeExtensions.has(path.extname(itemPath))) {
+            try {
+                const fileContent: string = fs.readFileSync(itemPath, 'utf-8');
+                const fileLineCount: number = fileContent.split('\n').length;
+                console.log(`Counted ${fileLineCount} lines in file: ${itemPath}`);
+                lineCount += fileLineCount;
+            } catch (error) {
+                console.error(`Error reading file ${itemPath}`);
+            }
+        }
+    });
+    logger.info(`Completed line count in directory: ${dirPath}`);
+    return lineCount;
+}
+
 export function calcRepoLines(
   repoPath: string,
   callback: (totalLines: number) => void,
@@ -159,3 +205,15 @@ export async function evaluateLink(link: string) {
   return null
 }
 
+<<<<<<< Updated upstream
+=======
+export function isPinned(version: string): boolean {
+  // Regex for an exact version (major.minor.patch)
+  const exactVersionRegex = /^\d+\.\d+\.\d+$/;
+
+  // Regex for major.minor.x or major.minor.*
+  const majorMinorWildcardRegex = /^\d+\.\d+\.(x|\*)$/;
+
+  return exactVersionRegex.test(version) || majorMinorWildcardRegex.test(version);
+}
+>>>>>>> Stashed changes
