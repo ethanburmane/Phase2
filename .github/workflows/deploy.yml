@@ -34,6 +34,8 @@ jobs:
 
           changed_files=$(git diff --name-only <commit-hash> -- 'src/AWS/Lambda/*.ts')
 
+          echo "Changed Files"
+          echo "$changed_files"
           # Loop through each changed file and deploy if it belongs to a specific directory
           for file in $changed_files; do
             case $file in
