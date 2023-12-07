@@ -4,11 +4,7 @@ import * as url from 'node:url'
 import {exec} from 'node:child_process'
 import {getGithubLinkFromNpm} from '../services/gh-service'
 import logger from '../logger'
-<<<<<<< Updated upstream
-import axios from 'axios'
-=======
 import * as path from 'path'
->>>>>>> Stashed changes
 
 export function round(value: number, decimals: number): number {
   logger.info(`Rounding ${value} to ${decimals} decimal places`)
@@ -205,8 +201,6 @@ export async function evaluateLink(link: string) {
   return null
 }
 
-<<<<<<< Updated upstream
-=======
 export function isPinned(version: string): boolean {
   // Regex for an exact version (major.minor.patch)
   const exactVersionRegex = /^\d+\.\d+\.\d+$/;
@@ -216,4 +210,3 @@ export function isPinned(version: string): boolean {
 
   return exactVersionRegex.test(version) || majorMinorWildcardRegex.test(version);
 }
->>>>>>> Stashed changes
