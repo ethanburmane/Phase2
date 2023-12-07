@@ -12,9 +12,9 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
@@ -34,8 +34,11 @@ jobs:
       - name: deploy
         run: |
           echo "Test"
-          changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD..origin/main)
-          changed_files=$(echo "$changed_files" | grep '^src/AWS/Lambda/')
+          if ${{ github.event_name == 'pull_request' }}; then
+            changed_files="$(git diff --name-only -r HEAD^1 HEAD | xargs)""
+          else
+              changed_files="$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)"
+          fi
           echo "Changed Files"
           echo "$changed_files"
           mkdir dist/deploy
