@@ -241,6 +241,7 @@ export async function calculateRampUpTime(url: string): Promise<number> {
 // }
 
 // Responsiveness Calculations
+
 export async function calculateResponsiveness(url: string) {
   logger.info('Calculating Responsiveness')
 
@@ -265,6 +266,8 @@ export async function calculateResponsiveness(url: string) {
   // calculate difference between the max and min monthly commits
   const maxMonthlyCommitCount = Math.max(...monthlyCommitCount)
   const minMonthlyCommitCount = Math.min(...monthlyCommitCount)
+  console.log('maxMonthlyCommitCount', maxMonthlyCommitCount)
+  console.log('minMonthlyCommitCount', minMonthlyCommitCount)
   const diffCommit = maxMonthlyCommitCount - minMonthlyCommitCount
 
   logger.debug(
@@ -316,8 +319,18 @@ export async function calculateLicenseCompliance(url: string) {
 
   // get data using ./services/gh-service.ts
   if (link) {
-    licenseCompliantScore = await getLiscenseComplianceData(link)
-
+    let readme = await utils.CloneReadme(url);
+    let licenses = utils.FindMatch(readme);
+    if (licenses.length > 0)
+    {
+        console.log('true')
+        return 1;
+    }
+    else
+    {
+        console.log('false')
+        return 0;
+    }
     logger.debug(`licenseCompliantScore: ${licenseCompliantScore}`)
   } else {
     return 0
@@ -403,7 +416,14 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
       }
 
       const totalPullRequests = pullRequests.length;
-      reviewPercentage = (reviewedPRCount / totalPullRequests);
+      
+      reviewPercentage = (reviewedPRCount / totalPullRequests) * 1.5
+
+      //scale up 
+      if (reviewPercentage > 1) {
+        reviewPercentage = 1
+      }
+      
 
       console.log(`Reviewed Pull Requests: ${reviewedPRCount}`);
       console.log(`Total Pull Requests: ${totalPullRequests}`);

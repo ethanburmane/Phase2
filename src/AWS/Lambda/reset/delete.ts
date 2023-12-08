@@ -19,13 +19,12 @@
  export const handler = async (event: any) => {
    let response
 
-   // TODO Log clearing table
+   console.log("Clearing Table")
    const clearTableResult = await clearTable(DB_TABLE_NAME)
  
    if (!clearTableResult)
    {
-     // TODO Log unable to clear DynamoDB
- 
+     console.log("Sent 500.")
      response = {
        statusCode: 500,
        body: {
@@ -35,16 +34,17 @@
      return response
    }
  
-   // TODO log clearing s3
+   console.log("Clearing S3.")
    const clearS3Result = await clearS3(S3_NAME, S3_ROOT)
  
    if (!clearS3Result)
    {
-     // TODO Log unable to clear s3
+     console.error("Unable To Clear S3.")
  
      //Return success still since DB was successfull cleared
    }
- 
+   
+   console.log("Sent 200.")
    response = {
      statusCode: 200,
      body: JSON.stringify('Registry Reset.'),

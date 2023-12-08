@@ -6,6 +6,7 @@ interface DynamoDBItem {
   id: { S: string };
   Name: { S: string };
   Readme: { S: string };
+  Version: { S: string }; // Add the Version attribute
   // Add more attributes as needed
 }
 
@@ -41,10 +42,15 @@ export const handler = async (event: any) => {
     const matchedPackages = await getPackagesByRegex(DB_TABLE_NAME, regex);
 
     // Check if no packages are found
-    if (matchedPackages.length === 0) {
+    if (matchedPackages[0] === 404) {
       return {
         statusCode: 404,
         body: JSON.stringify('No package found under this regex.'),
+      };
+    } else if (matchedPackages[0] === 500) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify('Internal Server Error'),
       };
     }
 
@@ -86,22 +92,19 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
     // Check for empty results
     if (!scanResult.Items || scanResult.Items.length === 0) {
       console.log('No items found in DynamoDB scan result');
-      return [];
+      return [404]; // Package not found
     }
 
-    // Handle potential undefined values during mapping
-    const packages = scanResult.Items.map((item: DynamoDBItem) => ({
-      id: item.id?.S || '',
-      Name: item.Name?.S || '',
-      Readme: item.Readme?.S || '',
-      // Add more attributes as needed
+    const pkgs: any[] = scanResult.Items.map((item: DynamoDBItem) => ({
+      Name: item.Name.S,
+      Version: item.Version.S,
     }));
 
-    return packages;
+    return pkgs;
   } catch (error) {
     // Log any errors during DynamoDB scan
     console.error('Error during DynamoDB scan:', error);
-    return [];
+    return [500]; // Internal Server Error
   }
 }
 

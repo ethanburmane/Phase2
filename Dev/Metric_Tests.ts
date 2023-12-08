@@ -1,6 +1,7 @@
 import { calculateDependency,
         calculateRampUpTime,
-        calculateReviewPercentage
+        calculateReviewPercentage,
+        calculateLicenseCompliance
         } from "../src/middleware/metric-calculations";
 import axios from 'axios'
 import{ calculateNetScore} from '../src/middleware/net-score'
@@ -41,8 +42,9 @@ async function main() {
     //     let review = await calculateReviewPercentage(repo);
     //     console.log(`Review for ${repo}: ${review}`);
     // }
-    let netscore = await calculateNetScore('https://github.com/vuejs/vue')
-    console.log(`NetScore: ${netscore}`)
+    let netscore = await calculateNetScore('http://github.com/dominictarr/JSONStream')
+    //let licensescore = await calculateLicenseCompliance('https://github.com/django/django')
+    //console.log(`NetScore: ${netscore}`)
 
 }
 main()

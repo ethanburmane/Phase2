@@ -134,13 +134,15 @@ function getResponsivenessData(repoUrl) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    logger_1["default"].info('GH_SERVICE: running getResponsivenessData');
+                    console.log('GH_SERVICE: running getResponsivenessData');
                     return [4 /*yield*/, ghApi.getMonthlyCommitCount(repoUrl)];
                 case 1:
                     monthlyCommitCount = _a.sent();
                     return [4 /*yield*/, ghApi.getAnualCommitCount(repoUrl)];
                 case 2:
                     annualCommitCount = _a.sent();
+                    console.log('monthlycommit', monthlyCommitCount);
+                    console.log('annualCommit', annualCommitCount);
                     return [2 /*return*/, {
                             monthlyCommitCount: monthlyCommitCount,
                             annualCommitCount: annualCommitCount

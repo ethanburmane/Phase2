@@ -43,7 +43,7 @@ var logger_1 = require("../logger");
 // NetScore sub-category Calculations
 function calculateNetScore(url) {
     return __awaiter(this, void 0, void 0, function () {
-        var busFactor, correctness, rampUpTime, responsiveness, licenseCompliance, Dependencies, reviewPercentage, busFactorWeight, correctnessWeight, rampUpTimeWeight, responsivenessWeight, DependencyWeight, reviewPercentageWeight, licenseComplianceWeight, netScore;
+        var busFactor, correctness, rampUpTime, responsiveness, licenseCompliance, Dependencies, reviewPercentage, busFactorWeight, correctnessWeight, rampUpTimeWeight, responsivenessWeight, DependencyWeight, reviewPercentageWeight, licenseComplianceWeight, licenseScore, busFactorScore, correctnessScore, rampUpTimeScore, responsivenessScore, DependencyScore, reviewPercentageScore, netScore, score;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -85,13 +85,27 @@ function calculateNetScore(url) {
                     DependencyWeight = 0.1;
                     reviewPercentageWeight = 0.15;
                     licenseComplianceWeight = 0.15;
-                    netScore = (licenseCompliance * licenseComplianceWeight +
-                        busFactor * busFactorWeight +
-                        correctness * correctnessWeight +
-                        rampUpTime * rampUpTimeWeight +
-                        responsiveness * responsivenessWeight + Dependencies * DependencyWeight + reviewPercentage * reviewPercentageWeight);
+                    licenseScore = licenseCompliance * licenseComplianceWeight;
+                    busFactorScore = busFactor * busFactorWeight;
+                    correctnessScore = correctness * correctnessWeight;
+                    rampUpTimeScore = rampUpTime * rampUpTimeWeight;
+                    responsivenessScore = responsiveness * responsivenessWeight;
+                    DependencyScore = Dependencies * DependencyWeight;
+                    reviewPercentageScore = reviewPercentage * reviewPercentageWeight;
+                    netScore = (licenseScore + busFactorScore + correctnessScore + rampUpTimeScore
+                        + responsivenessScore + DependencyScore + reviewPercentageScore);
                     netScore = (0, utils_1.round)(netScore, 3);
-                    return [2 /*return*/, netScore];
+                    score = {
+                        net: netScore,
+                        license: licenseScore,
+                        busFactor: busFactorScore,
+                        correctness: correctnessScore,
+                        rampUpTime: rampUpTimeScore,
+                        responsiveness: responsivenessScore,
+                        dependencies: DependencyScore,
+                        reviewPercentage: reviewPercentageScore
+                    };
+                    return [2 /*return*/, score];
             }
         });
     });

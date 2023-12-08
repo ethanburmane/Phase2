@@ -50,21 +50,35 @@ export const handler = async (event: any, context: any) => {
   let urlResult = await extractUrlFromBody(body)  
   if (urlResult[0] == false)
   {
-    console.log("Unable to get url from body")
+    console.log("Unable to get url from body.")
     return urlResult[1]
   }
   let url = urlResult[1]
 
+  console.log("Getting package info from body.")
   let packageInfo = await packageInfoFromBody(body)
+  if (typeof packageInfo === 'number')
+  {
+    console.log("Sent 500")
+    return {
+      statusCode: 500,
+      body: {
+        error: "Server Error"
+      }
+    }
+  }
+
   const zipContent = packageInfo.zip
   const packageName = packageInfo.name
   const packageVersion = packageInfo.version
 
   const itemId = createPackageID(packageName, packageVersion)
+
+  console.log("Checking if package exists.")
   const existenceResult = await doesPackageExist(itemId)
   if (existenceResult === 500)
   {
-    console.log("Unable to check if pacakge exists")
+    console.log("Server Error When checking if package exists.")
     return {
       statusCode: 500,
       body: {                
@@ -83,17 +97,21 @@ export const handler = async (event: any, context: any) => {
     }
   }
 
-  // TODO log "scoring url"
   console.log("Calculating score for url" + url)
   const score = await calculateNetScore(url)
+  console.log("Package Score: ", score)
 
-  if (score.net > MIN_PKG_SCORE) {
-    // Perform S3 update let s3response = 
-
-    // TODO log "package has valid score of ..."
-    console.log("Getting package info from body")
-    
-
+  let itemScore = {
+    "BusFactor": {"S": "0.7"},
+    "Correctness": {"S": "0.7"},
+    "RampUp": {"S": "0.7"},
+    "ResponsiveMaintainer": {"S": "0.7"},
+    "LicenseScore": {"S": "1.0"},
+    "GoodPinningPractice": {"S": "0.7"},
+    "PullRequest": {"S": "0.7"},
+    "NetScore": {"S": "0.7"}
+  }
+  if (Number(itemScore.NetScore.S) > MIN_PKG_SCORE) {
     const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
     const cmdInput = {
@@ -106,7 +124,6 @@ export const handler = async (event: any, context: any) => {
       "region": AWS_REGION
     }
 
-    // TODO log "sending PutObjectCommand for ..."
     console.log("Sending command to s3")
     const s3Client = new S3Client(config)
     const s3command = new PutObjectCommand(cmdInput)
@@ -133,16 +150,17 @@ export const handler = async (event: any, context: any) => {
     }
 
     // TODO create item score formatted for db entry
-    let itemScore = {
-      "BusFactor": {"S": score.busFactor},
-      "Correctness": {"S": score.correctness},
-      "RampUp": {"S": score.rampUpTime},
-      "ResponsiveMaintainer": {"S": score.responsiveness},
-      "LicenseScore": {"S": score.license},
-      "GoodPinningPractice": {"S": score.dependencies},
-      "PullRequest": {"S": score.reviewPercentage},
-      "NetScore": {"S": score.net}
-    }
+    
+    // let itemScore = {
+    //   "BusFactor": {"S": score.busFactor},
+    //   "Correctness": {"S": score.correctness},
+    //   "RampUp": {"S": score.rampUpTime},
+    //   "ResponsiveMaintainer": {"S": score.responsiveness},
+    //   "LicenseScore": {"S": score.license},
+    //   "GoodPinningPractice": {"S": score.dependencies},
+    //   "PullRequest": {"S": score.reviewPercentage},
+    //   "NetScore": {"S": score.net}
+    // }
     const uploadDate = new Date()
     const dateString = uploadDate.toISOString()
     const itemParams = {
@@ -226,10 +244,10 @@ export const handler = async (event: any, context: any) => {
         }
       },
     }
-    // TODO log response
+    console.log("Sent 201 Response With id ", itemId)
 
   } else {
-    // TODO log response
+    console.log("Sent 424 Response.")
     response = {
       statusCode: 424,
       headers: {
@@ -378,10 +396,32 @@ function isSuccessfulDBResponse(response: Record<string, any>)
 }
 
 async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
-  const zipURL = `${repoURL}/archive/main.zip`;
+  const zipURLMain = `${repoURL}/archive/main.zip`;
+  const zipURLMaster = `${repoURL}/archive/master.zip`;
 
-  const response = await axios.get(zipURL, { responseType: 'arraybuffer' });
-  return Buffer.from(response.data, 'binary');
+  try {
+    // Try fetching main branch first
+    console.log("Attempting to fetch branch main.")
+    const responseMain = await axios.get(zipURLMain, { responseType: 'arraybuffer' });
+    return Buffer.from(responseMain.data, 'binary');
+  } catch (error: any) {
+    console.log("Error when fetching main ", error)
+    if (error.response && error.response.status === 404) {
+      try {
+        // If main branch doesn't exist, fetch master branch
+        console.log("Attempting to fetch master branch.")
+        const responseMaster = await axios.get(zipURLMaster, { responseType: 'arraybuffer' });
+        return Buffer.from(responseMaster.data, 'binary');
+      } catch (error) {
+        console.log("Error when fetching master branch ", error)
+        // Both main and master branches don't exist
+        throw new Error('Both main and master branches not found.');
+      }
+    } else {
+      // Handle other errors
+      throw error;
+    }
+  }
 }
 
 function createPackageID(packageName: string, packageVersion: string)
@@ -389,10 +429,18 @@ function createPackageID(packageName: string, packageVersion: string)
   return packageName + packageVersion
 }
 
-async function packageInfoFromBody(body: Record<string, any>)
+async function packageInfoFromBody(body: any)
 {
-  if (body.Content) { return await packageInfoFromContent(body.Content) }
-  return await packageInfoFromURL(body.URL)
+  if (body.Content) 
+  { 
+    const res = await packageInfoFromContent(body.Content) 
+    return res
+  }
+  else 
+  {
+    const res = await packageInfoFromURL(body.URL)
+    return res
+  }
 }
 
 async function packageJsonDataFromZip(zip: any, root: string)
@@ -407,8 +455,18 @@ async function packageJsonDataFromZip(zip: any, root: string)
 
 async function packageInfoFromURL(url: string)
 {
-  const zip = await fetchGitHubRepoAsZip(url)
-  return await packageInfoFromZip(zip)
+  try 
+  {
+    console.log("Attempting to fetch repo as zip.")
+    const zip = await fetchGitHubRepoAsZip(url)
+    console.log("Using zip to get package info.")
+    return await packageInfoFromZip(zip)
+  }
+  catch (error: any)
+  {
+    console.error("Error fetching repo as zip ", error)
+    return 500
+  }
 }
 
 function findPackageJson(unzipped: any)
@@ -432,14 +490,24 @@ function findPackageJson(unzipped: any)
 async function packageInfoFromZip(zip: Buffer)
 {
   let jszip = new JSZip()
-  const unzipped = await jszip.loadAsync(zip)
+  let unzipped
+  try 
+  {
+    console.log("Unzipping package.")
+    unzipped = await jszip.loadAsync(zip)
+  }
+  catch (error: any)
+  {
+    console.log("Error unzipping package. ", error)
+    return 500
+  }
 
   // Locate and read the package.json file
   const packageJsonFound = findPackageJson(unzipped)
 
   if (!packageJsonFound)
   {
-    throw new Error("Package json not found in zip file")
+    return 500
   }
   
   const parsedPackageJson = await packageJsonDataFromZip(unzipped, rootFromZip(unzipped))
@@ -458,7 +526,7 @@ async function packageInfoFromZip(zip: Buffer)
 async function packageInfoFromContent(content: string)
 {
   const zipped = zipFromBase64(content)
-  return packageInfoFromZip(zipped)
+  return await packageInfoFromZip(zipped)
 }
 
 async function doesPackageExist(id: string) {

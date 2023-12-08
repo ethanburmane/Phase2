@@ -74,10 +74,11 @@ export async function getLiscenseComplianceData(
 export async function getResponsivenessData(
   repoUrl: string,
 ): Promise<ResponsesivenessData> {
-  logger.info('GH_SERVICE: running getResponsivenessData')
+  console.log('GH_SERVICE: running getResponsivenessData')
   const monthlyCommitCount = await ghApi.getMonthlyCommitCount(repoUrl)
   const annualCommitCount: number = await ghApi.getAnualCommitCount(repoUrl)
-
+  console.log('monthlycommit',monthlyCommitCount)
+  console.log('annualCommit',annualCommitCount)
   return <ResponsesivenessData>{
     monthlyCommitCount,
     annualCommitCount,

@@ -41,5 +41,5 @@ jobs:
       - name: Test
         env:
           CI: true
-          GITHUB_TOKEN: $API_TOKEN
+          GITHUB_TOKEN: ${{ secrets.API_TOKEN}}
         run: npm test
