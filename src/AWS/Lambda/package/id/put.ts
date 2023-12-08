@@ -45,8 +45,8 @@ export const handler = async (event: any, context: any) => {
   const packageVersion = JSON.stringify(metadata.Version);
   console.log("Package Version: ", packageVersion);
 
-  let url = body.URL; //await extractUrlFromBody(body);
-  console.log("URL: ", JSON.stringify(url));
+  let url = await extractUrlFromBody(body);
+  console.log("URL: ", url);
   /*if (url[0] == false) {
     console.log("URL not found");
     return url[1];
@@ -210,7 +210,7 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
 
 async function extractUrlFromBody(body: any)
 {
-  if (body.URL) { return [true, body.URL] }
+  if (body.data.URL) { return [true, body.data.URL] }
   return await extractUrlFromContent(body.Content)
 }
 
