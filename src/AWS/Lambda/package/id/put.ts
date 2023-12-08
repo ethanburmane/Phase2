@@ -5,14 +5,32 @@
  */
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { DynamoDBClient, GetItemCommand, UpdateItemCommand } = require('@aws-sdk/client-dynamodb');
+import { calculateBusFactor, calculateCorrectness, calculateRampUpTime, calculateLicenseCompliance, calculateDependency, calculateResponsiveness, calculateReviewPercentage} from "../../../../middleware/metric-calculations";
+import { calculateNetScore } from "../../../../middleware/net-score";
 
 const AWS_REGION = "us-east-2";
 const s3Client = new S3Client({ region: AWS_REGION });
 const dynamoDBClient = new DynamoDBClient({ region: AWS_REGION });
 
 export const handler = async (event: any, context: any) => {
+  let response;
   console.log("UPDATE PACKAGE STARTING");
-  const packageId = event.id
+  // Validate request
+  console.log("Validating event" + event);
+  if (!isValidRequest(event)) {
+    // Return 4xx code since the body is not formatted correctly
+    console.log("Event was not valid");
+    response = {
+      statusCode: 400,
+      body: {
+        error: 'Invalid request format.',
+      },
+    }
+    // TODO: Log response
+    return response;
+  }
+
+  const packageId = event.id;
   console.log("Package ID: ", packageId);
 
   const body = event.body;
@@ -24,6 +42,9 @@ export const handler = async (event: any, context: any) => {
   const packageVersion = JSON.stringify(metadata.Version);
   console.log("Package Version: ", packageVersion);
 
+  const url = body.data.URL;
+  console.log("URL: ", JSON.stringify(url));
+
   // TODO implement
   // Check if the package exists
   const packageExists = await checkPackageExists(packageId);
@@ -34,7 +55,7 @@ export const handler = async (event: any, context: any) => {
   // Update package in S3 and DB
     try {
         await updatePackageInS3(packageName, packageVersion, body.data.Content);
-        await updatePackageInDB(packageId, body.metadata);
+        await updatePackageInDB(packageId, body.metadata, JSON.stringify(url));
 
         return {
             statusCode: 200,
@@ -46,7 +67,43 @@ export const handler = async (event: any, context: any) => {
     }
 }
 
+function isValidRequest(event: any)
+{
+  /**
+   * Validates event for 
+   *    - body existing
+   *    - Neither both content & url or neither of them
+   *    - Maybe add checking github url or base64 content as well
+   */
+
+  const body = event.body;
+  // check if event has id
+  if (event.id === undefined || event.id === null) {
+    return false
+  }
+
+  // check if body exists
+  if (!body)
+  {
+    return false
+  }
+
+  // check if body has content or url, but not both
+  if ((body.Content && body.URL) || (!(body.Content) && !(body.URL)))
+  {
+    return false
+  }
+
+  return true
+}
+
 async function checkPackageExists(packageId: string) {
+  /**
+   * Validates event for 
+   *    - body existing
+   *    - Neither both content & url or neither of them
+   *    - Maybe add checking github url or base64 content as well
+   */
   console.log("Checking if package exists: ", packageId);
   const params = {
       "TableName": "Packages",
@@ -63,7 +120,7 @@ async function updatePackageInS3(packageName: string, packageVersion: string, co
   const cmdInput = {
       "Body": Buffer.from(content, 'base64'), // assuming content is base64 encoded
       "Bucket": "main-storage-bucket",
-      "Key": `package/${name}/${version}.zip`
+      "Key": `packages/${name}/${version}.zip`
   };
 
   const Item = await s3Client.send(new PutObjectCommand(cmdInput));
@@ -71,8 +128,9 @@ async function updatePackageInS3(packageName: string, packageVersion: string, co
 }
 
 
-async function updatePackageInDB(packageId: string, metadata: any) {
+async function updatePackageInDB(packageId: string, metadata: any, url: string) {
   console.log("Updating package in DB");
+
   const uploadDate = new Date();
   const dateString = uploadDate.toISOString();
   const new_history = {
@@ -100,21 +158,44 @@ async function updatePackageInDB(packageId: string, metadata: any) {
 
   curr_history.push(new_history);
 
+  // calculate metrics
+  const busFactor = calculateBusFactor(url);
+  const correctness = calculateCorrectness(url);
+  const rampUpTime = calculateRampUpTime(url);
+  const licenseCompliance = calculateLicenseCompliance(url);
+  const dependency = calculateDependency(url);
+  const responsiveness = calculateResponsiveness(url);
+  const reviewPercentage = calculateReviewPercentage(url);
+  const netScore = calculateNetScore(url);
+
+  const new_score = {
+    M: {
+      "BusFactor": {S: busFactor.toString()},
+      "Correctness": {S: correctness.toString()},
+      "RampUp": {S: rampUpTime.toString()},
+      "LicenseScore": {S: licenseCompliance.toString()},
+      "ResponsiveMaintainer": {S: responsiveness.toString()},
+      "NetScore": {S: netScore.toString()}
+    }
+  }
+
   const params = {
       "TableName": "Packages",
       "Key": { "id": { S: packageId } },
-      "UpdateExpression": "SET #N = :n, #V = :v, #L = :l, #H = :h",
+      "UpdateExpression": "SET #N = :n, #V = :v, #L = :l, #H = :h, #S = :s",
       "ExpressionAttributeNames": {
           "#N": "Name",
           "#V": "Version",
           "#L": "LastUpdated",
-          "#H": "History"
+          "#H": "History",
+          "#S": "Score"
       },
       "ExpressionAttributeValues": {
           ":n": { S: metadata.Name },
           ":v": { S: metadata.Version },
           ":l": { S: dateString},
-          ":h": { L: curr_history }
+          ":h": { L: curr_history },
+          ":s": { M: new_score }
       },
       "ReturnValues": "UPDATED_NEW"
   };
