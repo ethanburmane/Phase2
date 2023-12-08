@@ -11,7 +11,7 @@ import {
 import logger from '../logger'
 
 // NetScore sub-category Calculations
-export async function calculateNetScore(url: string): Promise<number> {
+export async function calculateNetScore(url: string): Promise<Object> {
   logger.info('Calculating Net Score')
 
   const busFactor = await calculateBusFactor(url)
@@ -20,6 +20,7 @@ export async function calculateNetScore(url: string): Promise<number> {
   const responsiveness = await calculateResponsiveness(url)
   const licenseCompliance = await calculateLicenseCompliance(url)
   //const Dependencies = await calculateDependency(url)
+  const Dependencies = 1
   const reviewPercentage = await calculateReviewPercentage(url)
   console.log(`BusFactor: ${busFactor}`)
   console.log(`Correctness: ${correctness}`)
@@ -46,14 +47,29 @@ export async function calculateNetScore(url: string): Promise<number> {
   const licenseComplianceWeight = 0.15
 
   // Calculate net score with weightings
+  const licenseScore = licenseCompliance * licenseComplianceWeight
+  const busFactorScore = busFactor * busFactorWeight
+  const correctnessScore = correctness * correctnessWeight
+  const rampUpTimeScore = rampUpTime * rampUpTimeWeight
+  const responsivenessScore = responsiveness * responsivenessWeight
+  const DependencyScore = Dependencies * DependencyWeight
+  const reviewPercentageScore = reviewPercentage * reviewPercentageWeight
+
   let netScore =
-    (licenseCompliance * licenseComplianceWeight +
-    busFactor * busFactorWeight +
-      correctness * correctnessWeight +
-      rampUpTime * rampUpTimeWeight +
-      responsiveness * responsivenessWeight + DependencyWeight + reviewPercentage * reviewPercentageWeight)
+    (licenseScore + busFactorScore + correctnessScore + rampUpTimeScore
+      + responsivenessScore + DependencyScore + reviewPercentageScore)
 
   netScore = round(netScore, 3)
 
-  return netScore
+  const score = {
+    net: netScore,
+    license: licenseScore,
+    busFactor: busFactorScore,
+    correctness: correctnessScore,
+    rampUpTime: rampUpTimeScore,
+    responsiveness: responsivenessScore,
+    dependencies: DependencyScore,
+    reviewPercentage: reviewPercentageScore
+  }
+  return score
 }
