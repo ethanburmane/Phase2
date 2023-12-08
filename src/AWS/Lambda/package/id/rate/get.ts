@@ -25,7 +25,6 @@ const handler = async (event: any) => {
       TableName: "Packages",
       Key: {
           "id": { S: event.id },
-          "ProjectionExpression": "History"
       }
   };
   const uploadDate = new Date();
