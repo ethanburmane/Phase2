@@ -57,7 +57,7 @@ export const handler = async (event: any, context: any) => {
 
   console.log("Getting package info from body.")
   let packageInfo = await packageInfoFromBody(body)
-  if (packageInfo === 500)
+  if (typeof packageInfo === 'number')
   {
     console.log("Sent 500")
     return {
@@ -430,10 +430,18 @@ function createPackageID(packageName: string, packageVersion: string)
   return packageName + packageVersion
 }
 
-async function packageInfoFromBody(body: Record<string, any>)
+async function packageInfoFromBody(body: any)
 {
-  if (body.Content) { return await packageInfoFromContent(body.Content) }
-  return await packageInfoFromURL(body.URL)
+  if (body.Content) 
+  { 
+    const res = await packageInfoFromContent(body.Content) 
+    return res
+  }
+  else 
+  {
+    const res = await packageInfoFromURL(body.URL)
+    return res
+  }
 }
 
 async function packageJsonDataFromZip(zip: any, root: string)
