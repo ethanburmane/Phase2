@@ -50,21 +50,25 @@ export const handler = async (event: any, context: any) => {
   let urlResult = await extractUrlFromBody(body)  
   if (urlResult[0] == false)
   {
-    console.log("Unable to get url from body")
+    console.log("Unable to get url from body.")
     return urlResult[1]
   }
   let url = urlResult[1]
 
+  console.log("Getting package info from body.")
   let packageInfo = await packageInfoFromBody(body)
+  
   const zipContent = packageInfo.zip
   const packageName = packageInfo.name
   const packageVersion = packageInfo.version
 
   const itemId = createPackageID(packageName, packageVersion)
+
+  console.log("Checking if package exists.")
   const existenceResult = await doesPackageExist(itemId)
   if (existenceResult === 500)
   {
-    console.log("Unable to check if pacakge exists")
+    console.log("Server Error When checking if package exists.")
     return {
       statusCode: 500,
       body: {                
@@ -83,17 +87,11 @@ export const handler = async (event: any, context: any) => {
     }
   }
 
-  // TODO log "scoring url"
   console.log("Calculating score for url" + url)
   const score = await calculateNetScore(url)
+  console.log("Package Score: ", score)
 
   if (score.net > MIN_PKG_SCORE) {
-    // Perform S3 update let s3response = 
-
-    // TODO log "package has valid score of ..."
-    console.log("Getting package info from body")
-    
-
     const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
     const cmdInput = {
@@ -106,7 +104,6 @@ export const handler = async (event: any, context: any) => {
       "region": AWS_REGION
     }
 
-    // TODO log "sending PutObjectCommand for ..."
     console.log("Sending command to s3")
     const s3Client = new S3Client(config)
     const s3command = new PutObjectCommand(cmdInput)
@@ -226,10 +223,10 @@ export const handler = async (event: any, context: any) => {
         }
       },
     }
-    // TODO log response
+    console.log("Sent 201 Response With id ", itemId)
 
   } else {
-    // TODO log response
+    console.log("Sent 424 Response.")
     response = {
       statusCode: 424,
       headers: {
