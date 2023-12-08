@@ -83,7 +83,6 @@ export const handler = async (event: any, context: any) => {
     }
   }
 
-
   // TODO log "scoring url"
   console.log("Calculating score for url" + url)
   const score = await calculateNetScore(url)
