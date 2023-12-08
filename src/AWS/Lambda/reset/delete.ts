@@ -68,10 +68,10 @@
         ExclusiveStartKey: scanResult ? scanResult.LastEvaluatedKey : undefined
     };
 
+
     // TODO Log scanning DB
     scanResult = await DB.send(new ScanCommand(scanParams));
 
-    // TODO Log items scanned
     if (scanResult.Items && scanResult.Items.length > 0) {
         const deletePromises = scanResult.Items.map((item: any) => {
             const deleteParams = {
@@ -88,6 +88,7 @@
         deleteResult = await Promise.all(deletePromises);
 
         if (!isDBDeleteSuccess(deleteResult)) {
+
             // TODO log deletion failure
             return false;
         }
@@ -96,6 +97,7 @@
   // TODO Log deletion success
   return true
 }
+
  
  function isDBDeleteSuccess(result: any)
  {

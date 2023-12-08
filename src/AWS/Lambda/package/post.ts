@@ -21,11 +21,6 @@ const PACKAGE_S3 = "main-storage-bucket"
 export const handler = async (event: any, context: any) => {
   let response
 
-  // TODO: Log request
-
-  const headers = event.headers
-  const body = event.body
-
   // Validate request
   console.log("Validating event", event)
 
@@ -44,8 +39,14 @@ export const handler = async (event: any, context: any) => {
       },
     }
     // TODO: Log response
-
+    
     return response
+  }
+  
+  let body = extractBody(event)
+  if (!body)
+  {
+    body = event
   }
 
   console.log("Extracing URL from body")
@@ -250,6 +251,12 @@ export const handler = async (event: any, context: any) => {
   return response
 }
 
+function extractBody(event: any)
+{
+  if (event.body) { return event.body }
+  else { return false }
+}
+
 async function extractUrlFromBody(body: any)
 {
   if (body.URL) { return [true, body.URL] }
@@ -337,12 +344,13 @@ function isValidRequest(event: any)
    *    - Maybe add checking github url or base64 content as well
    */
 
-  const body = event.body
+  let body = event.body
   if (!body)
   {
-    return false
+    body = event
   }
-
+  
+  // Can't have both or neither
   if ((body.Content && body.URL) || (!(body.Content) && !(body.URL)))
   {
     return false
