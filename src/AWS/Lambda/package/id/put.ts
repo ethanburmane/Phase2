@@ -5,7 +5,6 @@
  */
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { DynamoDBClient, GetItemCommand, UpdateItemCommand } = require('@aws-sdk/client-dynamodb');
-import { calculateBusFactor, calculateCorrectness, calculateRampUpTime, calculateLicenseCompliance, calculateDependency, calculateResponsiveness, calculateReviewPercentage} from "../../../../middleware/metric-calculations";
 import { calculateNetScore } from "../../../../middleware/net-score";
 const JSZip = require('jszip');
 
@@ -47,11 +46,12 @@ export const handler = async (event: any, context: any) => {
   console.log("Package Version: ", packageVersion);
 
   let url = await extractUrlFromBody(body);
+  console.log("URL: ", url);
   if (url[0] == false) {
     console.log("URL not found");
     return url[1];
   }
-  console.log("URL: ", JSON.stringify(url));
+  
 
   // TODO implement
   // Check if the package exists
@@ -126,7 +126,7 @@ async function updatePackageInS3(packageName: string, packageVersion: string, co
   let name = JSON.parse(packageName);
   let version = JSON.parse(packageVersion);
   const cmdInput = {
-      "Body": Buffer.from(content, 'base64'), // assuming content is base64 encoded
+      "Body": Buffer.from(content, 'base64'), 
       "Bucket": "main-storage-bucket",
       "Key": `packages/${name}/${version}.zip`
   };
@@ -221,7 +221,7 @@ async function extractUrlFromContent(content: any)
   // extractPackageJSON(unzipped)
   // extractURLFromPackageJSON(packageJSON)
   let url
-  const binaryData = Buffer.from(content);
+  const binaryData =  zipFromBase64(content);
 
   //Unzip the package
   //TODO add try catch
@@ -314,4 +314,9 @@ function findPackageJson(unzipped: any)
       }
   }
   return packageJsonFile
+}
+
+function zipFromBase64(base64: string)
+{
+  return Buffer.from(base64, "base64")
 }
