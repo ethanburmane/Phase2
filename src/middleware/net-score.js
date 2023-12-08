@@ -43,7 +43,7 @@ var logger_1 = require("../logger");
 // NetScore sub-category Calculations
 function calculateNetScore(url) {
     return __awaiter(this, void 0, void 0, function () {
-        var busFactor, correctness, rampUpTime, responsiveness, licenseCompliance, Dependencies, reviewPercentage, busFactorWeight, correctnessWeight, rampUpTimeWeight, responsivenessWeight, DependencyWeight, reviewPercentageWeight, licenseComplianceWeight, netScore;
+        var busFactor, correctness, rampUpTime, responsiveness, licenseCompliance, reviewPercentage, busFactorWeight, correctnessWeight, rampUpTimeWeight, responsivenessWeight, DependencyWeight, reviewPercentageWeight, licenseComplianceWeight, netScore;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -60,21 +60,20 @@ function calculateNetScore(url) {
                     return [4 /*yield*/, (0, metric_calculations_1.calculateResponsiveness)(url)];
                 case 4:
                     responsiveness = _a.sent();
-                    return [4 /*yield*/, (0, metric_calculations_1.calculateLicenseCompliance)(url)];
+                    return [4 /*yield*/, (0, metric_calculations_1.calculateLicenseCompliance)(url)
+                        //const Dependencies = await calculateDependency(url)
+                    ];
                 case 5:
                     licenseCompliance = _a.sent();
-                    return [4 /*yield*/, (0, metric_calculations_1.calculateDependency)(url)];
-                case 6:
-                    Dependencies = _a.sent();
                     return [4 /*yield*/, (0, metric_calculations_1.calculateReviewPercentage)(url)];
-                case 7:
+                case 6:
                     reviewPercentage = _a.sent();
                     console.log("BusFactor: ".concat(busFactor));
                     console.log("Correctness: ".concat(correctness));
                     console.log("RampUpTime: ".concat(rampUpTime));
                     console.log("Responsiveness: ".concat(responsiveness));
                     console.log("LicenseCompliance: ".concat(licenseCompliance));
-                    console.log("Dependencies: ".concat(Dependencies));
+                    //console.log(`Dependencies: ${Dependencies}`)
                     console.log("ReviewPercentage: ".concat(reviewPercentage));
                     /* eslint-disable no-template-curly-in-string */
                     logger_1["default"].debug('busFactor: ${busFactor}, correctness: ${correctness}, rampUpTime: ${rampUpTime}, responsiveness: ${responsiveness}, licenseCompliance: ${licenseCompliance}');
@@ -89,7 +88,7 @@ function calculateNetScore(url) {
                         busFactor * busFactorWeight +
                         correctness * correctnessWeight +
                         rampUpTime * rampUpTimeWeight +
-                        responsiveness * responsivenessWeight + Dependencies * DependencyWeight + reviewPercentage * reviewPercentageWeight);
+                        responsiveness * responsivenessWeight + DependencyWeight + reviewPercentage * reviewPercentageWeight);
                     netScore = (0, utils_1.round)(netScore, 3);
                     return [2 /*return*/, netScore];
             }
