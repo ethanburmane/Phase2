@@ -10,7 +10,6 @@ import { calculateNetScore } from "../../../../middleware/net-score";
 const JSZip = require('jszip');
 
 
-// Set the AWS Region.
 const AWS_REGION = "us-east-2";
 const s3Client = new S3Client({ region: AWS_REGION });
 const dynamoDBClient = new DynamoDBClient({ region: AWS_REGION });
