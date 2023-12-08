@@ -20,7 +20,7 @@ export const handler = async (event: any) => {
     const regex: string | undefined = event?.RegEx;
 
     console.log('Incoming event:', JSON.stringify(event));
-    console.log('Extracted regex:', regex);
+    console.log('The Extracted regex:', regex);
 
     if (!regex) {
       return {
