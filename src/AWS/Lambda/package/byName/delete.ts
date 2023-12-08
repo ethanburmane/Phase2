@@ -28,7 +28,13 @@ export const handler = async (event: any) => {
   if (!target)
   {
     // TODO Log no path parameter name
+    console.log("Name not found in path parameters.")
+    return {
+      statusCode: 500,
+      body: "Server Error"
+    }
   }
+
 
   const keys = await doesPackageExist(target)
   if (keys === 404)
@@ -49,7 +55,10 @@ export const handler = async (event: any) => {
   const dbDeletionResult = await deletePackageDB(keys)
   if (dbDeletionResult === 500)
   {
-
+    return {
+      statusCode: 500,
+      body: "Server Error"
+    }
   }
   // else === 200
 
@@ -99,6 +108,7 @@ async function deletePackageS3(target: string)
 
 async function doesPackageExist(target: string)
 {
+  console.log("Checking if package exists.")
   const scanParams = {
     TableName: DB_TABLE_NAME,
     FilterExpression: '#N = :n',
@@ -136,6 +146,7 @@ async function doesPackageExist(target: string)
 
 async function deletePackageDB(keys: any[])
 {
+  console.log("Deleting items from database. Keys: ", keys)
   try
   {
 
@@ -144,10 +155,11 @@ async function deletePackageDB(keys: any[])
       const deleteParams = {
           TableName: DB_TABLE_NAME, 
           Key: {
-              'id': k
+              id: k
           }
       };
-
+      
+      console.log("Deleting id ", k)
       const deletionResult = await DB.send(new DeleteItemCommand(deleteParams));
       if (deletionResult.$metadata.httpStatusCode !== 200)
       {
