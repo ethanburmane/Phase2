@@ -42,7 +42,7 @@ async function main() {
     //     let review = await calculateReviewPercentage(repo);
     //     console.log(`Review for ${repo}: ${review}`);
     // }
-    let netscore = await calculateNetScore('https://github.com/django/django')
+    let netscore = await calculateNetScore('https://github.com/ethanburmane/Phase2')
     //let licensescore = await calculateLicenseCompliance('https://github.com/django/django')
     //console.log(`NetScore: ${netscore}`)
 

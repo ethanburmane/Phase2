@@ -45,10 +45,10 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 exports.__esModule = true;
-var metric_calculations_1 = require("../src/middleware/metric-calculations");
+var net_score_1 = require("../src/middleware/net-score");
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var githubRepos, npmRepos, allRepos, licensescore;
+        var githubRepos, npmRepos, allRepos, netscore;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -77,11 +77,12 @@ function main() {
                         'https://www.npmjs.com/package/chalk'
                     ];
                     allRepos = __spreadArray(__spreadArray([], githubRepos, true), npmRepos, true);
-                    return [4 /*yield*/, (0, metric_calculations_1.calculateLicenseCompliance)('https://github.com/django/django')
+                    return [4 /*yield*/, (0, net_score_1.calculateNetScore)('https://github.com/ethanburmane/Phase2')
+                        //let licensescore = await calculateLicenseCompliance('https://github.com/django/django')
                         //console.log(`NetScore: ${netscore}`)
                     ];
                 case 1:
-                    licensescore = _a.sent();
+                    netscore = _a.sent();
                     return [2 /*return*/];
             }
         });
