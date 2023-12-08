@@ -39,7 +39,7 @@ export const handler = async (event: any, context: any) => {
   const packageMetadata = {
     Name: Item.Name.S,
     Version: Item.Version.S,
-    id: Item.id.S
+    ID: Item.id.S
   }
   console.log("Package Metadata: ", JSON.stringify(packageMetadata));
 
