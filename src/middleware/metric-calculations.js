@@ -288,6 +288,8 @@ function calculateResponsiveness(url) {
                     monthlyCommitCount = data.monthlyCommitCount, annualCommitCount = data.annualCommitCount;
                     maxMonthlyCommitCount = Math.max.apply(Math, monthlyCommitCount);
                     minMonthlyCommitCount = Math.min.apply(Math, monthlyCommitCount);
+                    console.log('maxMonthlyCommitCount', maxMonthlyCommitCount);
+                    console.log('minMonthlyCommitCount', minMonthlyCommitCount);
                     diffCommit = maxMonthlyCommitCount - minMonthlyCommitCount;
                     logger_1["default"].debug("maxMonthlyCommitCount: ".concat(maxMonthlyCommitCount, ", minMonthlyCommitCount: ").concat(minMonthlyCommitCount, ", diffCommit: ").concat(diffCommit));
                     /* eslint-disable no-implicit-coercion */
@@ -336,7 +338,7 @@ exports.calculateResponsiveness = calculateResponsiveness;
 function calculateLicenseCompliance(url) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var link, licenseCompliantScore;
+        var link, licenseCompliantScore, readme, licenses;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -350,9 +352,18 @@ function calculateLicenseCompliance(url) {
                     }
                     licenseCompliantScore = 0;
                     if (!link) return [3 /*break*/, 3];
-                    return [4 /*yield*/, (0, gh_service_1.getLiscenseComplianceData)(link)];
+                    return [4 /*yield*/, utils.CloneReadme(url)];
                 case 2:
-                    licenseCompliantScore = _b.sent();
+                    readme = _b.sent();
+                    licenses = utils.FindMatch(readme);
+                    if (licenses.length > 0) {
+                        console.log('true');
+                        return [2 /*return*/, 1];
+                    }
+                    else {
+                        console.log('false');
+                        return [2 /*return*/, 0];
+                    }
                     logger_1["default"].debug("licenseCompliantScore: ".concat(licenseCompliantScore));
                     return [3 /*break*/, 4];
                 case 3: return [2 /*return*/, 0];
@@ -462,7 +473,11 @@ function calculateReviewPercentage(url) {
                         return [2 /*return*/, 0];
                     }
                     totalPullRequests = pullRequests.length;
-                    reviewPercentage = (reviewedPRCount / totalPullRequests);
+                    reviewPercentage = (reviewedPRCount / totalPullRequests) * 1.5;
+                    //scale up 
+                    if (reviewPercentage > 1) {
+                        reviewPercentage = 1;
+                    }
                     console.log("Reviewed Pull Requests: ".concat(reviewedPRCount));
                     console.log("Total Pull Requests: ".concat(totalPullRequests));
                     console.log("Review Percentage: ".concat(reviewPercentage.toFixed(2), "%"));
