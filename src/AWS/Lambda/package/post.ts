@@ -1,6 +1,3 @@
-import { boolean } from "@oclif/core/lib/flags";
-import { unzip } from "zlib";
-
 /**
  * This file hosts the code for executing the code for POST host/package
  *
@@ -11,7 +8,7 @@ import { unzip } from "zlib";
  const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
  const { DynamoDBClient, PutItemCommand, GetItemCommand } = require('@aws-sdk/client-dynamodb');
  const axios = require('axios')
-//import { calculateNetScore } from '../../../middleware/net-score'
+ const {calculateNetScore} = require("../../../middleware/net-score")
 const JSZip = require('jszip')
 
 const MIN_PKG_SCORE = 0.5
@@ -91,7 +88,7 @@ export const handler = async (event: any, context: any) => {
   console.log("Calculating score for url" + url)
   const score = await calculateNetScore(url)
 
-  if (score > MIN_PKG_SCORE) {
+  if (score.net > MIN_PKG_SCORE) {
     // Perform S3 update let s3response = 
 
     // TODO log "package has valid score of ..."
@@ -100,7 +97,6 @@ export const handler = async (event: any, context: any) => {
 
     const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
-    
     const cmdInput = {
       Body: zipContent,
       Bucket: PACKAGE_S3,
@@ -139,14 +135,14 @@ export const handler = async (event: any, context: any) => {
 
     // TODO create item score formatted for db entry
     let itemScore = {
-      "BusFactor": {"S": "0.5"},
-      "Correctness": {"S": "0.7"},
-      "RampUp": {"S": "0.7"},
-      "ResponsiveMaintainer": {"S": "0.7"},
-      "LicenseScore": {"S": "1.0"},
-      "GoodPinningPractice": {"S": "0.7"},
-      "PullRequest": {"S": "0.6"},
-      "NetScore": {"S": "0.65"}
+      "BusFactor": {"S": score.busFactor},
+      "Correctness": {"S": score.correctness},
+      "RampUp": {"S": score.rampUpTime},
+      "ResponsiveMaintainer": {"S": score.responsiveness},
+      "LicenseScore": {"S": score.license},
+      "GoodPinningPractice": {"S": score.dependencies},
+      "PullRequest": {"S": score.reviewPercentage},
+      "NetScore": {"S": score.net}
     }
     const uploadDate = new Date()
     const dateString = uploadDate.toISOString()
@@ -330,10 +326,6 @@ async function extractUrlFromContent(content: any)
   return [true, url]
 }
 
-function calculateNetScore(url: any)
-{
-  return 1
-}
 
 function isValidRequest(event: any)
 {

@@ -17,18 +17,17 @@ const DB = new DynamoDBClient({ region: AWS_REGION });
 export const handler = async (event: any) => {
   try {
     // Extract regex from the request body
-const regex: string | undefined = event?.RegEx;
+    const regex: string | undefined = event?.RegEx;
 
-console.log('Incoming event:', JSON.stringify(event));
-console.log('Extracted regex:', regex);
+    console.log('Incoming event:', JSON.stringify(event));
+    console.log('Extracted regex:', regex);
 
-if (!regex) {
-  return {
-    statusCode: 400,
-    body: JSON.stringify('Missing or invalid RegEx parameter in the request body'),
-  };
-}
-
+    if (!regex) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify('Missing or invalid RegEx parameter in the request body'),
+      };
+    }
 
     // Validate regex
     if (!isValidRegex(regex)) {
@@ -40,6 +39,14 @@ if (!regex) {
 
     // Run the regex against the registry
     const matchedPackages = await getPackagesByRegex(DB_TABLE_NAME, regex);
+
+    // Check if no packages are found
+    if (matchedPackages.length === 0) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify('No package found under this regex.'),
+      };
+    }
 
     // Craft response with matched packages
     const response = {
