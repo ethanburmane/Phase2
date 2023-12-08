@@ -57,7 +57,7 @@ export const handler = async (event: any, context: any) => {
 
   console.log("Getting package info from body.")
   let packageInfo = await packageInfoFromBody(body)
-  if (packageInfo === false)
+  if (packageInfo === 500)
   {
     console.log("Sent 500")
     return {
@@ -402,15 +402,19 @@ async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
   const response = await axios.get(zipURLMain, { responseType: 'arraybuffer' });
   try {
     // Try fetching main branch first
+    console.log("Attempting to fetch branch main.")
     const responseMain = await axios.get(zipURLMain, { responseType: 'arraybuffer' });
     return Buffer.from(responseMain.data, 'binary');
   } catch (error: any) {
+    console.log("Error when fetching main ", error)
     if (error.response && error.response.status === 404) {
       try {
         // If main branch doesn't exist, fetch master branch
+        console.log("Attempting to fetch master branch.")
         const responseMaster = await axios.get(zipURLMaster, { responseType: 'arraybuffer' });
         return Buffer.from(responseMaster.data, 'binary');
       } catch (error) {
+        console.log("Error when fetching master branch ", error)
         // Both main and master branches don't exist
         throw new Error('Both main and master branches not found.');
       }
@@ -448,12 +452,13 @@ async function packageInfoFromURL(url: string)
   {
     console.log("Attempting to fetch repo as zip.")
     const zip = await fetchGitHubRepoAsZip(url)
+    console.log("Using zip to get package info.")
     return await packageInfoFromZip(zip)
   }
   catch (error: any)
   {
     console.error("Error fetching repo as zip ", error)
-    return false
+    return 500
   }
 }
 
@@ -478,14 +483,24 @@ function findPackageJson(unzipped: any)
 async function packageInfoFromZip(zip: Buffer)
 {
   let jszip = new JSZip()
-  const unzipped = await jszip.loadAsync(zip)
+  let unzipped
+  try 
+  {
+    console.log("Unzipping package.")
+    unzipped = await jszip.loadAsync(zip)
+  }
+  catch (error: any)
+  {
+    console.log("Error unzipping package. ", error)
+    return 500
+  }
 
   // Locate and read the package.json file
   const packageJsonFound = findPackageJson(unzipped)
 
   if (!packageJsonFound)
   {
-    throw new Error("Package json not found in zip file")
+    return 500
   }
   
   const parsedPackageJson = await packageJsonDataFromZip(unzipped, rootFromZip(unzipped))
@@ -504,7 +519,7 @@ async function packageInfoFromZip(zip: Buffer)
 async function packageInfoFromContent(content: string)
 {
   const zipped = zipFromBase64(content)
-  return packageInfoFromZip(zipped)
+  return await packageInfoFromZip(zipped)
 }
 
 async function doesPackageExist(id: string) {
