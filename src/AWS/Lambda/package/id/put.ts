@@ -57,7 +57,7 @@ export const handler = async (event: any, context: any) => {
     try {
         await updatePackageInS3(packageName, packageVersion, body.data.Content);
         await updatePackageInDB(packageId, body.metadata, JSON.stringify(url));
-
+        console.log("FINISHING PACKAGE UPDATE");
         return {
             statusCode: 200,
             body: JSON.stringify("Version is updated")

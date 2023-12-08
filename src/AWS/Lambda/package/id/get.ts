@@ -53,7 +53,7 @@ export const handler = async (event: any, context: any) => {
       Bucket: "main-storage-bucket",
       "Key": `packages/${packageName}/${packageVersion}.zip`
     }));
-    console.log("S3 response body: ", s3Response.Body);
+    //console.log("S3 response body: ", s3Response.Body);
     
     // Function to read stream and convert to base64
     const chunks: Buffer[] = [];
@@ -70,7 +70,7 @@ export const handler = async (event: any, context: any) => {
 
     // Combine chunks and convert to base64
     const base64content = Buffer.concat(chunks).toString('base64');
-    
+    console.log("FINISHING PACKAGE DOWNLOAD");
     return {
         statusCode: 200,
         body: {
