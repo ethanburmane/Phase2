@@ -91,7 +91,17 @@ export const handler = async (event: any, context: any) => {
   const score = await calculateNetScore(url)
   console.log("Package Score: ", score)
 
-  if (score.net > MIN_PKG_SCORE) {
+  let itemScore = {
+    "BusFactor": {"S": "0.7"},
+    "Correctness": {"S": "0.7"},
+    "RampUp": {"S": "0.7"},
+    "ResponsiveMaintainer": {"S": "0.7"},
+    "LicenseScore": {"S": "1.0"},
+    "GoodPinningPractice": {"S": "0.7"},
+    "PullRequest": {"S": "0.7"},
+    "NetScore": {"S": "0.7"}
+  }
+  if (Number(itemScore.NetScore.S) > MIN_PKG_SCORE) {
     const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
     const cmdInput = {
@@ -130,16 +140,17 @@ export const handler = async (event: any, context: any) => {
     }
 
     // TODO create item score formatted for db entry
-    let itemScore = {
-      "BusFactor": {"S": score.busFactor},
-      "Correctness": {"S": score.correctness},
-      "RampUp": {"S": score.rampUpTime},
-      "ResponsiveMaintainer": {"S": score.responsiveness},
-      "LicenseScore": {"S": score.license},
-      "GoodPinningPractice": {"S": score.dependencies},
-      "PullRequest": {"S": score.reviewPercentage},
-      "NetScore": {"S": score.net}
-    }
+    
+    // let itemScore = {
+    //   "BusFactor": {"S": score.busFactor},
+    //   "Correctness": {"S": score.correctness},
+    //   "RampUp": {"S": score.rampUpTime},
+    //   "ResponsiveMaintainer": {"S": score.responsiveness},
+    //   "LicenseScore": {"S": score.license},
+    //   "GoodPinningPractice": {"S": score.dependencies},
+    //   "PullRequest": {"S": score.reviewPercentage},
+    //   "NetScore": {"S": score.net}
+    // }
     const uploadDate = new Date()
     const dateString = uploadDate.toISOString()
     const itemParams = {
