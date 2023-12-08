@@ -57,7 +57,17 @@ export const handler = async (event: any, context: any) => {
 
   console.log("Getting package info from body.")
   let packageInfo = await packageInfoFromBody(body)
-  
+  if (packageInfo === false)
+  {
+    console.log("Sent 500")
+    return {
+      statusCode: 500,
+      body: {
+        error: "Server Error"
+      }
+    }
+  }
+
   const zipContent = packageInfo.zip
   const packageName = packageInfo.name
   const packageVersion = packageInfo.version
@@ -386,10 +396,29 @@ function isSuccessfulDBResponse(response: Record<string, any>)
 }
 
 async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
-  const zipURL = `${repoURL}/archive/main.zip`;
+  const zipURLMain = `${repoURL}/archive/main.zip`;
+  const zipURLMaster = `${repoURL}/archive/master.zip`;
 
-  const response = await axios.get(zipURL, { responseType: 'arraybuffer' });
-  return Buffer.from(response.data, 'binary');
+  const response = await axios.get(zipURLMain, { responseType: 'arraybuffer' });
+  try {
+    // Try fetching main branch first
+    const responseMain = await axios.get(zipURLMain, { responseType: 'arraybuffer' });
+    return Buffer.from(responseMain.data, 'binary');
+  } catch (error: any) {
+    if (error.response && error.response.status === 404) {
+      try {
+        // If main branch doesn't exist, fetch master branch
+        const responseMaster = await axios.get(zipURLMaster, { responseType: 'arraybuffer' });
+        return Buffer.from(responseMaster.data, 'binary');
+      } catch (error) {
+        // Both main and master branches don't exist
+        throw new Error('Both main and master branches not found.');
+      }
+    } else {
+      // Handle other errors
+      throw error;
+    }
+  }
 }
 
 function createPackageID(packageName: string, packageVersion: string)
@@ -415,8 +444,17 @@ async function packageJsonDataFromZip(zip: any, root: string)
 
 async function packageInfoFromURL(url: string)
 {
-  const zip = await fetchGitHubRepoAsZip(url)
-  return await packageInfoFromZip(zip)
+  try 
+  {
+    console.log("Attempting to fetch repo as zip.")
+    const zip = await fetchGitHubRepoAsZip(url)
+    return await packageInfoFromZip(zip)
+  }
+  catch (error: any)
+  {
+    console.error("Error fetching repo as zip ", error)
+    return false
+  }
 }
 
 function findPackageJson(unzipped: any)
