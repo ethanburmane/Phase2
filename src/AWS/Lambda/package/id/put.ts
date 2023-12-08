@@ -45,12 +45,12 @@ export const handler = async (event: any, context: any) => {
   const packageVersion = JSON.stringify(metadata.Version);
   console.log("Package Version: ", packageVersion);
 
-  let url = await extractUrlFromBody(body);
-  console.log("URL: ", url);
-  if (url[0] == false) {
+  let url = body.URL; //await extractUrlFromBody(body);
+  console.log("URL: ", JSON.stringify(url));
+  /*if (url[0] == false) {
     console.log("URL not found");
     return url[1];
-  }
+  }*/
   
 
   // TODO implement
