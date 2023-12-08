@@ -9,7 +9,7 @@ import { unzip } from "zlib";
  *
  */
  const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
- const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
+ const { DynamoDBClient, PutItemCommand, GetItemCommand } = require('@aws-sdk/client-dynamodb');
  const axios = require('axios')
 //import { calculateNetScore } from '../../../middleware/net-score'
 const JSZip = require('jszip')
@@ -21,13 +21,9 @@ const PACKAGE_S3 = "main-storage-bucket"
 export const handler = async (event: any, context: any) => {
   let response
 
-  // TODO: Log request
-
-  const headers = event.headers
-  const body = event.body
-
   // Validate request
-  console.log("Validating event" + event)
+  console.log("Validating event", event)
+
   if (!isValidRequest(event)) {
     // Return 4xx code since the body is not formatted correctly
     console.log("Event was not valid")
@@ -43,8 +39,14 @@ export const handler = async (event: any, context: any) => {
       },
     }
     // TODO: Log response
-
+    
     return response
+  }
+  
+  let body = extractBody(event)
+  if (!body)
+  {
+    body = event
   }
 
   console.log("Extracing URL from body")
@@ -56,6 +58,34 @@ export const handler = async (event: any, context: any) => {
   }
   let url = urlResult[1]
 
+  let packageInfo = await packageInfoFromBody(body)
+  const zipContent = packageInfo.zip
+  const packageName = packageInfo.name
+  const packageVersion = packageInfo.version
+
+  const itemId = createPackageID(packageName, packageVersion)
+  const existenceResult = await doesPackageExist(itemId)
+  if (existenceResult === 500)
+  {
+    console.log("Unable to check if pacakge exists")
+    return {
+      statusCode: 500,
+      body: {                
+        error: "Server Error"            
+      }
+    }
+  }
+  else if (existenceResult === 409)
+  {
+    console.log("Package exists")
+    return {
+      statusCode: 409,
+      body: {                
+        error: "Package Already Exists"            
+      }
+    }
+  }
+
 
   // TODO log "scoring url"
   console.log("Calculating score for url" + url)
@@ -66,13 +96,11 @@ export const handler = async (event: any, context: any) => {
 
     // TODO log "package has valid score of ..."
     console.log("Getting package info from body")
-    let packageInfo = await packageInfoFromBody(body)
-    const zipContent = packageInfo.zip
-    const packageName = packageInfo.name
-    const packageVersion = packageInfo.version
+    
 
     const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
+    
     const cmdInput = {
       Body: zipContent,
       Bucket: PACKAGE_S3,
@@ -109,10 +137,17 @@ export const handler = async (event: any, context: any) => {
       return response
     }
 
-    const itemId = createPackageID(packageName, packageVersion)
-
     // TODO create item score formatted for db entry
-    let itemScore = {}
+    let itemScore = {
+      "BusFactor": {"S": "0.5"},
+      "Correctness": {"S": "0.7"},
+      "RampUp": {"S": "0.7"},
+      "ResponsiveMaintainer": {"S": "0.7"},
+      "LicenseScore": {"S": "1.0"},
+      "GoodPinningPractice": {"S": "0.7"},
+      "PullRequest": {"S": "0.6"},
+      "NetScore": {"S": "0.65"}
+    }
     const uploadDate = new Date()
     const dateString = uploadDate.toISOString()
     const itemParams = {
@@ -216,6 +251,12 @@ export const handler = async (event: any, context: any) => {
   return response
 }
 
+function extractBody(event: any)
+{
+  if (event.body) { return event.body }
+  else { return false }
+}
+
 async function extractUrlFromBody(body: any)
 {
   if (body.URL) { return [true, body.URL] }
@@ -303,12 +344,13 @@ function isValidRequest(event: any)
    *    - Maybe add checking github url or base64 content as well
    */
 
-  const body = event.body
+  let body = event.body
   if (!body)
   {
-    return false
+    body = event
   }
-
+  
+  // Can't have both or neither
   if ((body.Content && body.URL) || (!(body.Content) && !(body.URL)))
   {
     return false
@@ -426,4 +468,28 @@ async function packageInfoFromContent(content: string)
 {
   const zipped = zipFromBase64(content)
   return packageInfoFromZip(zipped)
+}
+
+async function doesPackageExist(id: string) {
+  console.log("Checking if package exists")
+  try {
+    const db = new DynamoDBClient({ region: AWS_REGION})
+    const itemParams = {
+            TableName: "Packages",
+            Key: {
+                id: {"S": id}
+            }
+    }
+    const data = await db.send(new GetItemCommand(itemParams));
+    if (data.Item) {
+        console.log("Package already exists");
+        return 409
+    } else {
+        console.log("Package doesn't exists", data)
+        return 200
+    }
+} catch (err) {
+    console.error("Error when checking if package exists", err);
+    return 500
+}
 }
