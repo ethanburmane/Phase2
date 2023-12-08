@@ -8,6 +8,7 @@ const { DynamoDBClient, GetItemCommand, UpdateItemCommand } = require('@aws-sdk/
 import { calculateBusFactor, calculateCorrectness, calculateRampUpTime, calculateLicenseCompliance, calculateDependency, calculateResponsiveness, calculateReviewPercentage} from "../../../../middleware/metric-calculations";
 import { calculateNetScore } from "../../../../middleware/net-score";
 
+// Set the AWS Region.
 const AWS_REGION = "us-east-2";
 const s3Client = new S3Client({ region: AWS_REGION });
 const dynamoDBClient = new DynamoDBClient({ region: AWS_REGION });
