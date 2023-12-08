@@ -97,7 +97,6 @@ export const handler = async (event: any, context: any) => {
 
     const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
-    
     const cmdInput = {
       Body: zipContent,
       Bucket: PACKAGE_S3,
