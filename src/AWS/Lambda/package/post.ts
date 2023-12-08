@@ -399,7 +399,6 @@ async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
   const zipURLMain = `${repoURL}/archive/main.zip`;
   const zipURLMaster = `${repoURL}/archive/master.zip`;
 
-  const response = await axios.get(zipURLMain, { responseType: 'arraybuffer' });
   try {
     // Try fetching main branch first
     console.log("Attempting to fetch branch main.")
