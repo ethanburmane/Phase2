@@ -3120,6 +3120,11 @@
     "@tufjs/canonical-json" "1.0.0"
     minimatch "^9.0.0"
 
+"@types/aws-lambda@^8.10.130":
+  version "8.10.130"
+  resolved "https://registry.npmjs.org/@types/aws-lambda/-/aws-lambda-8.10.130.tgz"
+  integrity sha512-HxTfLeGvD1wTJqIGwcBCpNmHKenja+We1e0cuzeIDFfbEj3ixnlTInyPR/81zAe0Ss/Ip12rFK6XNeMLVucOSg==
+
 "@types/babel__core@^7.1.14":
   version "7.20.2"
   resolved "https://registry.npmjs.org/@types/babel__core/-/babel__core-7.20.2.tgz"

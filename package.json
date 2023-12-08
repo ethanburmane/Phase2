@@ -34,6 +34,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.22.15",
     "@babel/preset-typescript": "^7.22.15",
+    "@types/aws-lambda": "^8.10.130",
     "@types/chai": "^4",
     "@types/jest": "^29.5.5",
     "@types/node": "^16.18.59",
@@ -81,7 +82,6 @@
     "build": "shx rm -rf dist && tsc -b",
     "lint": "eslint . --ext .ts --config .eslintrc",
     "postpack": "shx rm -f oclif.manifest.json",
-    "posttest": "npm run lint",
     "prepack": "npm run build && oclif manifest && oclif readme",
     "test": "jest",
     "version": "oclif readme && git add README.md"

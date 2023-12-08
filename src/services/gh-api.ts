@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv'
 import axios from 'axios'
 import logger from '../logger'
+import {PR} from '../models/middleware-inputs';
 
 dotenv.config() // load enviroment variables
 
@@ -222,6 +223,8 @@ export async function getMonthlyCommitCount(
   }
 }
 
+
+
 /**
  * Gets the number of commits made in the past year.
  *
@@ -256,4 +259,94 @@ export async function getAnualCommitCount(repoUrl: string): Promise<number> {
     logger.info('GH_API: getAnualCommitCount failed')
     return -1
   }
+}
+
+export async function getDependencyList(repoUrl: string): Promise<Object> {
+  logger.info('GH_API: running getAnualCommitCount')
+  const instance = axios.create({
+    baseURL: 'https://api.github.com/repos',
+    timeout: 10_000,
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    },
+  })
+
+  const repoOwner = repoUrl.split('/')[3]
+  const repoName = repoUrl.split('/')[4]
+
+  try {
+    const response = await instance.get(`${repoOwner}/${repoName}/contents/package.json`)
+    const packageJson = JSON.parse(Buffer.from(response.data.content, 'base64').toString())
+
+    const dependencies = packageJson.dependencies || {}
+    const devDependencies = packageJson.devDependencies || {}
+    console.log('dependancies',dependencies)
+    
+    const combinedDependencies = {...dependencies, ...devDependencies}
+    
+    return combinedDependencies
+  } catch {
+    logger.info('GH_API: getDepenencyList failed')
+    return -1
+  }
+}
+
+export async function checkIfPullRequestReviewed(repoOwner: string, repoName: string, pullNumber: number) {
+  logger.info('GH_API: running checkIfPullRequestReviewed')
+  const instance = axios.create({
+    baseURL: 'https://api.github.com/repos',
+    timeout: 10_000,
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    },
+  })
+  
+  
+  try {
+      const reviewsResponse = await instance.get(`${repoOwner}/${repoName}/pulls/${pullNumber}/reviews`);
+      return reviewsResponse.data.length > 0;
+  } catch (error) {
+      console.error(`Error checking reviews for pull request #${pullNumber}:`);
+      throw error;
+  }
+}
+
+export async function fetchAllPullRequests(repoOwner: string, repoName: string): Promise<PR[]> {
+  const instance = axios.create({
+    baseURL: 'https://api.github.com/repos/',
+    timeout: 10000,
+    headers: {
+        Accept: 'application/vnd.github.v3+json',
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    },
+});
+
+  let page = 1;
+  let pullRequests = [];
+  let mergedPullRequests: PR[] = [];
+  let hasNextPage = true;
+
+
+  console.log(`Starting to fetch pull requests for ${repoOwner}/${repoName}`);
+
+  while (hasNextPage && page <= 3) {
+    try {
+      const response = await instance.get(`${repoOwner}/${repoName}/pulls`, {
+        params: { state: 'all', per_page: 100, page },
+      });
+      console.log(`Fetched page ${page} with ${response.data.length} pull requests.`);
+      const mergedPRs = response.data.filter((pr: { merged_at: any }) => pr.merged_at);
+      mergedPullRequests = mergedPullRequests.concat(mergedPRs);
+      hasNextPage = response.data.length === 100;
+      page += 1;
+    } catch (error) {
+      console.error(`Error fetching pull requests for page ${page}:`);
+      throw error;
+    }
+  }
+
+  console.log(`Finished fetching pull requests. Total count: ${mergedPullRequests.length}`);
+  return mergedPullRequests;
 }

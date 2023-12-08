@@ -18,14 +18,7 @@ export const handler = async (event: any) => {
 
   // The package name is in the path parameters
 
-  const params = event.pathParameters
-
-  if (!params) {
-
-  }
-
-
-  const target = params.name
+  const target = event.Name
 
 
   const s3_cmd_input = {
