@@ -86,13 +86,34 @@ function validateRequest(event: any)
     }
     return true
   }
+
+  //Check for search all
+  if ((body.Name) && (body.Name === "*"))
+  {
+    return true
+  }
   console.log("Body was not an array.")
   return false
 }
 
 function extractQueryFromEvent(event: any) : any[]
 {
-  return event.body
+  if (event.body)
+  {
+    if (!(event.body instanceof Array))
+    {
+      return [event.body]
+    }
+    return event.body
+  }
+  else 
+  {
+    if (!(event instanceof Array))
+    {
+      return [event]
+    }
+    return event
+  }
 }
 
 async function performDBQuery(query: any[], offset: number)
