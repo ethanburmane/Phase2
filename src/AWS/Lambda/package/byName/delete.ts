@@ -75,7 +75,7 @@ async function deletePackageS3(target: string)
 {
   const s3_cmd_input = {
     Bucket: "main-storage-bucket",
-    Key: "packages/" + target
+    Key: S3_ROOT + target
   }
   try 
   {
@@ -103,7 +103,7 @@ async function doesPackageExist(target: string)
     TableName: DB_TABLE_NAME,
     FilterExpression: '#N = :n',
     ExpressionAttributeNames: {
-      '#N': { S: 'Name'}
+      '#N': 'Name'
     },
     ExpressionAttributeValues: {
         ':n': { S: target }
