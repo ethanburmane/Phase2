@@ -155,12 +155,13 @@ async function deletePackageDB(keys: any[])
       const deleteParams = {
           TableName: DB_TABLE_NAME, 
           Key: {
-              id: k
+              id: { S: k }
           }
       };
       
       console.log("Deleting id ", k)
       const deletionResult = await DB.send(new DeleteItemCommand(deleteParams));
+      console.log(deletionResult)
       if (deletionResult.$metadata.httpStatusCode !== 200)
       {
         console.error("Error deleting ", k, "from database")
@@ -170,7 +171,7 @@ async function deletePackageDB(keys: any[])
   }
   catch (e)
   {
-    console.error("Error deleting items from DB")
+    console.error("Error deleting items from DB", e)
     return 500
   }
   return 200
