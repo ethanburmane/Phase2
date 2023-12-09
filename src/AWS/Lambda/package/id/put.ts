@@ -184,6 +184,7 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
   const reviewPercentageScore = score_entries[7][1];
 
   // Extract individual metrics from the score object
+  console.log("Create new score object");
   const new_score = {
     M: {
       "BusFactor": { S: busFactorScore },
@@ -197,6 +198,7 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
     }
   };
 
+  console.log("Update package in DB using UpdateItemCommand");
   const params = {
       "TableName": "Packages",
       "Key": { "id": { S: packageId } },
