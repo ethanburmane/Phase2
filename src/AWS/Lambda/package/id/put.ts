@@ -165,11 +165,12 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
   } 
 
   curr_history.push(new_history);
-
   // calculate metrics
   const score = await calculateNetScore(url);
   console.log("Score: ", score);
+  console.log("Score entries: ", Object.entries(score));
 
+  // Extract individual metrics from the score object
   /*
   const new_score = {
     M: {
@@ -184,6 +185,7 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
     }
   };
   */
+
   const params = {
       "TableName": "Packages",
       "Key": { "id": { S: packageId } },
@@ -211,7 +213,7 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
 async function extractUrlFromBody(body: any)
 {
   if (body.data.URL) { return [true, body.data.URL] }
-  return await extractUrlFromContent(body.Content)
+  return await extractUrlFromContent(body.data.Content)
 }
 
 async function extractUrlFromContent(content: any)
