@@ -57,10 +57,7 @@ export const handler = async (event: any) => {
     // Craft response with matched packages
     const response = {
       statusCode: 200,
-      body: JSON.stringify({
-        message: 'Packages matching the regex',
-        packages: matchedPackages,
-      }),
+      body: matchedPackages,
     };
 
     return response;
@@ -78,10 +75,6 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
   try {
     const scanParams = {
       TableName: tableName,
-      FilterExpression: 'contains(Name, :regex) OR contains(Readme, :regex)',
-      ExpressionAttributeValues: {
-        ':regex': regex,
-      },
     };
 
     const scanResult = await DB.send(new ScanCommand(scanParams));
@@ -92,13 +85,25 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
     // Check for empty results
     if (!scanResult.Items || scanResult.Items.length === 0) {
       console.log('No items found in DynamoDB scan result');
-      return [404]; // Package not found
+      return []; // Package not found
+    }
+    const pkgs = [];
+
+    for (const item of scanResult.Items) {
+      // Assuming 'Name' is the attribute you want to match against the regex
+      const itemName = item.Name && item.Name.S;
+
+      if (itemName && new RegExp(regex).test(itemName)) {
+        // If the 'Name' matches the regex, add it to the list
+        pkgs.push({
+          Name: itemName,
+          Version: item.Version && item.Version.S,
+          // Add more attributes as needed
+        });
+      }
     }
 
-    const pkgs: any[] = scanResult.Items.map((item: DynamoDBItem) => ({
-      Name: item.Name.S,
-      Version: item.Version.S,
-    }));
+   
 
     return pkgs;
   } catch (error) {
