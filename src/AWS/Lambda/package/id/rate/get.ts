@@ -26,14 +26,7 @@ const handler = async (event: any) => {
           "id": { S: event.id },
       }
   };
-  const uploadDate = new Date();
-  const dateString = uploadDate.toISOString();
-  const new_history = {
-    M: {
-      "type": {S: "UPDATE"},
-      "date": {S: dateString},
-    }
-  }
+
 
   try {
       const result = await DB.send(new GetItemCommand(itemParams));
