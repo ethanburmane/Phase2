@@ -14,7 +14,7 @@ const S3_ROOT = "packages/";
 const DB_TABLE_NAME = "Packages";
 const DB = new DynamoDBClient({ region: AWS_REGION });
 const S3 = new S3Client({ region: AWS_REGION });
-const handler = async (event: any) => {
+export const handler = async (event: any) => {
   let response
   const targetID = event.id
   if (!targetID)
