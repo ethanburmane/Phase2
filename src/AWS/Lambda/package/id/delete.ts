@@ -114,7 +114,7 @@ async function deleteFromDB(id: string)
   try 
   {
     console.log("Deleting from DB")
-    const dbDelcommand = new DeleteObjectCommand(db_cmd_input)
+    const dbDelcommand = new DeleteItemCommand(db_cmd_input)
     const dbDelResult = await DB.send(dbDelcommand)
     console.log("Deletion result", dbDelResult)
     if (dbDelResult.$metadata.httpStatusCode === 200)
