@@ -36,13 +36,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.isPinned = exports.evaluateLink = exports.calcRepoLines = exports.countLinesOfCode = exports.cloneRepo = exports.parseGHRepoName = exports.getLinesOfCode = exports.identifyLink = exports.round = void 0;
+exports.isPinned = exports.evaluateLink = exports.calcRepoLines = exports.countLinesOfCode = exports.CloneReadme = exports.FindMatch = exports.cloneRepo = exports.parseGHRepoName = exports.getLinesOfCode = exports.identifyLink = exports.round = void 0;
 /* eslint-disable no-console */
 var fs = require("node:fs");
 var url = require("node:url");
 var node_child_process_1 = require("node:child_process");
 var gh_service_1 = require("../services/gh-service");
 var logger_1 = require("../logger");
+var axios_1 = require("axios");
 var path = require("path");
 function round(value, decimals) {
     logger_1["default"].info("Rounding ".concat(value, " to ").concat(decimals, " decimal places"));
@@ -124,6 +125,81 @@ function cloneRepo(ghUrl, localPath, repoUrl) {
     });
 }
 exports.cloneRepo = cloneRepo;
+function FindMatch(fileContents) {
+    var licensePatterns = [
+        'LGPLv2[. ]1',
+        'GPLv2',
+        'GPLv3',
+        'MIT',
+        'BSD',
+        'Apache',
+        'Expat',
+        'zlib',
+        'ISC',
+    ];
+    // Create a set to store found licenses
+    var foundLicenses = new Set();
+    // Generate regex patterns for each license
+    var regexPatterns = licensePatterns.map(function (pattern) {
+        // Escape any special characters in the pattern
+        var escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Use word boundaries to ensure the pattern stands alone
+        return new RegExp("\\b".concat(escapedPattern, "\\b"), 'i'); // 'i' for case insensitive
+    });
+    // Find matches using the generated regex patterns
+    for (var _i = 0, regexPatterns_1 = regexPatterns; _i < regexPatterns_1.length; _i++) {
+        var regex = regexPatterns_1[_i];
+        var matches = fileContents.match(regex);
+        if (matches) {
+            for (var _a = 0, matches_1 = matches; _a < matches_1.length; _a++) {
+                var match = matches_1[_a];
+                // Clean up the match by removing surrounding non-alphanumeric characters
+                var cleanedMatch = match.replace(/[^a-zA-Z0-9]+/g, '');
+                //console.log('Pattern Matched:', match);
+                foundLicenses.add(cleanedMatch);
+            }
+        }
+    }
+    // Convert the set to an array and return it
+    console.log(Array.from(foundLicenses));
+    return Array.from(foundLicenses);
+}
+exports.FindMatch = FindMatch;
+function CloneReadme(url) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, axios_1["default"].get(url, {
+                            headers: {
+                                Authorization: "token ".concat(process.env.GIT_TOKEN),
+                                Accept: 'application/vnd.github.VERSION.raw'
+                            }
+                        })];
+                case 1:
+                    response = _a.sent();
+                    // Return the README file content as a string.
+                    console.log(response.data);
+                    return [2 /*return*/, response.data];
+                case 2:
+                    error_1 = _a.sent();
+                    if (error_1.response) {
+                        logger_1["default"].error("Error encountered when requesting readme", { timestamp: new Date(), url: url, message: error_1.message, response: error_1.response.data });
+                        throw new Error(error_1.response.data);
+                    }
+                    else {
+                        logger_1["default"].error("Error encountered when requesting readme", { timestamp: new Date(), url: url, message: error_1.message });
+                        throw new Error(error_1.message);
+                    }
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.CloneReadme = CloneReadme;
 function countLinesOfCode(dirPath) {
     var codeExtensions = new Set([
         '.js', '.py', '.java', '.cs', '.php',

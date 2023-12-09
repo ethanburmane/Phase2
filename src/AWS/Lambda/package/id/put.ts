@@ -5,10 +5,10 @@
  */
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { DynamoDBClient, GetItemCommand, UpdateItemCommand } = require('@aws-sdk/client-dynamodb');
-import { calculateBusFactor, calculateCorrectness, calculateRampUpTime, calculateLicenseCompliance, calculateDependency, calculateResponsiveness, calculateReviewPercentage} from "../../../../middleware/metric-calculations";
 import { calculateNetScore } from "../../../../middleware/net-score";
+const JSZip = require('jszip');
 
-// Set the AWS Region.
+
 const AWS_REGION = "us-east-2";
 const s3Client = new S3Client({ region: AWS_REGION });
 const dynamoDBClient = new DynamoDBClient({ region: AWS_REGION });
@@ -18,6 +18,7 @@ export const handler = async (event: any, context: any) => {
   console.log("UPDATE PACKAGE STARTING");
   // Validate request
   console.log("Validating event" + event);
+  /*
   if (!isValidRequest(event)) {
     // Return 4xx code since the body is not formatted correctly
     console.log("Event was not valid");
@@ -30,6 +31,7 @@ export const handler = async (event: any, context: any) => {
     // TODO: Log response
     return response;
   }
+  */
 
   const packageId = event.id;
   console.log("Package ID: ", packageId);
@@ -43,8 +45,13 @@ export const handler = async (event: any, context: any) => {
   const packageVersion = JSON.stringify(metadata.Version);
   console.log("Package Version: ", packageVersion);
 
-  const url = body.data.URL;
-  console.log("URL: ", JSON.stringify(url));
+  let url = await extractUrlFromBody(body);
+  console.log("URL: ", url);
+  /*if (url[0] == false) {
+    console.log("URL not found");
+    return url[1];
+  }*/
+  
 
   // TODO implement
   // Check if the package exists
@@ -56,8 +63,8 @@ export const handler = async (event: any, context: any) => {
   // Update package in S3 and DB
     try {
         await updatePackageInS3(packageName, packageVersion, body.data.Content);
-        await updatePackageInDB(packageId, body.metadata, JSON.stringify(url));
-
+        await updatePackageInDB(packageId, body.metadata, url);
+        console.log("FINISHING PACKAGE UPDATE");
         return {
             statusCode: 200,
             body: JSON.stringify("Version is updated")
@@ -119,7 +126,7 @@ async function updatePackageInS3(packageName: string, packageVersion: string, co
   let name = JSON.parse(packageName);
   let version = JSON.parse(packageVersion);
   const cmdInput = {
-      "Body": Buffer.from(content, 'base64'), // assuming content is base64 encoded
+      "Body": Buffer.from(content, 'base64'), 
       "Bucket": "main-storage-bucket",
       "Key": `packages/${name}/${version}.zip`
   };
@@ -129,7 +136,7 @@ async function updatePackageInS3(packageName: string, packageVersion: string, co
 }
 
 
-async function updatePackageInDB(packageId: string, metadata: any, url: string) {
+async function updatePackageInDB(packageId: string, metadata: any, url: any) {
   console.log("Updating package in DB");
 
   const uploadDate = new Date();
@@ -160,46 +167,156 @@ async function updatePackageInDB(packageId: string, metadata: any, url: string) 
   curr_history.push(new_history);
 
   // calculate metrics
-  const busFactor = calculateBusFactor(url);
-  const correctness = calculateCorrectness(url);
-  const rampUpTime = calculateRampUpTime(url);
-  const licenseCompliance = calculateLicenseCompliance(url);
-  const dependency = calculateDependency(url);
-  const responsiveness = calculateResponsiveness(url);
-  const reviewPercentage = calculateReviewPercentage(url);
-  const netScore = calculateNetScore(url);
+  const score = await calculateNetScore(url);
+  console.log("Score: ", score);
 
+  /*
   const new_score = {
     M: {
-      "BusFactor": {S: busFactor.toString()},
-      "Correctness": {S: correctness.toString()},
-      "RampUp": {S: rampUpTime.toString()},
-      "LicenseScore": {S: licenseCompliance.toString()},
-      "ResponsiveMaintainer": {S: responsiveness.toString()},
-      "NetScore": {S: netScore.toString()}
+      "BusFactor": { S: score.busFactor },
+      "Correctness": { S: score.correctness },
+      "RampUp": { S: score.rampUpTime },
+      "ResponsiveMaintainer": { S: score.responsiveness },
+      "LicenseScore": { S: score.license },
+      "GoodPinningPractice": { S: score.dependencies },
+      "PullRequest": { S: score.reviewPercentage },
+      "NetScore": { S: score.net }
     }
-  }
-
+  };
+  */
   const params = {
       "TableName": "Packages",
       "Key": { "id": { S: packageId } },
-      "UpdateExpression": "SET #N = :n, #V = :v, #L = :l, #H = :h, #S = :s",
+      "UpdateExpression": "SET #N = :n, #V = :v, #L = :l, #H = :h", //, #S = :s",
       "ExpressionAttributeNames": {
           "#N": "Name",
           "#V": "Version",
           "#L": "LastUpdated",
           "#H": "History",
-          "#S": "Score"
+          //"#S": "Score"
       },
       "ExpressionAttributeValues": {
           ":n": { S: metadata.Name },
           ":v": { S: metadata.Version },
           ":l": { S: dateString},
           ":h": { L: curr_history },
-          ":s": { M: new_score }
+          //":s": { M: new_score }
       },
       "ReturnValues": "UPDATED_NEW"
   };
   const Item = await dynamoDBClient.send(new UpdateItemCommand(params));
   console.log("Updated package in DB: ", Item)
+}
+
+async function extractUrlFromBody(body: any)
+{
+  if (body.data.URL) { return [true, body.data.URL] }
+  return await extractUrlFromContent(body.Content)
+}
+
+async function extractUrlFromContent(content: any)
+{
+  // TODO, make functions and tests
+  // isValidBase64(content)
+  // extractPackageJSON(unzipped)
+  // extractURLFromPackageJSON(packageJSON)
+  let url
+  const binaryData =  zipFromBase64(content);
+
+  //Unzip the package
+  //TODO add try catch
+  let jszip = new JSZip()
+  const unzip_result = await jszip.loadAsync(binaryData)  
+  let packageJsonFile = findPackageJson(unzip_result)
+  const root = rootFromZip(unzip_result)
+
+  //Need package.json file
+  if (packageJsonFile) {
+    const packageData = await packageJsonDataFromZip(unzip_result, root)
+
+    // Need the url from the package data
+    url = packageData.homepage || (packageData.repository && packageData.repository.url);
+    if (!url)
+    {
+      const response = {
+        statusCode: 400,
+        headers: {
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
+        body: {
+          error: "URL not found inside package.json"
+        }
+      }
+      return [false, response]
+    }
+    if (packageData.homepage)
+    {
+      url = packageData.homepage
+    }
+    else 
+    {
+      url = packageData.repository.url
+    }
+
+    console.log('URL found inside package.json:', url);
+    // TODO log url found
+  } else {
+      console.log('No package.json found in the ZIP package.');
+      const response = {
+        statusCode: 400,
+        headers: {
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
+        body: {
+          error: "No package.json found in the ZIP package."
+        }
+      }
+      return [false, response]
+  }
+
+  return [true, url]
+}
+
+function rootFromZip(zip: any)
+{
+  const fileNames = Object.keys(zip.files);
+  const root = fileNames[0].split('/')[0]
+  return root
+}
+
+async function packageJsonDataFromZip(zip: any, root: string)
+{
+  const file = zip.files[root + '/package.json'];
+  const content = await file.async('text');
+  // Parse package.json content to extract the URL
+  const packageData = JSON.parse(content);
+
+  return packageData
+}
+
+function findPackageJson(unzipped: any)
+{
+  const fileNames = Object.keys(unzipped.files);
+  const root = fileNames[0].split('/')[0]
+  let packageJsonFile = undefined
+  console.log("Files found:\n" + fileNames)
+  for (let i = 0; i < fileNames.length; i++) {
+      const split = fileNames[i].split('/')
+      if (split.length >= 2) { 
+          if (split[1] === 'package.json') { 
+              packageJsonFile = true 
+              break
+          }
+      }
+  }
+  return packageJsonFile
+}
+
+function zipFromBase64(base64: string)
+{
+  return Buffer.from(base64, "base64")
 }

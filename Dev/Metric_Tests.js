@@ -77,10 +77,12 @@ function main() {
                         'https://www.npmjs.com/package/chalk'
                     ];
                     allRepos = __spreadArray(__spreadArray([], githubRepos, true), npmRepos, true);
-                    return [4 /*yield*/, (0, net_score_1.calculateNetScore)('https://github.com/vuejs/vue')];
+                    return [4 /*yield*/, (0, net_score_1.calculateNetScore)('https://github.com/prettier/prettier')
+                        //let licensescore = await calculateLicenseCompliance('https://github.com/django/django')
+                        //console.log(`NetScore: ${netscore}`)
+                    ];
                 case 1:
                     netscore = _a.sent();
-                    console.log("NetScore: ".concat(netscore));
                     return [2 /*return*/];
             }
         });

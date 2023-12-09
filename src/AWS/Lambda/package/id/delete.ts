@@ -23,7 +23,6 @@ const handler = async (event: any) => {
   }
 
   const pkgItem = await getPackageFromDB(targetID)
-
   if (pkgItem === 500)
   {
     console.log("Sent 500")
@@ -149,7 +148,6 @@ async function deleteFromS3(name: string, version: string)
     }
     console.log("S3 returned non 200 code.")
     return 404
-
   }
   catch (e)
   {
@@ -157,3 +155,90 @@ async function deleteFromS3(name: string, version: string)
     return 500
   }
 }
+
+async function clearTable(tableName: string) {
+  let exclusiveStartKey = null
+  const scanParams = {
+      TableName: tableName,
+      ExclusiveStartKey: exclusiveStartKey
+  };
+
+  let scanResult;
+  let deleteResult
+  do {
+   const scanParams: any = {
+       TableName: tableName,
+       ExclusiveStartKey: scanResult ? scanResult.LastEvaluatedKey : undefined
+   };
+
+   // TODO Log scanning DB
+   scanResult = await DB.send(new ScanCommand(scanParams));
+
+   // TODO Log items scanned
+   if (scanResult.Items && scanResult.Items.length > 0) {
+       const deletePromises = scanResult.Items.map((item: any) => {
+           const deleteParams = {
+               TableName: tableName,
+               Key: {
+                   // Adjust according to your table's primary key structure
+                   id: item.id
+               }
+           };
+           // TODO Log deleting items
+           return DB.send(new DeleteItemCommand(deleteParams));
+       });
+
+       deleteResult = await Promise.all(deletePromises);
+
+       if (!isDBDeleteSuccess(deleteResult)) {
+           // TODO log deletion failure
+           return false;
+       }
+   }
+ } while (scanResult.LastEvaluatedKey);
+ // TODO Log deletion success
+ return true
+}
+
+function isDBDeleteSuccess(result: any)
+{
+  return result[0].$metadata.httpStatusCode === 200
+}
+
+function isS3DeleteSuccess(result: any)
+{
+  return result.$metadata.httpStatusCode === 200
+}
+
+
+async function clearS3(s3_name: string, root: string)
+ {
+   let continuationToken = null;
+   let deleteResult
+   try {
+     do {
+       const listParams: any = {
+           Bucket: S3_NAME,
+           Prefix: S3_ROOT,
+           ContinuationToken: continuationToken
+       };
+ 
+       const listResult = await S3.send(new ListObjectsCommand(listParams));
+       if (listResult.Contents && listResult.Contents.length > 0) {
+         const objectsToDelete = listResult.Contents.map((obj: any) => ({ Key: obj.Key }));
+         
+         const deleteParams = {
+             Bucket: S3_NAME,
+             Delete: { Objects: objectsToDelete }
+         };
+         deleteResult = await S3.send(new DeleteObjectsCommand(deleteParams));
+       }
+       if (!isS3DeleteSuccess(deleteResult)) { return false }
+       continuationToken = listResult.NextContinuationToken;
+     } while (continuationToken);
+     return true
+   }
+   catch {
+     return false
+   }
+ }

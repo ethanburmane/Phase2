@@ -6,6 +6,7 @@ interface DynamoDBItem {
   id: { S: string };
   Name: { S: string };
   Readme: { S: string };
+  Version: { S: string }; // Add the Version attribute
   // Add more attributes as needed
 }
 
@@ -41,20 +42,22 @@ export const handler = async (event: any) => {
     const matchedPackages = await getPackagesByRegex(DB_TABLE_NAME, regex);
 
     // Check if no packages are found
-    if (matchedPackages.length === 0) {
+    if (matchedPackages[0] === 404) {
       return {
         statusCode: 404,
         body: JSON.stringify('No package found under this regex.'),
+      };
+    } else if (matchedPackages[0] === 500) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify('Internal Server Error'),
       };
     }
 
     // Craft response with matched packages
     const response = {
       statusCode: 200,
-      body: JSON.stringify({
-        message: 'Packages matching the regex',
-        packages: matchedPackages,
-      }),
+      body: matchedPackages,
     };
 
     return response;
@@ -72,10 +75,6 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
   try {
     const scanParams = {
       TableName: tableName,
-      FilterExpression: 'contains(Name, :regex) OR contains(Readme, :regex)',
-      ExpressionAttributeValues: {
-        ':regex': regex,
-      },
     };
 
     const scanResult = await DB.send(new ScanCommand(scanParams));
@@ -86,22 +85,31 @@ async function getPackagesByRegex(tableName: string, regex: string): Promise<any
     // Check for empty results
     if (!scanResult.Items || scanResult.Items.length === 0) {
       console.log('No items found in DynamoDB scan result');
-      return [];
+      return []; // Package not found
+    }
+    const pkgs = [];
+
+    for (const item of scanResult.Items) {
+      // Assuming 'Name' is the attribute you want to match against the regex
+      const itemName = item.Name && item.Name.S;
+
+      if (itemName && new RegExp(regex).test(itemName)) {
+        // If the 'Name' matches the regex, add it to the list
+        pkgs.push({
+          Name: itemName,
+          Version: item.Version && item.Version.S,
+          // Add more attributes as needed
+        });
+      }
     }
 
-    // Handle potential undefined values during mapping
-    const packages = scanResult.Items.map((item: DynamoDBItem) => ({
-      id: item.id?.S || '',
-      Name: item.Name?.S || '',
-      Readme: item.Readme?.S || '',
-      // Add more attributes as needed
-    }));
+   
 
-    return packages;
+    return pkgs;
   } catch (error) {
     // Log any errors during DynamoDB scan
     console.error('Error during DynamoDB scan:', error);
-    return [];
+    return [500]; // Internal Server Error
   }
 }
 

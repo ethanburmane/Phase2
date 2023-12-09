@@ -100,6 +100,76 @@ export function cloneRepo(ghUrl: string, localPath: string, repoUrl: string) {
   })
 }
 
+export function FindMatch(fileContents: string): string[] {
+  const licensePatterns: string[] = [
+    'LGPLv2[. ]1',
+    'GPLv2',
+    'GPLv3',
+    'MIT',
+    'BSD',
+    'Apache',
+    'Expat',
+    'zlib',
+    'ISC',
+  ];
+  
+
+  // Create a set to store found licenses
+  const foundLicenses: Set<string> = new Set<string>();
+
+  // Generate regex patterns for each license
+  const regexPatterns: RegExp[] = licensePatterns.map((pattern) => {
+    // Escape any special characters in the pattern
+    const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Use word boundaries to ensure the pattern stands alone
+    return new RegExp(`\\b${escapedPattern}\\b`, 'i'); // 'i' for case insensitive
+  });
+
+  // Find matches using the generated regex patterns
+  for (const regex of regexPatterns) {
+    const matches = fileContents.match(regex);
+    if (matches) {
+      for (const match of matches) {
+        // Clean up the match by removing surrounding non-alphanumeric characters
+        const cleanedMatch = match.replace(/[^a-zA-Z0-9]+/g, '');
+        //console.log('Pattern Matched:', match);
+        foundLicenses.add(cleanedMatch);
+      }
+    }
+  }
+
+  // Convert the set to an array and return it
+  console.log(Array.from(foundLicenses));
+  return Array.from(foundLicenses);
+}
+
+export async function CloneReadme(url: string) {
+  try {
+    // Get the README file content from the GitHub API.
+    //logger.info("Requesting readme from github", {timestamp: new Date(), url: url});
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `token ${process.env.GIT_TOKEN}`,
+        Accept: 'application/vnd.github.VERSION.raw', // Use the raw content type
+      },
+    });
+
+    // Return the README file content as a string.
+    console.log(response.data);
+    return response.data;
+  } catch (error: any) {
+        if (error.response)
+        {
+            logger.error("Error encountered when requesting readme", {timestamp: new Date(), url: url, message: error.message, response: error.response.data});
+            throw new Error(error.response.data);
+        }
+        else
+        {
+            logger.error("Error encountered when requesting readme", {timestamp: new Date(), url: url, message: error.message});
+            throw new Error(error.message);
+        }
+  }
+}
 export function countLinesOfCode(dirPath: string): number {
   const codeExtensions = new Set([
     '.js', '.py', '.java', '.cs', '.php', 
