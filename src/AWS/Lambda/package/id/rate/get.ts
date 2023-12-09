@@ -15,6 +15,8 @@ interface Scores {
 
 const handler = async (event: any) => {
   //console.log("event", event);
+  const path = event.path;
+  const pathSegments = path.split('/');
   const itemID = event.id;
   console.log("itemID", itemID);
 
@@ -43,7 +45,7 @@ const handler = async (event: any) => {
           console.log("Scores: ", scores);
           return {
               statusCode: 200,
-              body: JSON.stringify(scores),
+              body: scores,
           };
       } else {
           console.log("Item not found or Score attribute not in expected format for ID:", itemID);
