@@ -15,8 +15,6 @@ interface Scores {
 
 const handler = async (event: any) => {
   //console.log("event", event);
-  const path = event.path;
-  const pathSegments = path.split('/');
   const itemID = event.id;
   console.log("itemID", itemID);
 
