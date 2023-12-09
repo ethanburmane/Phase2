@@ -77,21 +77,23 @@ async function getPackageFromDB(id: string)
   const db_cmd_input = {
     TableName: DB_TABLE_NAME,
     Key: {
-      id: id
+      id: {S: id}
     }
   }
   try 
   {
     console.log("Getting item from db ", id)
     const dbGetCommand = new GetItemCommand(db_cmd_input)
-    const dbGetResult = await S3.send(dbGetCommand)
+    const dbGetResult = await DB.send(dbGetCommand)
     console.log("Retrieval result", dbGetResult)
     if (dbGetResult.$metadata.httpStatusCode === 200)
     {
-      return dbGetResult.Item
+      if (dbGetResult.Item) { return dbGetResult.Item }
+      console.log("Package Not Found.")
+      return 404
     }
     console.log("DB returned non 200 code.")
-    return 404
+    return 500
 
   }
   catch (e)
@@ -106,21 +108,21 @@ async function deleteFromDB(id: string)
   const db_cmd_input = {
     TableName: DB_TABLE_NAME,
     Key: {
-      id: id
+      id: {S: id}
     }
   }
   try 
   {
     console.log("Deleting from DB")
     const dbDelcommand = new DeleteObjectCommand(db_cmd_input)
-    const dbDelResult = await S3.send(dbDelcommand)
+    const dbDelResult = await DB.send(dbDelcommand)
     console.log("Deletion result", dbDelResult)
     if (dbDelResult.$metadata.httpStatusCode === 200)
     {
       return 200
     }
     console.log("DB returned non 200 code.")
-    return 404
+    return 500
 
   }
   catch (e)
