@@ -5,6 +5,7 @@
  */
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { DynamoDBClient, GetItemCommand, UpdateItemCommand } = require('@aws-sdk/client-dynamodb');
+import { listenerCount } from "node:process";
 import { calculateNetScore } from "../../../../middleware/net-score";
 const JSZip = require('jszip');
 
@@ -132,7 +133,7 @@ async function updatePackageInS3(packageName: string, packageVersion: string, co
   };
 
   const Item = await s3Client.send(new PutObjectCommand(cmdInput));
-  console.log("Updated package in S3: ", Item);
+  console.log("Updated package in S3");
 }
 
 
@@ -165,44 +166,54 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
   } 
 
   curr_history.push(new_history);
+
   // calculate metrics
   const score = await calculateNetScore(url);
   console.log("Score: ", score);
   console.log("Score entries: ", Object.entries(score));
 
+  // retrieve individual score entries
+  const score_entries = Object.entries(score);
+  const netScore = score_entries[0][1];
+  const licenseScore = score_entries[1][1];
+  const busFactorScore = score_entries[2][1];
+  const correctnessScore = score_entries[3][1];
+  const rampUpTimeScore = score_entries[4][1];
+  const responsivenessScore = score_entries[5][1];
+  const DependencyScore = score_entries[6][1];
+  const reviewPercentageScore = score_entries[7][1];
+
   // Extract individual metrics from the score object
-  /*
   const new_score = {
     M: {
-      "BusFactor": { S: score.busFactor },
-      "Correctness": { S: score.correctness },
-      "RampUp": { S: score.rampUpTime },
-      "ResponsiveMaintainer": { S: score.responsiveness },
-      "LicenseScore": { S: score.license },
-      "GoodPinningPractice": { S: score.dependencies },
-      "PullRequest": { S: score.reviewPercentage },
-      "NetScore": { S: score.net }
+      "BusFactor": { S: busFactorScore },
+      "Correctness": { S: correctnessScore },
+      "RampUp": { S: rampUpTimeScore },
+      "ResponsiveMaintainer": { S: responsivenessScore },
+      "LicenseScore": { S: licenseScore },
+      "GoodPinningPractice": { S: DependencyScore },
+      "PullRequest": { S: reviewPercentageScore },
+      "NetScore": { S: netScore }
     }
   };
-  */
 
   const params = {
       "TableName": "Packages",
       "Key": { "id": { S: packageId } },
-      "UpdateExpression": "SET #N = :n, #V = :v, #L = :l, #H = :h", //, #S = :s",
+      "UpdateExpression": "SET #N = :n, #V = :v, #L = :l, #H = :h, #S = :s",
       "ExpressionAttributeNames": {
           "#N": "Name",
           "#V": "Version",
           "#L": "LastUpdated",
           "#H": "History",
-          //"#S": "Score"
+          "#S": "Score"
       },
       "ExpressionAttributeValues": {
           ":n": { S: metadata.Name },
           ":v": { S: metadata.Version },
           ":l": { S: dateString},
           ":h": { L: curr_history },
-          //":s": { M: new_score }
+          ":s": { M: new_score }
       },
       "ReturnValues": "UPDATED_NEW"
   };
@@ -212,7 +223,9 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
 
 async function extractUrlFromBody(body: any)
 {
+  console.log("Extracting URL from body");
   if (body.data.URL) { return [true, body.data.URL] }
+  console.log("Finished extracting URL from body");
   return await extractUrlFromContent(body.data.Content)
 }
 
@@ -222,6 +235,7 @@ async function extractUrlFromContent(content: any)
   // isValidBase64(content)
   // extractPackageJSON(unzipped)
   // extractURLFromPackageJSON(packageJSON)
+  console.log("Extracting URL from content");
   let url
   const binaryData =  zipFromBase64(content);
 
@@ -280,6 +294,7 @@ async function extractUrlFromContent(content: any)
       return [false, response]
   }
 
+  console.log("Finished Extracting URL from content");
   return [true, url]
 }
 
