@@ -77,7 +77,7 @@ function main() {
                         'https://www.npmjs.com/package/chalk'
                     ];
                     allRepos = __spreadArray(__spreadArray([], githubRepos, true), npmRepos, true);
-                    return [4 /*yield*/, (0, net_score_1.calculateNetScore)('http://github.com/dominictarr/JSONStream')
+                    return [4 /*yield*/, (0, net_score_1.calculateNetScore)('https://github.com/prettier/prettier')
                         //let licensescore = await calculateLicenseCompliance('https://github.com/django/django')
                         //console.log(`NetScore: ${netscore}`)
                     ];
