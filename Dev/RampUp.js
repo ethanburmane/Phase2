@@ -42,17 +42,17 @@ var utils = require("../src/middleware/utils");
 var path = require("path");
 var fs = require("fs");
 var child_process_1 = require("child_process");
-var codeExtensions = new Set([
-    '.js', '.py', '.java', '.cs', '.php',
-    '.cpp', '.cc', '.cxx', '.h', '.hpp', '.hxx',
-    '.ts', '.rb', '.swift', '.c',
-    '.m', '.mm', '.scala', '.sh', '.bash',
-    '.go', '.kt', '.kts', '.r', '.pl',
-    '.rs', '.dart', '.lua', '.txt', '.env',
-    '.config', '.xml', 'Makefile', '.md'
-]);
-var ignoreDirs = new Set(['node_modules', 'data', 'vendor', 'build', 'test', 'tests', 'docs', 'assets']);
 function countLinesOfCode(dirPath) {
+    var codeExtensions = new Set([
+        '.js', '.py', '.java', '.cs', '.php',
+        '.cpp', '.cc', '.cxx', '.h', '.hpp', '.hxx',
+        '.ts', '.rb', '.swift', '.c',
+        '.m', '.mm', '.scala', '.sh', '.bash',
+        '.go', '.kt', '.kts', '.r', '.pl',
+        '.rs', '.dart', '.lua', '.txt', '.env',
+        '.config', '.xml', 'Makefile', '.md'
+    ]);
+    var ignoreDirs = new Set(['node_modules', 'data', 'vendor', 'build', 'test', 'tests', 'docs', 'assets']);
     logger_1["default"].info("Starting line count in directory: ".concat(dirPath));
     var lineCount = 0;
     var contents = fs.readdirSync(dirPath);
@@ -84,7 +84,7 @@ function countLinesOfCode(dirPath) {
 function calculateRampUpTime(url) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var link, localPath, parts, repoName, files, linesOfCode;
+        var link, localPath, parts, repoName, rampUpScore, files, linesOfCode;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -104,6 +104,7 @@ function calculateRampUpTime(url) {
                     localPath = 'dist/middleware/cloned-repos';
                     parts = url.split('/');
                     repoName = parts[parts.length - 1] || parts[parts.length - 2];
+                    rampUpScore = 1;
                     if (repoName) {
                         localPath = path.join(localPath, repoName);
                     }
@@ -111,27 +112,36 @@ function calculateRampUpTime(url) {
                         if (!fs.existsSync(localPath)) {
                             console.log("Creating directory: ".concat(localPath));
                             fs.mkdirSync(localPath, { recursive: true });
-                            console.log("Attempting to clone repository into: ".concat(localPath));
-                            (0, child_process_1.execSync)("git clone ".concat(link, " ").concat(localPath), { stdio: 'inherit' });
                         }
                         else {
                             console.log("Directory already exists: ".concat(localPath));
                             files = fs.readdirSync(localPath);
-                            if (files.length === 0) {
-                                console.log("Directory is empty. Cloning repository into: ".concat(localPath));
-                                (0, child_process_1.execSync)("git clone ".concat(link, " ").concat(localPath), { stdio: 'inherit' });
+                            if (files.length !== 0) {
+                                console.log("Directory is not empty. Deleting contents of: ".concat(localPath));
+                                fs.rmSync(localPath, { recursive: true, force: true });
+                                fs.mkdirSync(localPath, { recursive: true });
                             }
                         }
+                        console.log("Attempting to clone repository into: ".concat(localPath));
+                        (0, child_process_1.execSync)("git clone --depth 1 ".concat(link, " ").concat(localPath), { stdio: 'inherit' });
+                        // Additional steps for sparse checkout if needed
                         console.log("Starting line count in: ".concat(localPath));
-                        linesOfCode = countLinesOfCode(localPath);
+                        linesOfCode = utils.countLinesOfCode(localPath);
                         console.log("Total lines of code in the repository: ".concat(linesOfCode));
-                        return [2 /*return*/, linesOfCode];
+                        // ... [rest of your scoring logic] ...
                     }
                     catch (error) {
                         console.error("An error occurred: ".concat(error.message));
                         return [2 /*return*/, 0];
                     }
-                    return [2 /*return*/];
+                    finally {
+                        // Cleanup: Delete the cloned directory
+                        if (fs.existsSync(localPath)) {
+                            console.log("Deleting directory: ".concat(localPath));
+                            fs.rmSync(localPath, { recursive: true, force: true });
+                        }
+                    }
+                    return [2 /*return*/, rampUpScore];
             }
         });
     });

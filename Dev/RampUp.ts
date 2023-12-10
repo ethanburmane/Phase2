@@ -49,56 +49,68 @@ function countLinesOfCode(dirPath: string): number {
 }
 
 
+
+
 export async function calculateRampUpTime(url: string): Promise<number> {
-    logger.info('Calculating Ramp Up Time');
-    let link: string | null = await utils.evaluateLink(url);
-    if (link) {
-        link = link?.split('github.com').pop() ?? null;
-        link = 'https://github.com' + link;
+  logger.info('Calculating Ramp Up Time');
+  let link: string | null = await utils.evaluateLink(url);
+  if (link) {
+    link = link?.split('github.com').pop() ?? null;
+    link = 'https://github.com' + link;
+  } else {
+    console.error('Invalid URL or unable to process the link.');
+    return 0;
+  }
+
+  console.log(`Processed link: ${link}`);
+
+  let localPath: string = 'dist/middleware/cloned-repos';
+  const parts: string[] = url.split('/');
+  const repoName: string = parts[parts.length - 1] || parts[parts.length - 2];
+  let rampUpScore = 1;
+  if (repoName) {
+    localPath = path.join(localPath, repoName);
+  }
+
+  try {
+    if (!fs.existsSync(localPath)) {
+      console.log(`Creating directory: ${localPath}`);
+      fs.mkdirSync(localPath, { recursive: true });
     } else {
-        console.error('Invalid URL or unable to process the link.');
-        return 0;
+      console.log(`Directory already exists: ${localPath}`);
+      const files: string[] = fs.readdirSync(localPath);
+      if (files.length !== 0) {
+        console.log(`Directory is not empty. Deleting contents of: ${localPath}`);
+        fs.rmSync(localPath, { recursive: true, force: true });
+        fs.mkdirSync(localPath, { recursive: true });
+      }
     }
 
-    console.log(`Processed link: ${link}`);
+    console.log(`Attempting to clone repository into: ${localPath}`);
+    execSync(`git clone --depth 1 ${link} ${localPath}`, { stdio: 'inherit' });
 
-    let localPath: string = 'dist/middleware/cloned-repos';
-    const parts: string[] = url.split('/');
-    const repoName: string = parts[parts.length - 1] || parts[parts.length - 2];
+    // Additional steps for sparse checkout if needed
 
-    if (repoName) {
-        localPath = path.join(localPath, repoName);
+    console.log(`Starting line count in: ${localPath}`);
+    let linesOfCode: number = utils.countLinesOfCode(localPath);
+
+    console.log(`Total lines of code in the repository: ${linesOfCode}`);
+    
+    // ... [rest of your scoring logic] ...
+    
+
+  } catch (error: any) {
+    console.error(`An error occurred: ${error.message}`);
+    return 0;
+  } finally {
+    // Cleanup: Delete the cloned directory
+    if (fs.existsSync(localPath)) {
+      console.log(`Deleting directory: ${localPath}`);
+      fs.rmSync(localPath, { recursive: true, force: true });
     }
-
-    try {
-        
-        if (!fs.existsSync(localPath)) {
-            console.log(`Creating directory: ${localPath}`);
-            fs.mkdirSync(localPath, { recursive: true });
-            console.log(`Attempting to clone repository into: ${localPath}`);
-            execSync(`git clone ${link} ${localPath}`, { stdio: 'inherit' });
-          } else {
-            console.log(`Directory already exists: ${localPath}`);
-            // Check if the directory is empty
-            const files: string[] = fs.readdirSync(localPath);
-            if (files.length === 0) {
-                console.log(`Directory is empty. Cloning repository into: ${localPath}`);
-                execSync(`git clone ${link} ${localPath}`, { stdio: 'inherit' });
-            }
-        }
-
-        
-
-        console.log(`Starting line count in: ${localPath}`);
-        let linesOfCode: number = countLinesOfCode(localPath);
-
-        console.log(`Total lines of code in the repository: ${linesOfCode}`);
-
-        return linesOfCode;
-    } catch (error: any) {
-        console.error(`An error occurred: ${error.message}`);
-        return 0;
-    }
+    
+  }
+  return rampUpScore;
 }
 
 async function main(): Promise<void> {

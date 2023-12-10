@@ -109,111 +109,51 @@ export async function calculateCorrectness(url: string) {
 }
 
 // // Ramp-up Time Calculations
-export async function calculateRampUpTime(url: string): Promise<number> {
-  logger.info('Calculating Ramp Up Time');
-  let link: string | null = await utils.evaluateLink(url);
-  if (link) {
-      link = link?.split('github.com').pop() ?? null;
-      link = 'https://github.com' + link;
-  } else {
-      console.error('Invalid URL or unable to process the link.');
-      return 0;
-  }
-
-  console.log(`Processed link: ${link}`);
-
-  let localPath: string = 'dist/middleware/cloned-repos';
-  const parts: string[] = url.split('/');
-  const repoName: string = parts[parts.length - 1] || parts[parts.length - 2];
-
-  if (repoName) {
-      localPath = path.join(localPath, repoName);
-  }
-
-  try {
-      
-      if (!fs.existsSync(localPath)) {
-          console.log(`Creating directory: ${localPath}`);
-          fs.mkdirSync(localPath, { recursive: true });
-          console.log(`Attempting to clone repository into: ${localPath}`);
-          execSync(`git clone ${link} ${localPath}`, { stdio: 'inherit' });
-        } else {
-          console.log(`Directory already exists: ${localPath}`);
-          // Check if the directory is empty
-          const files: string[] = fs.readdirSync(localPath);
-          if (files.length === 0) {
-              console.log(`Directory is empty. Cloning repository into: ${localPath}`);
-              execSync(`git clone ${link} ${localPath}`, { stdio: 'inherit' });
-          }
-      }
-
-      
-
-      console.log(`Starting line count in: ${localPath}`);
-      let linesOfCode: number = utils.countLinesOfCode(localPath);
-
-      console.log(`Total lines of code in the repository: ${linesOfCode}`);
-      let rampUpScore = 1
-      if (linesOfCode <= 500) {
-        rampUpScore = 1
-      } else if (linesOfCode <= 1000) {
-        rampUpScore = 0.9
-      } else if (linesOfCode <= 5000) {
-        rampUpScore = 0.8
-      } else if (linesOfCode <= 10_000) {
-        rampUpScore = 0.7
-      } else if (linesOfCode <= 50_000) {
-        rampUpScore = 0.6
-      } else if (linesOfCode <= 100_000) {
-        rampUpScore = 0.5
-      } else if (linesOfCode <= 500_000) {
-        rampUpScore = 0.4
-      } else if (linesOfCode <= 1_000_000) {
-        rampUpScore = 0.1
-      }
-      return rampUpScore;
-  } catch (error: any) {
-      console.error(`An error occurred: ${error.message}`);
-      return 0;
-  }
-}
-// export async function calculateRampUpTime(url: string) {
-//   logger.info('Calculating Ramp Up Time')
-
-//   // checks to see if link is a npm link and if so, converts it to a github link
-//   let link = await utils.evaluateLink(url)
+// export async function calculateRampUpTime(url: string): Promise<number> {
+//   logger.info('Calculating Ramp Up Time');
+//   let link: string | null = await utils.evaluateLink(url);
 //   if (link) {
-//     link = link?.split('github.com').pop() ?? null
-//     link = 'https://github.com' + link // eslint-disable-line prefer-template
+//       link = link?.split('github.com').pop() ?? null;
+//       link = 'https://github.com' + link;
+//   } else {
+//       console.error('Invalid URL or unable to process the link.');
+//       return 0;
 //   }
 
-//   let linesOfCode = 0
+//   console.log(`Processed link: ${link}`);
 
-//   // get data using ./services/gh-service.ts
-//   if (link) {
-//     // clones the repo into ./cloned-repos
-//     const repoName = utils.parseGHRepoName(link)
-//     let localPath = '../ece461-project/src/middleware/cloned-repos'
-//     // format local path name
-//     if (repoName) {
-//       localPath = path.join(localPath, repoName)
-//     }
+//   let localPath: string = 'dist/middleware/cloned-repos';
+//   const parts: string[] = url.split('/');
+//   const repoName: string = parts[parts.length - 1] || parts[parts.length - 2];
 
-//     // add .git to end of url
-//     let repoUrl = link
-//     if (!link.includes('.git')) {
-//       repoUrl = `${link}.git`
-//     }
+//   if (repoName) {
+//       localPath = path.join(localPath, repoName);
+//   }
 
-//     await utils.cloneRepo(link, localPath, repoUrl)
+//   try {
+      
+//       if (!fs.existsSync(localPath)) {
+//           console.log(`Creating directory: ${localPath}`);
+//           fs.mkdirSync(localPath, { recursive: true });
+//           console.log(`Attempting to clone repository into: ${localPath}`);
+//           execSync(`git clone ${link} ${localPath}`, { stdio: 'inherit' });
+//         } else {
+//           console.log(`Directory already exists: ${localPath}`);
+//           // Check if the directory is empty
+//           const files: string[] = fs.readdirSync(localPath);
+//           if (files.length === 0) {
+//               console.log(`Directory is empty. Cloning repository into: ${localPath}`);
+//               execSync(`git clone ${link} ${localPath}`, { stdio: 'inherit' });
+//           }
+//       }
 
-//     utils.calcRepoLines(localPath, (totalLines) => {
-//       linesOfCode = totalLines
-//       // console.log(totalLines)
-//       logger.debug(`linesOfCode: ${linesOfCode}`)
+      
 
-//       let rampUpScore = 0
-//       // console.log(linesOfCode)
+//       console.log(`Starting line count in: ${localPath}`);
+//       let linesOfCode: number = utils.countLinesOfCode(localPath);
+
+//       console.log(`Total lines of code in the repository: ${linesOfCode}`);
+//       let rampUpScore = 1
 //       if (linesOfCode <= 500) {
 //         rampUpScore = 1
 //       } else if (linesOfCode <= 1000) {
@@ -229,17 +169,91 @@ export async function calculateRampUpTime(url: string): Promise<number> {
 //       } else if (linesOfCode <= 500_000) {
 //         rampUpScore = 0.4
 //       } else if (linesOfCode <= 1_000_000) {
-//         rampUpScore = 0.3
-//       } else if (linesOfCode <= 5_000_000) {
-//         rampUpScore = 0.2
+//         rampUpScore = 0.1
 //       }
-
-//       return rampUpScore
-//     })
-//   } else {
-//     return () => 0
+//       return rampUpScore;
+//   } catch (error: any) {
+//       console.error(`An error occurred: ${error.message}`);
+//       return 0;
 //   }
 // }
+export async function calculateRampUpTime(url: string): Promise<number> {
+  logger.info('Calculating Ramp Up Time');
+  let link: string | null = await utils.evaluateLink(url);
+  if (link) {
+    link = link?.split('github.com').pop() ?? null;
+    link = 'https://github.com' + link;
+  } else {
+    console.error('Invalid URL or unable to process the link.');
+    return 0;
+  }
+
+  console.log(`Processed link: ${link}`);
+
+  let localPath: string = 'dist/middleware/cloned-repos';
+  const parts: string[] = url.split('/');
+  const repoName: string = parts[parts.length - 1] || parts[parts.length - 2];
+  let rampUpScore = 0;
+  if (repoName) {
+    localPath = path.join(localPath, repoName);
+  }
+
+  try {
+    if (!fs.existsSync(localPath)) {
+      console.log(`Creating directory: ${localPath}`);
+      fs.mkdirSync(localPath, { recursive: true });
+    } else {
+      console.log(`Directory already exists: ${localPath}`);
+      const files: string[] = fs.readdirSync(localPath);
+      if (files.length !== 0) {
+        console.log(`Directory is not empty. Deleting contents of: ${localPath}`);
+        fs.rmSync(localPath, { recursive: true, force: true });
+        fs.mkdirSync(localPath, { recursive: true });
+      }
+    }
+
+    console.log(`Attempting to clone repository into: ${localPath}`);
+    execSync(`git clone --depth 1 ${link} ${localPath}`, { stdio: 'inherit' });
+
+    // Additional steps for sparse checkout if needed
+
+    console.log(`Starting line count in: ${localPath}`);
+    let linesOfCode: number = utils.countLinesOfCode(localPath);
+
+    console.log(`Total lines of code in the repository: ${linesOfCode}`);
+    
+    if (linesOfCode <= 500) {
+      rampUpScore = 1
+    } else if (linesOfCode <= 1000) {
+      rampUpScore = 0.9
+    } else if (linesOfCode <= 5000) {
+      rampUpScore = 0.8
+    } else if (linesOfCode <= 10_000) {
+      rampUpScore = 0.7
+    } else if (linesOfCode <= 50_000) {
+      rampUpScore = 0.6
+    } else if (linesOfCode <= 100_000) {
+      rampUpScore = 0.5
+    } else if (linesOfCode <= 500_000) {
+      rampUpScore = 0.4
+    } else if (linesOfCode <= 1_000_000) {
+      rampUpScore = 0.1
+    }
+    
+
+  } catch (error: any) {
+    console.error(`An error occurred: ${error.message}`);
+    return 0;
+  } finally {
+    // Cleanup: Delete the cloned directory
+    if (fs.existsSync(localPath)) {
+      console.log(`Deleting directory: ${localPath}`);
+      fs.rmSync(localPath, { recursive: true, force: true });
+    }
+    
+  }
+  return rampUpScore;
+}
 
 // Responsiveness Calculations
 
@@ -427,8 +441,8 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
 
       const totalPullRequests = pullRequests.length;
       
-      //add 30% to for score boost
-      reviewPercentage = (reviewedPRCount / totalPullRequests) * 1.3
+    
+      reviewPercentage = (reviewedPRCount / totalPullRequests)
 
       //scale up 
       if (reviewPercentage > 1) {
@@ -440,7 +454,7 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
       console.log(`Total Pull Requests: ${totalPullRequests}`);
       console.log(`Review Percentage: ${reviewPercentage}`);
       
-      return (1 - reviewPercentage);
+      return (reviewPercentage);
   } catch (error) {
       console.error(`Error calculating review percentage:`, error);
       return -1;

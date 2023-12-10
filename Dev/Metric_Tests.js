@@ -56,7 +56,7 @@ function main() {
                 'https://github.com/vuejs/vue',
                 'https://github.com/angular/angular',
                 'https://github.com/nodejs/node',
-                //'https://github.com/tensorflow/tensorflow',
+                'https://github.com/tensorflow/tensorflow',
                 'https://github.com/kubernetes/kubernetes',
                 'https://github.com/twbs/bootstrap',
                 'https://github.com/rails/rails',
@@ -80,7 +80,7 @@ function main() {
             //     let score = await calculateNetScore(repo);
             //     scoresDictionary[repo] = score; // Store each score with the repo URL as the key
             // }
-            (0, net_score_1.calculateNetScore)("https://www.npmjs.com/package/axios");
+            (0, net_score_1.calculateNetScore)("https://github.com/expressjs/express");
             // After the loop, print out all scores
             for (_i = 0, _a = Object.entries(scoresDictionary); _i < _a.length; _i++) {
                 _b = _a[_i], repo = _b[0], score = _b[1];

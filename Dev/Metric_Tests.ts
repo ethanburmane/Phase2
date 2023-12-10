@@ -40,7 +40,7 @@ async function main() {
     //     let score = await calculateNetScore(repo);
     //     scoresDictionary[repo] = score; // Store each score with the repo URL as the key
     // }
-    calculateNetScore("https://www.npmjs.com/package/axios")
+    calculateNetScore("https://github.com/expressjs/express")
 
 
     // After the loop, print out all scores
