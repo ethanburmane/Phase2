@@ -102,7 +102,6 @@ export const handler = async (event: any, context: any) => {
   console.log("Package Score: ", score)
 
   //Static score for now
-  
   let itemScore = {
     "BusFactor": {"S": "0.7"},
     "Correctness": {"S": "0.7"},

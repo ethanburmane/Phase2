@@ -440,7 +440,7 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
       console.log(`Total Pull Requests: ${totalPullRequests}`);
       console.log(`Review Percentage: ${reviewPercentage}`);
       
-      return (1 - reviewPercentage);
+      return reviewPercentage;
   } catch (error) {
       console.error(`Error calculating review percentage:`, error);
       return -1;
