@@ -8,7 +8,11 @@
  const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
  const { DynamoDBClient, PutItemCommand, GetItemCommand } = require('@aws-sdk/client-dynamodb');
  const axios = require('axios')
- const {calculateNetScore} = require("../../../middleware/net-score")
+ const round = require("../../../middleware/utils")
+//  const {calculateNetScore} = require("../../../middleware/net-score")
+ const {calculateBusFactor, calculateCorrectness, calculateDependency, calculateLicenseCompliance,
+  calculateRampUpTime, calculateResponsiveness, calculateReviewPercentage } = require("../../../middleware/metric-calculations")
+
 const JSZip = require('jszip')
 
 const MIN_PKG_SCORE = 0.5
@@ -130,7 +134,7 @@ export const handler = async (event: any, context: any) => {
     const s3command = new PutObjectCommand(cmdInput)
     const cmdResponse = await s3Client.send(s3command)
 
-    
+
     if (!isSuccessfulS3Response(cmdResponse))
     {
       console.log("s3 upload failed. Response:\n" + cmdResponse)
@@ -553,4 +557,67 @@ async function doesPackageExist(id: string) {
     console.error("Error when checking if package exists", err);
     return 500
 }
+}
+
+export async function calculateNetScore(url: string): Promise<Object> {
+  //set default values for metrics to -1
+  let licenseCompliance = -1
+  let busFactor = -1
+  let correctness = -1
+  let rampUpTime = -1
+  let responsiveness = -1
+  let Dependencies = -1
+  let reviewPercentage = -1
+
+  busFactor = await calculateBusFactor
+  busFactor = await calculateBusFactor(url)
+  correctness = await calculateCorrectness(url)
+  //rampUpTime = await calculateRampUpTime(url)
+  rampUpTime = 0.5
+  responsiveness = await calculateResponsiveness(url)
+  licenseCompliance = await calculateLicenseCompliance(url)
+  Dependencies = await calculateDependency(url)
+  reviewPercentage = await calculateReviewPercentage(url)
+  console.log(`BusFactor: ${busFactor}`)
+  console.log(`Correctness: ${correctness}`)
+  console.log(`RampUpTime: ${rampUpTime}`)
+  console.log(`Responsiveness: ${responsiveness}`)
+  console.log(`LicenseCompliance: ${licenseCompliance}`)
+  console.log(`Dependencies: ${Dependencies}`)
+  console.log(`ReviewPercentage: ${reviewPercentage}`)
+
+  // Score weights
+  const busFactorWeight = 0.2
+  const correctnessWeight = 0.15
+  const rampUpTimeWeight = 0.1
+  const responsivenessWeight = 0.15
+  const DependencyWeight = 0.1
+  const reviewPercentageWeight = 0.15
+
+  // Calculate net score with weightings
+  const licenseScore = licenseCompliance
+  const busFactorScore = busFactor * busFactorWeight
+  const correctnessScore = correctness * correctnessWeight
+  const rampUpTimeScore = rampUpTime * rampUpTimeWeight
+  const responsivenessScore = responsiveness * responsivenessWeight
+  const DependencyScore = Dependencies * DependencyWeight
+  const reviewPercentageScore = reviewPercentage * reviewPercentageWeight
+
+  let netScore =
+    licenseCompliance * (busFactorScore + correctnessScore + rampUpTimeScore
+      + responsivenessScore + DependencyScore + reviewPercentageScore)
+
+  netScore = round(netScore, 3)
+
+  const score = {
+    net: netScore,
+    license: licenseCompliance,
+    busFactor: busFactor,
+    correctness: correctness,
+    rampUpTime: rampUpTime,
+    responsiveness: responsiveness,
+    dependencies: Dependencies,
+    reviewPercentage: reviewPercentage
+  }
+  return score
 }
