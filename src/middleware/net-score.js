@@ -104,13 +104,13 @@ function calculateNetScore(url) {
                     netScore = (0, utils_1.round)(netScore, 3);
                     score = {
                         net: netScore,
-                        license: licenseScore,
-                        busFactor: busFactorScore,
-                        correctness: correctnessScore,
-                        rampUpTime: rampUpTimeScore,
-                        responsiveness: responsivenessScore,
-                        dependencies: DependencyScore,
-                        reviewPercentage: reviewPercentageScore
+                        license: licenseCompliance,
+                        busFactor: busFactor,
+                        correctness: correctness,
+                        rampUpTime: rampUpTime,
+                        responsiveness: responsiveness,
+                        dependencies: Dependencies,
+                        reviewPercentage: reviewPercentage
                     };
                     return [2 /*return*/, score];
             }

@@ -60,6 +60,7 @@ function calculateBusFactor(url) {
                     if (link) {
                         link = (_a = link === null || link === void 0 ? void 0 : link.split('github.com').pop()) !== null && _a !== void 0 ? _a : null;
                         link = 'https://github.com' + link; // eslint-disable-line prefer-template
+                        link = link.replace(/\.git$/, '');
                     }
                     data = null;
                     if (!link) return [3 /*break*/, 3];
@@ -276,6 +277,7 @@ function calculateResponsiveness(url) {
                     if (link) {
                         link = (_a = link === null || link === void 0 ? void 0 : link.split('github.com').pop()) !== null && _a !== void 0 ? _a : null;
                         link = 'https://github.com' + link; // eslint-disable-line prefer-template
+                        link = link.replace(/\.git$/, '');
                     }
                     data = null;
                     if (!link) return [3 /*break*/, 3];
@@ -442,6 +444,7 @@ function calculateReviewPercentage(url) {
                     if (link) {
                         link = (_a = link === null || link === void 0 ? void 0 : link.split('github.com').pop()) !== null && _a !== void 0 ? _a : null;
                         link = 'https://github.com' + link; // eslint-disable-line prefer-template
+                        link = link.replace(/\.git$/, '');
                     }
                     repoOwner = link ? link.split('/')[3] : '';
                     repoName = link ? link.split('/')[4] : '';
@@ -453,6 +456,10 @@ function calculateReviewPercentage(url) {
                 case 3:
                     pullRequests = _b.sent();
                     reviewedPRCount = 0;
+                    //cut off at 50 pull requests
+                    if (pullRequests.length > 50) {
+                        pullRequests.length = 50;
+                    }
                     _i = 0, pullRequests_1 = pullRequests;
                     _b.label = 4;
                 case 4:
@@ -473,14 +480,15 @@ function calculateReviewPercentage(url) {
                         return [2 /*return*/, 0];
                     }
                     totalPullRequests = pullRequests.length;
-                    reviewPercentage = (reviewedPRCount / totalPullRequests) * 1.5;
+                    //add 30% to for score boost
+                    reviewPercentage = (reviewedPRCount / totalPullRequests) * 1.3;
                     //scale up 
                     if (reviewPercentage > 1) {
                         reviewPercentage = 1;
                     }
                     console.log("Reviewed Pull Requests: ".concat(reviewedPRCount));
                     console.log("Total Pull Requests: ".concat(totalPullRequests));
-                    console.log("Review Percentage: ".concat(reviewPercentage.toFixed(2), "%"));
+                    console.log("Review Percentage: ".concat(reviewPercentage));
                     return [2 /*return*/, (1 - reviewPercentage)];
                 case 8:
                     error_1 = _b.sent();
