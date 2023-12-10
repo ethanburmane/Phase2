@@ -435,7 +435,6 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
       if (reviewPercentage > 1) {
         reviewPercentage = 1
       }
-      
 
       console.log(`Reviewed Pull Requests: ${reviewedPRCount}`);
       console.log(`Total Pull Requests: ${totalPullRequests}`);

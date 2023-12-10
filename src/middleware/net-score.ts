@@ -68,7 +68,6 @@ export async function calculateNetScore(url: string): Promise<Object> {
       + responsivenessScore + DependencyScore + reviewPercentageScore)
 
   netScore = round(netScore, 3)
-
   const score = {
     net: netScore,
     license: licenseCompliance,
