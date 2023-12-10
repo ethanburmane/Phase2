@@ -155,7 +155,7 @@ export async function CloneReadme(url: string) {
     });
 
     // Return the README file content as a string.
-    console.log(response.data);
+    //console.log(response.data);
     return response.data;
   } catch (error: any) {
         if (error.response)
@@ -183,7 +183,7 @@ export function countLinesOfCode(dirPath: string): number {
   
   const ignoreDirs = new Set(['node_modules', 'data', 'vendor', 'build', 'test','tests', 'docs', 'assets']);
   
-  logger.info(`Starting line count in directory: ${dirPath}`);
+  console.log(`Starting line count in directory: ${dirPath}`);
   let lineCount: number = 0;
   const contents: string[] = fs.readdirSync(dirPath);
 
@@ -201,7 +201,7 @@ export function countLinesOfCode(dirPath: string): number {
             try {
                 const fileContent: string = fs.readFileSync(itemPath, 'utf-8');
                 const fileLineCount: number = fileContent.split('\n').length;
-                console.log(`Counted ${fileLineCount} lines in file: ${itemPath}`);
+                //console.log(`Counted ${fileLineCount} lines in file: ${itemPath}`);
                 lineCount += fileLineCount;
             } catch (error) {
                 console.error(`Error reading file ${itemPath}`);

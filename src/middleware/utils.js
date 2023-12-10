@@ -181,7 +181,7 @@ function CloneReadme(url) {
                 case 1:
                     response = _a.sent();
                     // Return the README file content as a string.
-                    console.log(response.data);
+                    //console.log(response.data);
                     return [2 /*return*/, response.data];
                 case 2:
                     error_1 = _a.sent();
@@ -211,7 +211,7 @@ function countLinesOfCode(dirPath) {
         '.config', '.xml', 'Makefile', '.md'
     ]);
     var ignoreDirs = new Set(['node_modules', 'data', 'vendor', 'build', 'test', 'tests', 'docs', 'assets']);
-    logger_1["default"].info("Starting line count in directory: ".concat(dirPath));
+    console.log("Starting line count in directory: ".concat(dirPath));
     var lineCount = 0;
     var contents = fs.readdirSync(dirPath);
     contents.forEach(function (item) {
@@ -228,7 +228,7 @@ function countLinesOfCode(dirPath) {
             try {
                 var fileContent = fs.readFileSync(itemPath, 'utf-8');
                 var fileLineCount = fileContent.split('\n').length;
-                console.log("Counted ".concat(fileLineCount, " lines in file: ").concat(itemPath));
+                //console.log(`Counted ${fileLineCount} lines in file: ${itemPath}`);
                 lineCount += fileLineCount;
             }
             catch (error) {

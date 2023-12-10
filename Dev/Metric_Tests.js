@@ -48,9 +48,9 @@ exports.__esModule = true;
 var net_score_1 = require("../src/middleware/net-score");
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var githubRepos, npmRepos, allRepos, netscore;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var githubRepos, npmRepos, allRepos, scoresDictionary, _i, allRepos_1, repo, score, _a, _b, _c, repo, score;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     githubRepos = [
                         'https://github.com/django/django',
@@ -77,15 +77,31 @@ function main() {
                         'https://www.npmjs.com/package/chalk'
                     ];
                     allRepos = __spreadArray(__spreadArray([], githubRepos, true), npmRepos, true);
-                    return [4 /*yield*/, (0, net_score_1.calculateNetScore)('https://github.com/prettier/prettier')
-                        //let licensescore = await calculateLicenseCompliance('https://github.com/django/django')
-                        //console.log(`NetScore: ${netscore}`)
-                    ];
+                    scoresDictionary = {};
+                    _i = 0, allRepos_1 = allRepos;
+                    _d.label = 1;
                 case 1:
-                    netscore = _a.sent();
+                    if (!(_i < allRepos_1.length)) return [3 /*break*/, 4];
+                    repo = allRepos_1[_i];
+                    return [4 /*yield*/, (0, net_score_1.calculateNetScore)(repo)];
+                case 2:
+                    score = _d.sent();
+                    scoresDictionary[repo] = score; // Store each score with the repo URL as the key
+                    _d.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4:
+                    // After the loop, print out all scores
+                    for (_a = 0, _b = Object.entries(scoresDictionary); _a < _b.length; _a++) {
+                        _c = _b[_a], repo = _c[0], score = _c[1];
+                        console.log("Score for ".concat(repo, ":"), score);
+                    }
                     return [2 /*return*/];
             }
         });
     });
 }
+//let licensescore = await calculateLicenseCompliance('https://github.com/django/django')
+//console.log(`NetScore: ${netscore}`)
 main();

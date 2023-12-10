@@ -13,17 +13,25 @@ import logger from '../logger'
 // NetScore sub-category Calculations
 export async function calculateNetScore(url: string): Promise<Object> {
   logger.info('Calculating Net Score')
-
-  const busFactor = await calculateBusFactor(url)
-  const correctness = await calculateCorrectness(url)
-  const rampUpTime = await calculateRampUpTime(url)
-  const responsiveness = await calculateResponsiveness(url)
-  const licenseCompliance = await calculateLicenseCompliance(url)
-  const Dependencies = await calculateDependency(url)
-  const reviewPercentage = await calculateReviewPercentage(url)
+  //set default values for metrics to -1
+  let licenseCompliance = -1
+  let busFactor = -1
+  let correctness = -1
+  let rampUpTime = -1
+  let responsiveness = -1
+  let Dependencies = -1
+  let reviewPercentage = -1
+  
+  busFactor = await calculateBusFactor(url)
+  correctness = await calculateCorrectness(url)
+  // rampUpTime = await calculateRampUpTime(url)
+   responsiveness = await calculateResponsiveness(url)
+  licenseCompliance = await calculateLicenseCompliance(url)
+  Dependencies = await calculateDependency(url)
+  reviewPercentage = await calculateReviewPercentage(url)
   console.log(`BusFactor: ${busFactor}`)
   console.log(`Correctness: ${correctness}`)
-  console.log(`RampUpTime: ${rampUpTime}`)
+  //console.log(`RampUpTime: ${rampUpTime}`)
   console.log(`Responsiveness: ${responsiveness}`)
   console.log(`LicenseCompliance: ${licenseCompliance}`)
   console.log(`Dependencies: ${Dependencies}`)
@@ -35,6 +43,7 @@ export async function calculateNetScore(url: string): Promise<Object> {
     'busFactor: ${busFactor}, correctness: ${correctness}, rampUpTime: ${rampUpTime}, responsiveness: ${responsiveness}, licenseCompliance: ${licenseCompliance}',
   )
   /* eslint-enable no-template-curly-in-string */
+  
 
   // Score weights
   const busFactorWeight = 0.2

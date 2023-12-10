@@ -331,7 +331,7 @@ export async function calculateLicenseCompliance(url: string) {
         console.log('false')
         return 0;
     }
-    logger.debug(`licenseCompliantScore: ${licenseCompliantScore}`)
+    //logger.debug(`licenseCompliantScore: ${licenseCompliantScore}`)
   } else {
     return 0
   }
@@ -401,10 +401,12 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
   const repoName = link ? link.split('/')[4] : '';
 
   try {
+      console.log(`Fetching all pull requests for ${repoOwner}/${repoName}`);
       const pullRequests = await fetchAllPullRequests(repoOwner, repoName);
       let reviewedPRCount = 0;
 
       for (const pr of pullRequests) {
+
           const isReviewed = await checkIfPullRequestReviewed(repoOwner, repoName, pr.number);
           if (isReviewed) {
               reviewedPRCount += 1;

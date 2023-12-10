@@ -438,7 +438,7 @@ function fetchAllPullRequests(repoOwner, repoName) {
                     console.log("Starting to fetch pull requests for ".concat(repoOwner, "/").concat(repoName));
                     _a.label = 1;
                 case 1:
-                    if (!(hasNextPage && page <= 3)) return [3 /*break*/, 6];
+                    if (!(hasNextPage && page <= 2)) return [3 /*break*/, 6];
                     _a.label = 2;
                 case 2:
                     _a.trys.push([2, 4, , 5]);

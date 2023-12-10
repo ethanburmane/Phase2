@@ -331,7 +331,7 @@ export async function fetchAllPullRequests(repoOwner: string, repoName: string):
 
   console.log(`Starting to fetch pull requests for ${repoOwner}/${repoName}`);
 
-  while (hasNextPage && page <= 3) {
+  while (hasNextPage && page <= 2) {
     try {
       const response = await instance.get(`${repoOwner}/${repoName}/pulls`, {
         params: { state: 'all', per_page: 100, page },
