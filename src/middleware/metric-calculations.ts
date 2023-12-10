@@ -24,6 +24,7 @@ export async function calculateBusFactor(url: string) {
   if (link) {
     link = link?.split('github.com').pop() ?? null
     link = 'https://github.com' + link // eslint-disable-line prefer-template
+    link = link.replace(/\.git$/, '')
   }
 
   let data = null
@@ -250,6 +251,7 @@ export async function calculateResponsiveness(url: string) {
   if (link) {
     link = link?.split('github.com').pop() ?? null
     link = 'https://github.com' + link // eslint-disable-line prefer-template
+    link = link.replace(/\.git$/, '')
   }
 
   let data = null
@@ -396,6 +398,7 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
   if (link) {
     link = link?.split('github.com').pop() ?? null
     link = 'https://github.com' + link // eslint-disable-line prefer-template
+    link = link.replace(/\.git$/, '');
   }
   const repoOwner = link ? link.split('/')[3] : '';
   const repoName = link ? link.split('/')[4] : '';
@@ -404,6 +407,11 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
       console.log(`Fetching all pull requests for ${repoOwner}/${repoName}`);
       const pullRequests = await fetchAllPullRequests(repoOwner, repoName);
       let reviewedPRCount = 0;
+      
+      //cut off at 50 pull requests
+      if (pullRequests.length > 50) {
+        pullRequests.length = 50
+      }
 
       for (const pr of pullRequests) {
 
@@ -419,7 +427,8 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
 
       const totalPullRequests = pullRequests.length;
       
-      reviewPercentage = (reviewedPRCount / totalPullRequests) * 1.5
+      //add 30% to for score boost
+      reviewPercentage = (reviewedPRCount / totalPullRequests) * 1.3
 
       //scale up 
       if (reviewPercentage > 1) {
@@ -429,7 +438,7 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
 
       console.log(`Reviewed Pull Requests: ${reviewedPRCount}`);
       console.log(`Total Pull Requests: ${totalPullRequests}`);
-      console.log(`Review Percentage: ${reviewPercentage.toFixed(2)}%`);
+      console.log(`Review Percentage: ${reviewPercentage}`);
       
       return (1 - reviewPercentage);
   } catch (error) {

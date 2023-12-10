@@ -21,17 +21,17 @@ export async function calculateNetScore(url: string): Promise<Object> {
   let responsiveness = -1
   let Dependencies = -1
   let reviewPercentage = -1
-  
+
   busFactor = await calculateBusFactor(url)
   correctness = await calculateCorrectness(url)
-  // rampUpTime = await calculateRampUpTime(url)
-   responsiveness = await calculateResponsiveness(url)
+  rampUpTime = await calculateRampUpTime(url)
+  responsiveness = await calculateResponsiveness(url)
   licenseCompliance = await calculateLicenseCompliance(url)
   Dependencies = await calculateDependency(url)
   reviewPercentage = await calculateReviewPercentage(url)
   console.log(`BusFactor: ${busFactor}`)
   console.log(`Correctness: ${correctness}`)
-  //console.log(`RampUpTime: ${rampUpTime}`)
+  console.log(`RampUpTime: ${rampUpTime}`)
   console.log(`Responsiveness: ${responsiveness}`)
   console.log(`LicenseCompliance: ${licenseCompliance}`)
   console.log(`Dependencies: ${Dependencies}`)
@@ -71,13 +71,13 @@ export async function calculateNetScore(url: string): Promise<Object> {
 
   const score = {
     net: netScore,
-    license: licenseScore,
-    busFactor: busFactorScore,
-    correctness: correctnessScore,
-    rampUpTime: rampUpTimeScore,
-    responsiveness: responsivenessScore,
-    dependencies: DependencyScore,
-    reviewPercentage: reviewPercentageScore
+    license: licenseCompliance,
+    busFactor: busFactor,
+    correctness: correctness,
+    rampUpTime: rampUpTime,
+    responsiveness: responsiveness,
+    dependencies: Dependencies,
+    reviewPercentage: reviewPercentage
   }
   return score
 }

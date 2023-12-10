@@ -48,57 +48,45 @@ exports.__esModule = true;
 var net_score_1 = require("../src/middleware/net-score");
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var githubRepos, npmRepos, allRepos, scoresDictionary, _i, allRepos_1, repo, score, _a, _b, _c, repo, score;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
-                case 0:
-                    githubRepos = [
-                        'https://github.com/django/django',
-                        'https://github.com/facebook/react',
-                        'https://github.com/vuejs/vue',
-                        'https://github.com/angular/angular',
-                        'https://github.com/nodejs/node',
-                        //'https://github.com/tensorflow/tensorflow',
-                        'https://github.com/kubernetes/kubernetes',
-                        'https://github.com/twbs/bootstrap',
-                        'https://github.com/rails/rails',
-                        'https://github.com/pallets/flask'
-                    ];
-                    npmRepos = [
-                        'https://www.npmjs.com/package/lodash',
-                        'https://www.npmjs.com/package/express',
-                        'https://www.npmjs.com/package/moment',
-                        'https://www.npmjs.com/package/react-router',
-                        'https://www.npmjs.com/package/axios',
-                        'https://www.npmjs.com/package/next',
-                        'https://www.npmjs.com/package/mongoose',
-                        'https://www.npmjs.com/package/socket.io',
-                        'https://www.npmjs.com/package/redux',
-                        'https://www.npmjs.com/package/chalk'
-                    ];
-                    allRepos = __spreadArray(__spreadArray([], githubRepos, true), npmRepos, true);
-                    scoresDictionary = {};
-                    _i = 0, allRepos_1 = allRepos;
-                    _d.label = 1;
-                case 1:
-                    if (!(_i < allRepos_1.length)) return [3 /*break*/, 4];
-                    repo = allRepos_1[_i];
-                    return [4 /*yield*/, (0, net_score_1.calculateNetScore)(repo)];
-                case 2:
-                    score = _d.sent();
-                    scoresDictionary[repo] = score; // Store each score with the repo URL as the key
-                    _d.label = 3;
-                case 3:
-                    _i++;
-                    return [3 /*break*/, 1];
-                case 4:
-                    // After the loop, print out all scores
-                    for (_a = 0, _b = Object.entries(scoresDictionary); _a < _b.length; _a++) {
-                        _c = _b[_a], repo = _c[0], score = _c[1];
-                        console.log("Score for ".concat(repo, ":"), score);
-                    }
-                    return [2 /*return*/];
+        var githubRepos, npmRepos, allRepos, scoresDictionary, _i, _a, _b, repo, score;
+        return __generator(this, function (_c) {
+            githubRepos = [
+                'https://github.com/django/django',
+                'https://github.com/facebook/react',
+                'https://github.com/vuejs/vue',
+                'https://github.com/angular/angular',
+                'https://github.com/nodejs/node',
+                //'https://github.com/tensorflow/tensorflow',
+                'https://github.com/kubernetes/kubernetes',
+                'https://github.com/twbs/bootstrap',
+                'https://github.com/rails/rails',
+                'https://github.com/pallets/flask'
+            ];
+            npmRepos = [
+                'https://www.npmjs.com/package/lodash',
+                'https://www.npmjs.com/package/express',
+                'https://www.npmjs.com/package/moment',
+                'https://www.npmjs.com/package/react-router',
+                'https://www.npmjs.com/package/axios',
+                'https://www.npmjs.com/package/next',
+                'https://www.npmjs.com/package/mongoose',
+                'https://www.npmjs.com/package/socket.io',
+                'https://www.npmjs.com/package/redux',
+                'https://www.npmjs.com/package/chalk'
+            ];
+            allRepos = __spreadArray(__spreadArray([], githubRepos, true), npmRepos, true);
+            scoresDictionary = {};
+            // for (const repo of allRepos) {
+            //     let score = await calculateNetScore(repo);
+            //     scoresDictionary[repo] = score; // Store each score with the repo URL as the key
+            // }
+            (0, net_score_1.calculateNetScore)("https://www.npmjs.com/package/axios");
+            // After the loop, print out all scores
+            for (_i = 0, _a = Object.entries(scoresDictionary); _i < _a.length; _i++) {
+                _b = _a[_i], repo = _b[0], score = _b[1];
+                console.log("Score for ".concat(repo, ":"), score);
             }
+            return [2 /*return*/];
         });
     });
 }
