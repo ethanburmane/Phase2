@@ -130,6 +130,7 @@ export const handler = async (event: any, context: any) => {
     const s3command = new PutObjectCommand(cmdInput)
     const cmdResponse = await s3Client.send(s3command)
 
+    
     if (!isSuccessfulS3Response(cmdResponse))
     {
       console.log("s3 upload failed. Response:\n" + cmdResponse)

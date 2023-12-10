@@ -110,6 +110,7 @@ export async function calculateCorrectness(url: string) {
 
 // // Ramp-up Time Calculations
 export async function calculateRampUpTime(url: string): Promise<number> {
+  console.log("Calculating Ramp Up")
   logger.info('Calculating Ramp Up Time');
   let link: string | null = await utils.evaluateLink(url);
   if (link) {
@@ -439,7 +440,7 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
       console.log(`Reviewed Pull Requests: ${reviewedPRCount}`);
       console.log(`Total Pull Requests: ${totalPullRequests}`);
       console.log(`Review Percentage: ${reviewPercentage}`);
-      
+      console.log(reviewPercentage)
       return reviewPercentage;
   } catch (error) {
       console.error(`Error calculating review percentage:`, error);

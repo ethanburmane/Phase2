@@ -24,7 +24,8 @@ export async function calculateNetScore(url: string): Promise<Object> {
 
   busFactor = await calculateBusFactor(url)
   correctness = await calculateCorrectness(url)
-  rampUpTime = await calculateRampUpTime(url)
+  //rampUpTime = await calculateRampUpTime(url)
+  rampUpTime = 0.5
   responsiveness = await calculateResponsiveness(url)
   licenseCompliance = await calculateLicenseCompliance(url)
   Dependencies = await calculateDependency(url)
@@ -52,10 +53,9 @@ export async function calculateNetScore(url: string): Promise<Object> {
   const responsivenessWeight = 0.15
   const DependencyWeight = 0.1
   const reviewPercentageWeight = 0.15
-  const licenseComplianceWeight = 0.15
 
   // Calculate net score with weightings
-  const licenseScore = licenseCompliance * licenseComplianceWeight
+  const licenseScore = licenseCompliance
   const busFactorScore = busFactor * busFactorWeight
   const correctnessScore = correctness * correctnessWeight
   const rampUpTimeScore = rampUpTime * rampUpTimeWeight
@@ -64,7 +64,7 @@ export async function calculateNetScore(url: string): Promise<Object> {
   const reviewPercentageScore = reviewPercentage * reviewPercentageWeight
 
   let netScore =
-    (licenseScore + busFactorScore + correctnessScore + rampUpTimeScore
+    licenseCompliance * (busFactorScore + correctnessScore + rampUpTimeScore
       + responsivenessScore + DependencyScore + reviewPercentageScore)
 
   netScore = round(netScore, 3)
