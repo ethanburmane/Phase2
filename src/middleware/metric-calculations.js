@@ -364,7 +364,6 @@ function calculateLicenseCompliance(url) {
                         console.log('false');
                         return [2 /*return*/, 0];
                     }
-                    logger_1["default"].debug("licenseCompliantScore: ".concat(licenseCompliantScore));
                     return [3 /*break*/, 4];
                 case 3: return [2 /*return*/, 0];
                 case 4: return [2 /*return*/, licenseCompliantScore];
@@ -449,6 +448,7 @@ function calculateReviewPercentage(url) {
                     _b.label = 2;
                 case 2:
                     _b.trys.push([2, 8, , 9]);
+                    console.log("Fetching all pull requests for ".concat(repoOwner, "/").concat(repoName));
                     return [4 /*yield*/, (0, gh_api_1.fetchAllPullRequests)(repoOwner, repoName)];
                 case 3:
                     pullRequests = _b.sent();

@@ -33,18 +33,22 @@ async function main() {
     ];
 
     const allRepos = [...githubRepos, ...npmRepos];
+    //create dictonary of repos score objects with key being the repo url
+    const scoresDictionary = {};
+    
+    for (const repo of allRepos) {
+        let score = await calculateNetScore(repo);
+        scoresDictionary[repo] = score; // Store each score with the repo URL as the key
+    }
 
-    // for (const repo of allRepos) {
-    //     let devscore = await calculateDependency(repo);
-    //     console.log(`DevScore for ${repo}: ${devscore}`);
-    //     let rampUp = await calculateRampUpTime(repo);
-    //     console.log(`RampUp for ${repo}: ${rampUp}`);
-    //     let review = await calculateReviewPercentage(repo);
-    //     console.log(`Review for ${repo}: ${review}`);
-    // }
-    let netscore = await calculateNetScore('https://github.com/prettier/prettier')
+    // After the loop, print out all scores
+    for (const [repo, score] of Object.entries(scoresDictionary)) {
+        console.log(`Score for ${repo}:`, score);
+    }
+}
+    
     //let licensescore = await calculateLicenseCompliance('https://github.com/django/django')
     //console.log(`NetScore: ${netscore}`)
 
-}
+
 main()

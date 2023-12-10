@@ -43,35 +43,42 @@ var logger_1 = require("../logger");
 // NetScore sub-category Calculations
 function calculateNetScore(url) {
     return __awaiter(this, void 0, void 0, function () {
-        var busFactor, correctness, rampUpTime, responsiveness, licenseCompliance, Dependencies, reviewPercentage, busFactorWeight, correctnessWeight, rampUpTimeWeight, responsivenessWeight, DependencyWeight, reviewPercentageWeight, licenseComplianceWeight, licenseScore, busFactorScore, correctnessScore, rampUpTimeScore, responsivenessScore, DependencyScore, reviewPercentageScore, netScore, score;
+        var licenseCompliance, busFactor, correctness, rampUpTime, responsiveness, Dependencies, reviewPercentage, busFactorWeight, correctnessWeight, rampUpTimeWeight, responsivenessWeight, DependencyWeight, reviewPercentageWeight, licenseComplianceWeight, licenseScore, busFactorScore, correctnessScore, rampUpTimeScore, responsivenessScore, DependencyScore, reviewPercentageScore, netScore, score;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     logger_1["default"].info('Calculating Net Score');
+                    licenseCompliance = -1;
+                    busFactor = -1;
+                    correctness = -1;
+                    rampUpTime = -1;
+                    responsiveness = -1;
+                    Dependencies = -1;
+                    reviewPercentage = -1;
                     return [4 /*yield*/, (0, metric_calculations_1.calculateBusFactor)(url)];
                 case 1:
                     busFactor = _a.sent();
-                    return [4 /*yield*/, (0, metric_calculations_1.calculateCorrectness)(url)];
+                    return [4 /*yield*/, (0, metric_calculations_1.calculateCorrectness)(url)
+                        // rampUpTime = await calculateRampUpTime(url)
+                    ];
                 case 2:
                     correctness = _a.sent();
-                    return [4 /*yield*/, (0, metric_calculations_1.calculateRampUpTime)(url)];
-                case 3:
-                    rampUpTime = _a.sent();
                     return [4 /*yield*/, (0, metric_calculations_1.calculateResponsiveness)(url)];
-                case 4:
+                case 3:
+                    // rampUpTime = await calculateRampUpTime(url)
                     responsiveness = _a.sent();
                     return [4 /*yield*/, (0, metric_calculations_1.calculateLicenseCompliance)(url)];
-                case 5:
+                case 4:
                     licenseCompliance = _a.sent();
                     return [4 /*yield*/, (0, metric_calculations_1.calculateDependency)(url)];
-                case 6:
+                case 5:
                     Dependencies = _a.sent();
                     return [4 /*yield*/, (0, metric_calculations_1.calculateReviewPercentage)(url)];
-                case 7:
+                case 6:
                     reviewPercentage = _a.sent();
                     console.log("BusFactor: ".concat(busFactor));
                     console.log("Correctness: ".concat(correctness));
-                    console.log("RampUpTime: ".concat(rampUpTime));
+                    //console.log(`RampUpTime: ${rampUpTime}`)
                     console.log("Responsiveness: ".concat(responsiveness));
                     console.log("LicenseCompliance: ".concat(licenseCompliance));
                     console.log("Dependencies: ".concat(Dependencies));
