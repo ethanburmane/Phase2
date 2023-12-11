@@ -13,7 +13,7 @@
     --dl-size-size-xlarge: 192px;
     --dl-size-size-xxlarge: 288px;  
     
-    --background-color: #ebebeb;
+    --background-color: #d2d2d2;
 }
 .home-container {
     width: 100%;
@@ -211,12 +211,11 @@
   .home-rate-id-label {
     font-weight: 700;
     padding-left: var(--dl-space-space-twounits);
-    padding-right: var(--dl-space-space-twounits);
+    padding-right: var(--dl-space-space-sixunits);
   }
   .home-rate-id {
-    font-weight: 700;
     padding-left: var(--dl-space-space-twounits);
-    padding-right: var(--dl-space-space-twounits);
+    padding-right: var(--dl-space-space-sixunits);
   }
   .home-bus-factor-cont {
     flex: 0 0 auto;
@@ -232,7 +231,6 @@
     padding-right: var(--dl-space-space-unit);
   }
   .home-bus-factor {
-    font-weight: 700;
     padding-left: var(--dl-space-space-unit);
     padding-right: var(--dl-space-space-unit);
   }
@@ -250,7 +248,6 @@
     padding-right: var(--dl-space-space-unit);
   }
   .home-correctness {
-    font-weight: 700;
     padding-left: var(--dl-space-space-unit);
     padding-right: var(--dl-space-space-unit);
   }
@@ -268,7 +265,6 @@
     padding-right: var(--dl-space-space-unit);
   }
   .home-ramp-up {
-    font-weight: 700;
     padding-left: var(--dl-space-space-unit);
     padding-right: var(--dl-space-space-unit);
   }
@@ -286,7 +282,6 @@
     padding-right: var(--dl-space-space-unit);
   }
   .home-resp-maintain {
-    font-weight: 700;
     padding-left: var(--dl-space-space-unit);
     padding-right: var(--dl-space-space-unit);
   }
@@ -304,7 +299,6 @@
     padding-right: var(--dl-space-space-unit);
   }
   .home-license {
-    font-weight: 700;
     padding-left: var(--dl-space-space-unit);
     padding-right: var(--dl-space-space-unit);
   }
@@ -322,7 +316,6 @@
     padding-right: var(--dl-space-space-unit);
   }
   .home-good-pinning {
-    font-weight: 700;
     padding-left: var(--dl-space-space-unit);
     padding-right: var(--dl-space-space-unit);
   }
@@ -340,7 +333,6 @@
     padding-right: var(--dl-space-space-unit);
   }
   .home-pull-request {
-    font-weight: 700;
     padding-left: var(--dl-space-space-unit);
     padding-right: var(--dl-space-space-unit);
   }
@@ -354,12 +346,11 @@
   }
   .home-net-score-label {
     font-weight: 700;
-    padding-left: var(--dl-space-space-twounits);
+    padding-left: var(--dl-space-space-oneunit);
     padding-right: var(--dl-space-space-twounits);
   }
   .home-net-score {
-    font-weight: 700;
-    padding-left: var(--dl-space-space-twounits);
+    padding-left: var(--dl-space-space-oneunit);
     padding-right: var(--dl-space-space-twounits);
   }
   .home-upload {

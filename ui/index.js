@@ -249,112 +249,171 @@ function displayHistory(response) {
   })
 }
 
+function displayRegExResults(response) {
+  resultsContainer.classList.remove('hidden')
+  clearResultsButton.classList.remove('hidden')
+  let results = null
+  results = JSON.parse(response).body
+  results.forEach((result) => {
+    const resultDiv = document.createElement('div')
+    resultDiv.classList.add('home-result-div')
+
+    const nameDiv = document.createElement('div')
+    nameDiv.classList.add('home-name-container')
+    const nameLabel = document.createElement('span')
+    nameLabel.classList.add('home-package-name-label')
+    nameLabel.innerText = 'Name:'
+    nameDiv.appendChild(nameLabel)
+    const name = document.createElement('span')
+    name.innerText = result.Name
+    nameDiv.appendChild(name)
+
+    const versionDiv = document.createElement('div')
+    versionDiv.classList.add('home-version-container')
+    const versionLabel = document.createElement('span')
+    versionLabel.classList.add('home-package-version-label')
+    versionLabel.innerText = 'Version:'
+    versionDiv.appendChild(versionLabel)
+    const version = document.createElement('span')
+    version.innerText = result.Version
+    versionDiv.appendChild(version)
+
+    const idDiv = document.createElement('div')
+    idDiv.classList.add('home-id-container')
+    const idLabel = document.createElement('span')
+    idLabel.classList.add('home-package-id-label')
+    idLabel.innerText = 'ID:'
+    idDiv.appendChild(idLabel)
+
+    const id = document.createElement('span')
+    id.innerText = result.ID
+    idDiv.appendChild(id)
+
+    resultDiv.appendChild(nameDiv)
+    resultDiv.appendChild(versionDiv)
+    resultDiv.appendChild(idDiv)
+
+    resultsList.appendChild(resultDiv)
+  })
+}
+
 function displayRating(packageID, response) {
   resultsContainer.classList.remove('hidden')
   clearResultsButton.classList.remove('hidden')
   const results = JSON.parse(response).body
-  results.packages.forEach((result) => {
-    const resultDiv = document.createElement('div')
-    resultDiv.classList.add('home-result-div')
-    const IDDiv = document.createElement('div')
-    IDDiv.classList.add('home-rate-id-cont')
-    const IDLabel = document.createElement('span')
-    IDLabel.classList.add('home-rate-id-label')
-    IDLabel.innerText = 'ID:'
-    IDDiv.appendChild(IDLabel)
-    const ID = document.createElement('span')
-    ID.innerText = packageID
-    ID.classList.add('home-rate-id')
-    IDDiv.appendChild(ID)
+  console.log('results: ', results)
+  const resultDiv = document.createElement('div')
+  resultDiv.classList.add('home-result-div')
+  const IDDiv = document.createElement('div')
+  IDDiv.classList.add('home-rate-id-cont')
+  const IDLabel = document.createElement('span')
+  IDLabel.classList.add('home-rate-id-label')
+  IDLabel.innerText = 'ID:'
+  IDDiv.appendChild(IDLabel)
+  const ID = document.createElement('span')
+  ID.innerText = packageID
+  ID.classList.add('home-rate-id')
+  IDDiv.appendChild(ID)
 
-    const busFactorDiv = document.createElement('div')
-    busFactorDiv.classList.add('home-bus-factor-cont')
-    const busFactorLabel = document.createElement('span')
-    busFactorLabel.classList.add('home-bus-factor-label')
-    busFactorLabel.innerText = 'Bus Factor:'
-    busFactorDiv.appendChild(busFactorLabel)
-    const busFactor = document.createElement('span')
-    busFactor.classList.add('home-bus-factor')
-    busFactor.innerText = result.BusFactor
-    busFactorDiv.appendChild(busFactor)
+  const busFactorDiv = document.createElement('div')
+  busFactorDiv.classList.add('home-bus-factor-cont')
+  const busFactorLabel = document.createElement('span')
+  busFactorLabel.classList.add('home-bus-factor-label')
+  busFactorLabel.innerText = 'Bus Factor:'
+  busFactorDiv.appendChild(busFactorLabel)
+  const busFactor = document.createElement('span')
+  busFactor.classList.add('home-bus-factor')
+  busFactor.innerText = results.BusFactor
+  busFactorDiv.appendChild(busFactor)
 
-    const correctnessDiv = document.createElement('div')
-    correctnessDiv.classList.add('home-correctness-cont')
-    const correctnessLabel = document.createElement('span')
-    correctnessLabel.classList.add('home-correctness-label')
-    correctnessLabel.innerText = 'Correctness:'
-    correctnessDiv.appendChild(correctnessLabel)
-    const correctness = document.createElement('span')
-    correctness.classList.add('home-correctness')
-    correctness.innerText = result.Correctness
-    correctnessDiv.appendChild(correctness)
+  const correctnessDiv = document.createElement('div')
+  correctnessDiv.classList.add('home-correctness-cont')
+  const correctnessLabel = document.createElement('span')
+  correctnessLabel.classList.add('home-correctness-label')
+  correctnessLabel.innerText = 'Correctness:'
+  correctnessDiv.appendChild(correctnessLabel)
+  const correctness = document.createElement('span')
+  correctness.classList.add('home-correctness')
+  correctness.innerText = results.Correctness
+  correctnessDiv.appendChild(correctness)
 
-    const rampUpDiv = document.createElement('div')
-    rampUpDiv.classList.add('home-ramp-up-cont')
-    const rampUpLabel = document.createElement('span')
-    rampUpLabel.classList.add('home-ramp-up-label')
-    rampUpLabel.innerText = 'Ramp Up:'
-    rampUpDiv.appendChild(rampUpLabel)
-    const rampUp = document.createElement('span')
-    rampUp.classList.add('home-ramp-up')
-    rampUp.innerText = result.RampUp
-    rampUpDiv.appendChild(rampUp)
+  const rampUpDiv = document.createElement('div')
+  rampUpDiv.classList.add('home-ramp-up-cont')
+  const rampUpLabel = document.createElement('span')
+  rampUpLabel.classList.add('home-ramp-up-label')
+  rampUpLabel.innerText = 'Ramp Up:'
+  rampUpDiv.appendChild(rampUpLabel)
+  const rampUp = document.createElement('span')
+  rampUp.classList.add('home-ramp-up')
+  rampUp.innerText = results.RampUp
+  rampUpDiv.appendChild(rampUp)
 
-    const responsiveMaintainerDiv = document.createElement('div')
-    responsiveMaintainerDiv.classList.add('home-resp-maintain-cont')
-    const responsiveMaintainerLabel = document.createElement('span')
-    responsiveMaintainerLabel.classList.add('home-resp-maintain-label')
-    responsiveMaintainerLabel.innerText = 'Responsive Maintainer:'
-    responsiveMaintainerDiv.appendChild(responsiveMaintainerLabel)
-    const responsiveMaintainer = document.createElement('span')
-    responsiveMaintainer.classList.add('home-resp-maintain')
-    responsiveMaintainer.innerText = result.ResponsiveMaintainer
-    responsiveMaintainerDiv.appendChild(responsiveMaintainer)
+  const responsiveMaintainerDiv = document.createElement('div')
+  responsiveMaintainerDiv.classList.add('home-resp-maintain-cont')
+  const responsiveMaintainerLabel = document.createElement('span')
+  responsiveMaintainerLabel.classList.add('home-resp-maintain-label')
+  responsiveMaintainerLabel.innerText = 'Responsive Maintainer:'
+  responsiveMaintainerDiv.appendChild(responsiveMaintainerLabel)
+  const responsiveMaintainer = document.createElement('span')
+  responsiveMaintainer.classList.add('home-resp-maintain')
+  responsiveMaintainer.innerText = results.ResponsiveMaintainer
+  responsiveMaintainerDiv.appendChild(responsiveMaintainer)
 
-    const licenseDiv = document.createElement('div')
-    licenseDiv.classList.add('home-license-cont')
-    const licenseLabel = document.createElement('span')
-    licenseLabel.classList.add('home-license-label')
-    licenseLabel.innerText = 'License:'
-    licenseDiv.appendChild(licenseLabel)
-    const license = document.createElement('span')
-    license.classList.add('home-license')
-    license.innerText = result.License
-    licenseDiv.appendChild(license)
+  const licenseDiv = document.createElement('div')
+  licenseDiv.classList.add('home-license-cont')
+  const licenseLabel = document.createElement('span')
+  licenseLabel.classList.add('home-license-label')
+  licenseLabel.innerText = 'License:'
+  licenseDiv.appendChild(licenseLabel)
+  const license = document.createElement('span')
+  license.classList.add('home-license')
+  license.innerText = results.LicenseScore
+  licenseDiv.appendChild(license)
 
-    const goodPinningDiv = document.createElement('div')
-    goodPinningDiv.classList.add('home-good-pinning-cont')
-    const goodPinningLabel = document.createElement('span')
-    goodPinningLabel.classList.add('home-good-pinning-label')
-    goodPinningLabel.innerText = 'Good Pinning:'
-    goodPinningDiv.appendChild(goodPinningLabel)
-    const goodPinning = document.createElement('span')
-    goodPinning.classList.add('home-good-pinning')
-    goodPinning.innerText = result.GoodPinningPractice
-    goodPinningDiv.appendChild(goodPinning)
+  const goodPinningDiv = document.createElement('div')
+  goodPinningDiv.classList.add('home-good-pinning-cont')
+  const goodPinningLabel = document.createElement('span')
+  goodPinningLabel.classList.add('home-good-pinning-label')
+  goodPinningLabel.innerText = 'Good Pinning Practice:'
+  goodPinningDiv.appendChild(goodPinningLabel)
+  const goodPinning = document.createElement('span')
+  goodPinning.classList.add('home-good-pinning')
+  goodPinning.innerText = results.GoodPinningPractice
+  goodPinningDiv.appendChild(goodPinning)
 
-    const pullRequestDiv = document.createElement('div')
-    pullRequestDiv.classList.add('home-pull-request-cont')
-    const pullRequestLabel = document.createElement('span')
-    pullRequestLabel.classList.add('home-pull-request-label')
-    pullRequestLabel.innerText = 'Pull Request:'
-    pullRequestDiv.appendChild(pullRequestLabel)
-    const pullRequest = document.createElement('span')
-    pullRequest.classList.add('home-pull-request')
-    pullRequest.innerText = result.PullRequest
-    pullRequestDiv.appendChild(pullRequest)
+  const pullRequestDiv = document.createElement('div')
+  pullRequestDiv.classList.add('home-pull-request-cont')
+  const pullRequestLabel = document.createElement('span')
+  pullRequestLabel.classList.add('home-pull-request-label')
+  pullRequestLabel.innerText = 'Pull Request:'
+  pullRequestDiv.appendChild(pullRequestLabel)
+  const pullRequest = document.createElement('span')
+  pullRequest.classList.add('home-pull-request')
+  pullRequest.innerText = results.PullRequest
+  pullRequestDiv.appendChild(pullRequest)
 
-    const netScoreDiv = document.createElement('div')
-    netScoreDiv.classList.add('home-net-score-cont')
-    const netScoreLabel = document.createElement('span')
-    netScoreLabel.classList.add('home-net-score-label')
-    netScoreLabel.innerText = 'Net Score:'
-    netScoreDiv.appendChild(netScoreLabel)
-    const netScore = document.createElement('span')
-    netScore.classList.add('home-net-score')
-    netScore.innerText = result.NetScore
-    netScoreDiv.appendChild(netScore)
-  })
+  const netScoreDiv = document.createElement('div')
+  netScoreDiv.classList.add('home-net-score-cont')
+  const netScoreLabel = document.createElement('span')
+  netScoreLabel.classList.add('home-net-score-label')
+  netScoreLabel.innerText = 'Net Score:'
+  netScoreDiv.appendChild(netScoreLabel)
+  const netScore = document.createElement('span')
+  netScore.classList.add('home-net-score')
+  netScore.innerText = results.NetScore
+  netScoreDiv.appendChild(netScore)
+
+  resultDiv.appendChild(IDDiv)
+  resultDiv.appendChild(busFactorDiv)
+  resultDiv.appendChild(correctnessDiv)
+  resultDiv.appendChild(rampUpDiv)
+  resultDiv.appendChild(responsiveMaintainerDiv)
+  resultDiv.appendChild(licenseDiv)
+  resultDiv.appendChild(goodPinningDiv)
+  resultDiv.appendChild(pullRequestDiv)
+  resultDiv.appendChild(netScoreDiv)
+
+  resultsList.appendChild(resultDiv)
 }
 
 function updateInputChange() {
@@ -387,7 +446,7 @@ function uploadChange() {
   }
 }
 
-// Ingestion Endpoint (complete)
+// Ingestion Endpoint
 
 async function uploadPackage() {
   const ingestion = new XMLHttpRequest()
@@ -443,7 +502,7 @@ async function uploadPackage() {
   }
 }
 
-// Search Endpoint (in progress)
+// Search Endpoint
 
 function searchPackages() {
   const search = new XMLHttpRequest()
@@ -463,7 +522,6 @@ function searchPackages() {
       const status = parseInt(response.statusCode, 10)
       if (status === 200) {
         console.log(JSON.parse(search.responseText))
-        searchInput.value = ''
         searchInputChange()
         if (searchType.value === 'byID') {
           const name = response.body.metadata.Name
@@ -472,8 +530,10 @@ function searchPackages() {
           displayID(name, version, id)
         } else if (searchType.value === 'byName') {
           displayHistory(search.responseText)
-        } else {
+        } else if (searchType.value === 'all') {
           displaySearchResults(search.responseText)
+        } else {
+          displayRegExResults(search.responseText)
         }
       } else {
         const errorMessage = response.body.error
@@ -517,7 +577,7 @@ function searchPackages() {
   }
 }
 
-// Rating Endpoint (in progress)
+// Rating Endpoint (needs tested)
 
 function ratePackage() {
   const rate = new XMLHttpRequest()
@@ -530,7 +590,7 @@ function ratePackage() {
       const status = parseInt(response.statusCode, 10)
       if (status === 200) {
         console.log(JSON.parse(rate.responseText))
-        displayRating()
+        displayRating(id, rate.responseText)
       } else {
         const errorMessage = response.body.error
         alert(`Error rating package\n\n${errorMessage} (${status})`)
@@ -544,7 +604,7 @@ function ratePackage() {
   rate.send(JSON.stringify(data))
 }
 
-// Delete Endpoint (in progress)
+// Delete Endpoint (needs tested)
 
 function deletePackageEvent() {
   const del = new XMLHttpRequest()
@@ -584,7 +644,7 @@ function deletePackageEvent() {
   }
 }
 
-// Download Endpoint (in progress)
+// Download Endpoint
 
 function downloadContentHelper(content, name) {
   const file = `${name}.zip`
@@ -632,7 +692,7 @@ function downloadPackageContent() {
   download.send(JSON.stringify(data))
 }
 
-// Update Endpoint (complete) (needs testing)
+// Update Endpoint (needs testing)
 
 function updatePackage() {
   const update = new XMLHttpRequest()
@@ -703,7 +763,7 @@ function updatePackage() {
   }
 }
 
-// Reset Endpoint (complete)
+// Reset Endpoint
 
 function resetRegistry() {
   const reset = new XMLHttpRequest()
@@ -727,11 +787,16 @@ function resetRegistry() {
 }
 
 function confirmReset() {
-  const confirmation = confirm(
-    'Are you sure you want to reset? This action cannot be undone.',
-  )
+  const confirmation = confirm('Are you sure you want to reset?')
   if (confirmation) {
     resetRegistry()
+  }
+}
+
+function confirmDelete() {
+  const confirmation = confirm('Are you sure you want to delete this package?')
+  if (confirmation) {
+    deletePackageEvent()
   }
 }
 
@@ -745,7 +810,7 @@ uploadButton.addEventListener('click', uploadPackage)
 resetButton.addEventListener('click', confirmReset)
 returnPackage.addEventListener('click', searchPackages)
 returnRating.addEventListener('click', ratePackage)
-deletePackage.addEventListener('click', deletePackageEvent)
+deletePackage.addEventListener('click', confirmDelete)
 downloadPackage.addEventListener('click', downloadPackageContent)
 updateInput.addEventListener('input', updateInputChange)
 contentUpdateInput.addEventListener('change', updateUploadChange)

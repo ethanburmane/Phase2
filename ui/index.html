@@ -1,101 +1,105 @@
-<div>
-    <link href="./styles.css" rel="stylesheet" />
-    <style>
-        body {
-            background-color: var(--background-color);
-        }
-    </style>
-    <header class="home-container">
+<!DOCTYPE html>
+<html lang="en">
 
-    <div class="home-header">
-        <h1 class="home-page-title">ECE 461 Package Registry</h1>
-    </div>
+    <div>
+        <link href="./styles.css" rel="stylesheet" />
+        <style>
+            body {
+                background-color: var(--background-color);
+            }
+        </style>
+        <header class="home-container">
 
-    <div class="home-search">
-        <h1 class="home-search-title">Search registry</h1>
-        <span class="home-search-type-label">Select a search type:</span>
-        <select id="searchType" class="home-search-type-select">
-            <option value="all" selected>Search all packages</option>
-            <option value="byName">Search for package by name</option>
-            <option value="byID">Search package by ID</option>
-            <option value="byRegex">Search package by keyword</option>
-        </select>
-        <input type="text" id="searchInput" placeholder="Package Name, [OPTIONAL] Package Version (* for all packages)" class="home-search-bar input"/>
-        <button type="button" id="returnPackage" class="home-return-package-button button hidden">
-            <span>Return Package</span>
-        </button>
-        <button type="button" id="returnRating" class="home-return-rating-button button hidden">
-            <span>Return Rating</span>
-        </button>
-        <button type="button" id="deletePackage" class="home-delete-package-button button hidden">
-            <span>Delete Package</span>
-        </button>
-        <button type="button" id="downloadPackage" class="home-download-package-button button hidden">
-            <span>Download Package</span>
-        </button>
-    </div>
+        <div class="home-header">
+            <h1 class="home-page-title">ECE 461 Package Registry</h1>
+        </div>
 
-    <div id="resultsContainer" class="home-results hidden">
-        <h1 id="resultsTitle" class="home-results-title">Results</h1>
-        <div id="resultsList" class="home-results-list"></div>
-        <button type="button" id="clearResultsButton" class="home-clear-results-button button" >
-          <span>Clear results</span>
-        </button>
-    </div>
+        <div class="home-search">
+            <h1 class="home-search-title">Search registry</h1>
+            <span class="home-search-type-label">Select a search type:</span>
+            <select id="searchType" class="home-search-type-select">
+                <option value="all" selected>Search all packages</option>
+                <option value="byName">Search for package by name</option>
+                <option value="byID">Search package by ID</option>
+                <option value="byRegex">Search package by keyword</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="Package Name, [OPTIONAL] Package Version (* for all packages)" class="home-search-bar input"/>
+            <button type="button" id="returnPackage" class="home-return-package-button button hidden">
+                <span>Return Package</span>
+            </button>
+            <button type="button" id="returnRating" class="home-return-rating-button button hidden">
+                <span>Return Rating</span>
+            </button>
+            <button type="button" id="deletePackage" class="home-delete-package-button button hidden">
+                <span>Delete Package</span>
+            </button>
+            <button type="button" id="downloadPackage" class="home-download-package-button button hidden">
+                <span>Download Package</span>
+            </button>
+        </div>
 
-    <div class="home-upload">
-        <h1 class="home-upload-title">Upload a package</h1>
-        <button type="button" id="uploadButton" class="home-upload-button button hidden">
-            <span>Upload</span>
-        </button>
-        <span class="home-by-content-label">
-        <span>Upload a file:</span>
-        </span>
-        <input type="file" accept=".zip" placeholder="Upload a file" id="contentInput" class="home-by-content-input input"/>
-        <span class="home-by-url-label">
-        <span>Upload a URl:</span>
-        </span>
-        <input type="text" placeholder="Upload a package URL" id="urlInput" class="home-by-url-input input"/>
-    </div>
+        <div id="resultsContainer" class="home-results hidden">
+            <h1 id="resultsTitle" class="home-results-title">Results</h1>
+            <div id="resultsList" class="home-results-list"></div>
+            <button type="button" id="clearResultsButton" class="home-clear-results-button button" >
+            <span>Clear results</span>
+            </button>
+        </div>
 
-    <div class="home-update">
-        <h1 class="home-update-title">Update a package</h1>
-        <button id="updateUploadButton" type="button" class="home-update-upload-button button hidden">
-            <span>Upload</span>
-        </button>
-        <span id="contentUpdateInputLabel" class="home-by-content-update-label hidden">
-          <span>Upload a file:</span>
-        </span>
-        <input type="file" accept=".zip" id="contentUpdateInput" placeholder="Upload a file" class="home-by-content-update-input input hidden"/>
-        <span id="urlUpdateInputLabel" class="home-by-url-update-label hidden">
-          <span>Upload a URl:</span>
-        </span>
-        <input type="text" id="urlUpdateInput" placeholder="Upload a package URL" class="home-by-url-update-input input hidden"/>
-        <span class="home-update-label">
-          <span>Package ID:</span>
-        </span>
-        <input type="text" id="updateInput" placeholder="Package Name, Package Version, Package ID" class="home-update-input input"/>
-    </div>
+        <div class="home-upload">
+            <h1 class="home-upload-title">Upload a package</h1>
+            <button type="button" id="uploadButton" class="home-upload-button button hidden">
+                <span>Upload</span>
+            </button>
+            <span class="home-by-content-label">
+            <span>Upload a file:</span>
+            </span>
+            <input type="file" accept=".zip" placeholder="Upload a file" id="contentInput" class="home-by-content-input input"/>
+            <span class="home-by-url-label">
+            <span>Upload a URl:</span>
+            </span>
+            <input type="text" placeholder="Upload a package URL" id="urlInput" class="home-by-url-input input"/>
+        </div>
 
-    <div class="home-reset">
-        <h1 class="home-reset-title">
-        <span>Reset registry</span>
-        </h1>
-        <button type="button" id="resetButton" class="home-reset-button button">
-        <span>
+        <div class="home-update">
+            <h1 class="home-update-title">Update a package</h1>
+            <button id="updateUploadButton" type="button" class="home-update-upload-button button hidden">
+                <span>Upload</span>
+            </button>
+            <span id="contentUpdateInputLabel" class="home-by-content-update-label hidden">
+            <span>Upload a file:</span>
+            </span>
+            <input type="file" accept=".zip" id="contentUpdateInput" placeholder="Upload a file" class="home-by-content-update-input input hidden"/>
+            <span id="urlUpdateInputLabel" class="home-by-url-update-label hidden">
+            <span>Upload a URl:</span>
+            </span>
+            <input type="text" id="urlUpdateInput" placeholder="Upload a package URL" class="home-by-url-update-input input hidden"/>
+            <span class="home-update-label">
+            <span>Package ID:</span>
+            </span>
+            <input type="text" id="updateInput" placeholder="Package Name, Package Version, Package ID" class="home-update-input input"/>
+        </div>
+
+        <div class="home-reset">
+            <h1 class="home-reset-title">
             <span>Reset registry</span>
-        </span>
-        </button>
-    </div>
+            </h1>
+            <button type="button" id="resetButton" class="home-reset-button button">
+            <span>
+                <span>Reset registry</span>
+            </span>
+            </button>
+        </div>
 
-    <div class="home-footer">
-        <span class="home-info-label">
-        Project Created by Team 15: Ethan Burmane, Jonah Nichols, Ashwin
-        Sreedhar, Andrew Kreimer, Toby Onyekwere
-        </span>
-    </div>
+        <div class="home-footer">
+            <span class="home-info-label">
+            Project Created by Team 15: Ethan Burmane, Jonah Nichols, Ashwin
+            Sreedhar, Andrew Kreimer, Toby Onyekwere
+            </span>
+        </div>
 
-    </header>
-</div>
-<script src="index.js" defer></script>
+        </header>
+    </div>
+    <script src="index.js" defer></script>
+</html>
 
