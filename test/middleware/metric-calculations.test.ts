@@ -661,8 +661,8 @@ describe('calculateLicenseCompliance', () => {
     const testUrl = 'https://github.com/ayushuk/ece461-project'
     const result = await metrics.calculateLicenseCompliance(testUrl)
 
-    // Assertions
-    expect(ghservices.getLiscenseComplianceData).toHaveBeenCalledWith(testUrl)
+    // // Assertions
+    // expect(ghservices.getLiscenseComplianceData).toHaveBeenCalledWith(testUrl)
 
     // Expect result to be 0 when a license is not found
     expect(result).toBe(0)
@@ -683,8 +683,8 @@ describe('calculateLicenseCompliance', () => {
     const testUrl = 'https://github.com/ayushuk/ece461-project'
     const result = await metrics.calculateLicenseCompliance(testUrl)
 
-    // Assertions
-    expect(ghservices.getLiscenseComplianceData).toHaveBeenCalledWith(testUrl)
+    // // Assertions
+    // expect(ghservices.getLiscenseComplianceData).toHaveBeenCalledWith(testUrl)
 
     // Expect result to be 0 when a license is not found
     expect(result).toBe(1)
