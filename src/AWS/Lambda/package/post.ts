@@ -129,7 +129,21 @@ export const handler = async (event: any, context: any) => {
     console.log("Sending command to s3")
     const s3Client = new S3Client(config)
     const s3command = new PutObjectCommand(cmdInput)
-    const cmdResponse = await s3Client.send(s3command)
+    let cmdResponse
+    try
+    {
+      cmdResponse = await s3Client.send(s3command)
+    }
+    catch (e)
+    {
+      console.error("Error when putting object in s3.", e)
+      return {
+        statusCode: 500,
+        body: {
+          error: "Server Error"
+        }
+      }
+    }
 
 
     if (!isSuccessfulS3Response(cmdResponse))
@@ -204,9 +218,26 @@ export const handler = async (event: any, context: any) => {
     }
 
     console.log("Sending dynamo command")
+    console.log("Params ", itemParams)
     const db = new DynamoDBClient(config)
     const dbcommand = new PutItemCommand(itemParams)
-    const dbcmdResponse = await db.send(dbcommand)
+    let dbcmdResponse = await db.send(dbcommand)
+
+    try
+    {
+      dbcmdResponse = await db.send(dbcommand)
+    }
+    catch (e)
+    {
+      console.error("Error when putting object in DB.", e)
+      console.log("Params", itemParams)
+      return {
+        statusCode: 500,
+        body: {
+          error: "Server Error"
+        }
+      }
+    }
 
     if (!isSuccessfulDBResponse(dbcmdResponse)) {
       // TODO log response info
