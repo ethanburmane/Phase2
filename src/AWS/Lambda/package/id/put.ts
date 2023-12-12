@@ -67,7 +67,8 @@ export const handler = async (event: any, context: any) => {
   // Update package in S3 and DB
     try {
         await updatePackageInS3(packageName, packageVersion, body.data.Content); //zip);
-        await updatePackageInDB(packageId, body.metadata, url);
+        console.log("URL: ", url[1])
+        await updatePackageInDB(packageId, body.metadata, url[1]);
         console.log("FINISHING PACKAGE UPDATE");
         return {
             statusCode: 200,
