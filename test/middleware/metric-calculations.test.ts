@@ -680,7 +680,7 @@ describe('calculateLicenseCompliance', () => {
     )
 
     // Call calculatelicense
-    const testUrl = 'https://github.com/ayushuk/ece461-project'
+    const testUrl = 'https://github.com/dcousens/is-sorted'
     const result = await metrics.calculateLicenseCompliance(testUrl)
 
     // // Assertions

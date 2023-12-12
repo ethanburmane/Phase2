@@ -106,7 +106,7 @@ describe('calculateNetScore', () => {
 
     // Call calculateNetScore
     const testUrl = 'https://github.com/ayushuk/ece461-project'
-    const result = await netscore.calculateNetScore(testUrl)
+    const result: any = await netscore.calculateNetScore(testUrl)
 
     // Assertions
     expect(metrics.calculateBusFactor).toHaveBeenCalledWith(testUrl)
@@ -117,6 +117,6 @@ describe('calculateNetScore', () => {
     //expect(roundMock).toHaveBeenCalledWith(0.425_000_000_000_000_04, 3)
 
     // Expect result to be 0 when a license is not found
-    expect(result).toBe(0.5)
+    expect(result.net).toBe(0.5)
   })
 })
