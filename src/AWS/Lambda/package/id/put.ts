@@ -55,7 +55,7 @@ export const handler = async (event: any, context: any) => {
   }*/
   
   // fetch package from url
-  const zip = await fetchGitHubRepoAsZip(url[1]);
+  //const zip = await fetchGitHubRepoAsZip(url[1]);
 
   // TODO implement
   // Check if the package exists
@@ -66,7 +66,7 @@ export const handler = async (event: any, context: any) => {
   console.log("Package exists");
   // Update package in S3 and DB
     try {
-        await updatePackageInS3(packageName, packageVersion, body.data.Content);
+        await updatePackageInS3(packageName, packageVersion, body.data.Content); //zip);
         await updatePackageInDB(packageId, body.metadata, url);
         console.log("FINISHING PACKAGE UPDATE");
         return {
