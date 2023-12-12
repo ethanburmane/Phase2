@@ -8,6 +8,7 @@ const { DynamoDBClient, GetItemCommand, UpdateItemCommand } = require('@aws-sdk/
 import { listenerCount } from "node:process";
 import { calculateNetScore } from "../../../../middleware/net-score";
 const JSZip = require('jszip');
+const axios = require('axios');
 
 
 const AWS_REGION = "us-east-2";
@@ -38,7 +39,7 @@ export const handler = async (event: any, context: any) => {
   console.log("Package ID: ", packageId);
 
   const body = event.body;
-  console.log("Body: ", JSON.stringify(body));
+  //console.log("Body: ", JSON.stringify(body));
   const metadata = body.metadata;
   console.log("Metadata: ", JSON.stringify(metadata));
   const packageName = JSON.stringify(metadata.Name);
@@ -53,7 +54,7 @@ export const handler = async (event: any, context: any) => {
     return url[1];
   }*/
   
-
+  const zip = await fetchGitHubRepoAsZip(url[1]);
   // TODO implement
   // Check if the package exists
   const packageExists = await checkPackageExists(packageId);
@@ -127,7 +128,7 @@ async function updatePackageInS3(packageName: string, packageVersion: string, co
   let name = JSON.parse(packageName);
   let version = JSON.parse(packageVersion);
   const cmdInput = {
-      "Body": Buffer.from(content, 'base64'), 
+      "Body": content, 
       "Bucket": "main-storage-bucket",
       "Key": `packages/${name}/${version}.zip`
   };
@@ -338,4 +339,33 @@ function findPackageJson(unzipped: any)
 function zipFromBase64(base64: string)
 {
   return Buffer.from(base64, "base64")
+}
+
+async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
+  const zipURLMain = `${repoURL}/archive/main.zip`;
+  const zipURLMaster = `${repoURL}/archive/master.zip`;
+
+  try {
+    // Try fetching main branch first
+    console.log("Attempting to fetch branch main.")
+    const responseMain = await axios.get(zipURLMain, { responseType: 'arraybuffer' });
+    return Buffer.from(responseMain.data, 'binary');
+  } catch (error: any) {
+    console.log("Error when fetching main ", error)
+    if (error.response && error.response.status === 404) {
+      try {
+        // If main branch doesn't exist, fetch master branch
+        console.log("Attempting to fetch master branch.")
+        const responseMaster = await axios.get(zipURLMaster, { responseType: 'arraybuffer' });
+        return Buffer.from(responseMaster.data, 'binary');
+      } catch (error) {
+        console.log("Error when fetching master branch ", error)
+        // Both main and master branches don't exist
+        throw new Error('Both main and master branches not found.');
+      }
+    } else {
+      // Handle other errors
+      throw error;
+    }
+  }
 }
