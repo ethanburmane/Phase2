@@ -49,10 +49,10 @@ export async function calculateNetScore(url: string): Promise<Object> {
   // Score weights
   const busFactorWeight = 0.2
   const correctnessWeight = 0.15
-  const rampUpTimeWeight = 0.1
+  const rampUpTimeWeight = 0.15
   const responsivenessWeight = 0.15
-  const DependencyWeight = 0.1
-  const reviewPercentageWeight = 0.15
+  const DependencyWeight = 0.15
+  const reviewPercentageWeight = 0.2
 
   // Calculate net score with weightings
   const licenseScore = licenseCompliance

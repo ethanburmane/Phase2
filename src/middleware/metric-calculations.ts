@@ -393,9 +393,9 @@ export async function calculateDependency(url: string) {
   
   // calculate difference between the max and min monthly commits
   if (numPin === 0) {
-    return 1.0;
+    return 0;
   }else{
-    return numPin / numDep;
+    return (1 - (numPin / numDep));
   }
 
   /* eslint-disable no-implicit-coercion */
