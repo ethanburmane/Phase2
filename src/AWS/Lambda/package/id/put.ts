@@ -41,7 +41,7 @@ export const handler = async (event: any, context: any) => {
   const body = event.body;
   //console.log("Body: ", JSON.stringify(body));
   const metadata = body.metadata;
-  console.log("Metadata: ", JSON.stringify(metadata));
+  //console.log("Metadata: ", JSON.stringify(metadata));
   const packageName = JSON.stringify(metadata.Name);
   console.log("Package Name: ", packageName);
   const packageVersion = JSON.stringify(metadata.Version);
@@ -54,7 +54,9 @@ export const handler = async (event: any, context: any) => {
     return url[1];
   }*/
   
+  // fetch package from url
   const zip = await fetchGitHubRepoAsZip(url[1]);
+
   // TODO implement
   // Check if the package exists
   const packageExists = await checkPackageExists(packageId);
