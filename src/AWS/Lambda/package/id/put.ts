@@ -177,29 +177,37 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
   // retrieve individual score entries
   const score_entries = Object.entries(score);
   const netScore = score_entries[0][1];
+  const netScore_string = netScore.toString();
   const licenseScore = score_entries[1][1];
+  const licenseScore_string = licenseScore.toString();
   const busFactorScore = score_entries[2][1];
+  const busFactorScore_string = busFactorScore.toString();
   const correctnessScore = score_entries[3][1];
+  const correctnessScore_string = correctnessScore.toString();
   const rampUpTimeScore = score_entries[4][1];
+  const rampUpTimeScore_string = rampUpTimeScore.toString();
   const responsivenessScore = score_entries[5][1];
+  const responsivenessScore_string = responsivenessScore.toString();
   const DependencyScore = score_entries[6][1];
+  const DependencyScore_string = DependencyScore.toString();
   const reviewPercentageScore = score_entries[7][1];
+  const reviewPercentageScore_string = reviewPercentageScore.toString();
 
   // Extract individual metrics from the score object
   console.log("Create new score object");
   const new_score = {
-      "BusFactor": { S: busFactorScore },
-      "Correctness": { S: correctnessScore },
-      "RampUp": { S: rampUpTimeScore },
-      "ResponsiveMaintainer": { S: responsivenessScore },
-      "LicenseScore": { S: licenseScore },
-      "GoodPinningPractice": { S: DependencyScore },
-      "PullRequest": { S: reviewPercentageScore },
-      "NetScore": { S: netScore }
+      "BusFactor": { "S": busFactorScore_string },
+      "Correctness": { "S": correctnessScore_string },
+      "RampUp": { "S": rampUpTimeScore_string },
+      "ResponsiveMaintainer": { "S": responsivenessScore_string },
+      "LicenseScore": { "S": licenseScore_string },
+      "GoodPinningPractice": { "S": DependencyScore_string },
+      "PullRequest": { "S": reviewPercentageScore_string },
+      "NetScore": { "S": netScore }
   };
 
   console.log("new scores: ", new_score);
-  
+
   console.log("Update package in DB using UpdateItemCommand");
   const params = {
       "TableName": "Packages",
