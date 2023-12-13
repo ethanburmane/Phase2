@@ -137,7 +137,7 @@ async function updatePackageInS3(packageName: string, packageVersion: string, co
   let name = JSON.parse(packageName);
   let version = JSON.parse(packageVersion);
   const cmdInput = {
-      "Body": "test", 
+      "Body": content, 
       "Bucket": "main-storage-bucket",
       "Key": `packages/${name}/${version}.zip`
   };
