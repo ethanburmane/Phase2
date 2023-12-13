@@ -54,8 +54,9 @@ export const handler = async (event: any, context: any) => {
   }*/
   
   // fetch package from url
-  //const zip = await fetchGitHubRepoAsZip(url[1]);
-
+  console.log("Fetching package from url", url[1]);
+  const zip = await fetchGitHubRepoAsZip(url[1]);
+  console.log("fetching package from url finished");
   // TODO implement
   // Check if the package exists
   const packageExists = await checkPackageExists(packageId);
