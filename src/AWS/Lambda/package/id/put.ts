@@ -203,7 +203,7 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
       "LicenseScore": { "S": licenseScore_string },
       "GoodPinningPractice": { "S": DependencyScore_string },
       "PullRequest": { "S": reviewPercentageScore_string },
-      "NetScore": { "S": netScore }
+      "NetScore": { "S": netScore_string }
   };
 
   console.log("new scores: ", new_score);
