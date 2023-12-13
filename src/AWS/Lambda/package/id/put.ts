@@ -221,6 +221,8 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
       },
       "ReturnValues": "UPDATED_NEW"
   };
+
+  console.log("Parameters created");
   const Item = await dynamoDBClient.send(new UpdateItemCommand(params));
   console.log("Updated package in DB: ", Item)
 }
