@@ -73,6 +73,26 @@ export const handler = async (event: any, context: any) => {
   const packageName = packageInfo.name
   const packageVersion = packageInfo.version
 
+  if (!packageName)
+  {
+    return {
+      statusCode: 400,
+      body: {
+        error: "No Package Name in package.json."
+      }
+    }
+  }
+
+  if (!packageVersion)
+  {
+    return {
+      statusCode: 400,
+      body: {
+        error: "No Version Number in package.json."
+      }
+    }
+  }
+
   const itemId = createPackageID(packageName, packageVersion)
 
   console.log("Checking if package exists.")
