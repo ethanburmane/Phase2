@@ -378,7 +378,7 @@ async function extractUrlFromContent(content: any)
 }
 
 
-function isValidRequest(event: any)
+export function isValidRequest(event: any)
 {
   /**
    * Validates event for 
@@ -458,7 +458,7 @@ async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
   }
 }
 
-function createPackageID(packageName: string, packageVersion: string)
+export function createPackageID(packageName: string, packageVersion: string)
 {
   return packageName + packageVersion
 }
