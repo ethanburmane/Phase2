@@ -55,7 +55,8 @@ export const handler = async (event: any, context: any) => {
   
   // fetch package from url
   console.log("Fetching package from url", url[1]);
-  const zip = await fetchGitHubRepoAsZip(url[1]);
+  //const zip = await fetchGitHubRepoAsZip(url[1]);
+  const zip = "";
   let content;
   if (body.data.Content) {
     content = body.data.Content;
