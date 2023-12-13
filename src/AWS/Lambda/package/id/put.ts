@@ -46,7 +46,7 @@ export const handler = async (event: any, context: any) => {
   console.log("Package Name: ", packageName);
   const packageVersion = JSON.stringify(metadata.Version);
   console.log("Package Version: ", packageVersion);
-
+  
   let url = await extractUrlFromBody(body);
   /*if (url[0] == false) {
     console.log("URL not found");
@@ -56,6 +56,13 @@ export const handler = async (event: any, context: any) => {
   // fetch package from url
   console.log("Fetching package from url", url[1]);
   const zip = await fetchGitHubRepoAsZip(url[1]);
+  let content;
+  if (body.data.Content) {
+    content = body.data.Content;
+  }
+  else {
+    content = zip;
+  }
   console.log("fetching package from url finished");
   // TODO implement
   // Check if the package exists
@@ -66,7 +73,7 @@ export const handler = async (event: any, context: any) => {
   console.log("Package exists");
   // Update package in S3 and DB
     try {
-        await updatePackageInS3(packageName, packageVersion, body.data.Content); //zip);
+        await updatePackageInS3(packageName, packageVersion, content); //zip);
         await updatePackageInDB(packageId, body.metadata, url[1]);
         console.log("FINISHING PACKAGE UPDATE");
         return {
