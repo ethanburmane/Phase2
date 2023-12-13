@@ -188,7 +188,6 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
   // Extract individual metrics from the score object
   console.log("Create new score object");
   const new_score = {
-    M: {
       "BusFactor": { S: busFactorScore },
       "Correctness": { S: correctnessScore },
       "RampUp": { S: rampUpTimeScore },
@@ -197,9 +196,10 @@ async function updatePackageInDB(packageId: string, metadata: any, url: any) {
       "GoodPinningPractice": { S: DependencyScore },
       "PullRequest": { S: reviewPercentageScore },
       "NetScore": { S: netScore }
-    }
   };
 
+  console.log("new scores: ", new_score);
+  
   console.log("Update package in DB using UpdateItemCommand");
   const params = {
       "TableName": "Packages",
