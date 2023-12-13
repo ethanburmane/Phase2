@@ -48,7 +48,6 @@ export const handler = async (event: any, context: any) => {
   console.log("Package Version: ", packageVersion);
 
   let url = await extractUrlFromBody(body);
-  console.log("URL: ", url);
   /*if (url[0] == false) {
     console.log("URL not found");
     return url[1];
@@ -67,7 +66,6 @@ export const handler = async (event: any, context: any) => {
   // Update package in S3 and DB
     try {
         await updatePackageInS3(packageName, packageVersion, body.data.Content); //zip);
-        console.log("URL: ", url[1])
         await updatePackageInDB(packageId, body.metadata, url[1]);
         console.log("FINISHING PACKAGE UPDATE");
         return {
@@ -131,7 +129,7 @@ async function updatePackageInS3(packageName: string, packageVersion: string, co
   let name = JSON.parse(packageName);
   let version = JSON.parse(packageVersion);
   const cmdInput = {
-      "Body": content, 
+      "Body": "test", 
       "Bucket": "main-storage-bucket",
       "Key": `packages/${name}/${version}.zip`
   };
