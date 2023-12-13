@@ -12,7 +12,7 @@
 
 const JSZip = require('jszip')
 
-const MIN_PKG_SCORE = 0.5
+const MIN_PKG_SCORE = 0.4
 const AWS_REGION = "us-east-2"
 const PACKAGE_S3 = "main-storage-bucket"
 
@@ -103,17 +103,17 @@ export const handler = async (event: any, context: any) => {
   console.log("Package Score: ", score)
 
   //Static score for now
-  let itemScore = {
-    "BusFactor": {"S": "0.7"},
-    "Correctness": {"S": "0.7"},
-    "RampUp": {"S": "0.7"},
-    "ResponsiveMaintainer": {"S": "0.7"},
-    "LicenseScore": {"S": "1.0"},
-    "GoodPinningPractice": {"S": "0.7"},
-    "PullRequest": {"S": "0.7"},
-    "NetScore": {"S": "0.7"}
-  }
-  if (Number(itemScore.NetScore.S) > MIN_PKG_SCORE) {
+  // let itemScore = {
+  //   "BusFactor": {"S": "0.7"},
+  //   "Correctness": {"S": "0.7"},
+  //   "RampUp": {"S": "0.7"},
+  //   "ResponsiveMaintainer": {"S": "0.7"},
+  //   "LicenseScore": {"S": "1.0"},
+  //   "GoodPinningPractice": {"S": "0.7"},
+  //   "PullRequest": {"S": "0.7"},
+  //   "NetScore": {"S": "0.7"}
+  // }
+  if (score.net > MIN_PKG_SCORE) {
     const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
     const cmdInput = {
@@ -168,16 +168,16 @@ export const handler = async (event: any, context: any) => {
 
     // TODO create item score formatted for db entry
     
-    // let itemScore = {
-    //   "BusFactor": {"S": score.busFactor},
-    //   "Correctness": {"S": score.correctness},
-    //   "RampUp": {"S": score.rampUpTime},
-    //   "ResponsiveMaintainer": {"S": score.responsiveness},
-    //   "LicenseScore": {"S": score.license},
-    //   "GoodPinningPractice": {"S": score.dependencies},
-    //   "PullRequest": {"S": score.reviewPercentage},
-    //   "NetScore": {"S": score.net}
-    // }
+    let itemScore = {
+      "BusFactor": {"S": score.busFactor},
+      "Correctness": {"S": score.correctness},
+      "RampUp": {"S": score.rampUpTime},
+      "ResponsiveMaintainer": {"S": score.responsiveness},
+      "LicenseScore": {"S": score.license},
+      "GoodPinningPractice": {"S": score.dependencies},
+      "PullRequest": {"S": score.reviewPercentage},
+      "NetScore": {"S": score.net}
+    }
     const uploadDate = new Date()
     const dateString = uploadDate.toISOString()
     const itemParams = {
@@ -378,7 +378,7 @@ async function extractUrlFromContent(content: any)
 }
 
 
-function isValidRequest(event: any)
+export function isValidRequest(event: any)
 {
   /**
    * Validates event for 
@@ -458,7 +458,7 @@ async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
   }
 }
 
-function createPackageID(packageName: string, packageVersion: string)
+export function createPackageID(packageName: string, packageVersion: string)
 {
   return packageName + packageVersion
 }
