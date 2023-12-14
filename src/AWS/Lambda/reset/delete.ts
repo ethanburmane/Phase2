@@ -47,7 +47,7 @@
    console.log("Sent 200.")
    response = {
      statusCode: 200,
-     body: JSON.stringify('Registry Reset.'),
+     body: "Registry Reset.",
    }
    return response
  }

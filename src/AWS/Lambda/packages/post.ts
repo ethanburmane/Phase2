@@ -51,9 +51,7 @@ export const handler = async (event: any) => {
   let items: any[] = formatScanItems(searchResult)
   response = {
     statusCode: 200,
-    body: {
-      packages: items
-    }
+    body: items
   }
   return response
 }
