@@ -83,5 +83,80 @@ For the command line interface, we have chosen Oclif. It is easy to use and quic
 
 (https://oclif.io/)[https://oclif.io/]
 
+# Our API
+## Response format
+* Responses will be of the following form.
+  * ```json
+    {
+      statusCode: ###
+      body: data OR error(string)
+    }
+    ```
+  * Data is what is expected from the specification.
+  
+## POST /package
+### Request format
+```json
+ {
+   "Content": base64Content
+ }
+ OR
+ {
+   "URL": "github url"
+ }
+```
+* Request can also be wrapped in a body tag embedded in a larger request.
+* Anything not fitting this form will return ```400 Bad Request```
+### Package requirements
+* Package must have main or master branch
+* package.json must contain name and version
+  * And homepage link if given in base64 instead of url.
+* Will return error code if these are not met.
+### Data returned
+* The returned data will be according to the spec. If the content is larger than 6MB, 413 will be returned, but the content will be uploaded.
+  
+## POST /package/byRegEx
+* Toby
+  
+## GET /package/byName/{name}
+* No body is required in the request.
+### Data returned
+The data returned from this is an array of the package history as described by the spec.
+
+## DELETE /package/byName/{name}
+* No body required.
+### Data returned
+* A string stating that the package has been deleted.
+
+## GET /package/{id}
+Ashwin
+
+## DELETE /package/{id}
+* No body
+### Data returned
+* A string stating that the version has been deleted.
+
+## PUT /package/{id}
+Ashwin
+
+## GET /package/{id}/rate
+Andrew
+
+## POST /packages
+* The body of the request should look like
+```
+[{"Name": "Required", "Version": "Optional"}, ...] for partial search
+OR
+{"Name": "*"} for search all
+```
+
+### Data returned
+* The result of the search, an array of packages info.
+
+## DELETE /reset
+* No body required
+### Data returned
+* A message stating that the registry has been reset.
+
 
 
