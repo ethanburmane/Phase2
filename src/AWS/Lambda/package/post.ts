@@ -68,6 +68,7 @@ export const handler = async (event: any, context: any) => {
       }
     }
   }
+  console.log(packageInfo)
 
   const zipContent = packageInfo.zip
   const packageName = packageInfo.name
