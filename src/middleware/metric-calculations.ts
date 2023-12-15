@@ -218,28 +218,14 @@ export async function calculateResponsiveness(url: string) {
   /* eslint-disable no-else-return */
 
   // assign score based oon difference between max and min monthly commits
-  if (diffCommit < annualCommitCount * 0.1) {
-    return 1
-  } else if (diffCommit < annualCommitCount * 0.2) {
-    return 0.9
-  } else if (diffCommit < annualCommitCount * 0.3) {
-    return 0.8
-  } else if (diffCommit < annualCommitCount * 0.4) {
-    return 0.7
-  } else if (diffCommit < annualCommitCount * 0.5) {
-    return 0.6
-  } else if (diffCommit < annualCommitCount * 0.6) {
-    return 0.5
-  } else if (diffCommit < annualCommitCount * 0.7) {
-    return 0.4
-  } else if (diffCommit < annualCommitCount * 0.8) {
-    return 0.3
-  } else if (diffCommit < annualCommitCount * 0.9) {
-    return 0.2
-  } else if (diffCommit < annualCommitCount * 1) {
-    return 0.1
+  const ratio = diffCommit / annualCommitCount;
+
+  if (ratio < 0.1) {
+    return 1;
+  } else if (ratio < 1) {
+    return Math.round((1 - ratio) * 10) / 10;
   } else {
-    return 0
+    return 0;
   }
   /* eslint-enable no-else-return */
   /* eslint-enable no-implicit-coercion */

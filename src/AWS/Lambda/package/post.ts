@@ -55,6 +55,7 @@ export const handler = async (event: any, context: any) => {
     return urlResult[1]
   }
   let url = urlResult[1]
+  
 
   console.log("Getting package info from body.")
   let packageInfo = await packageInfoFromBody(body)
@@ -118,10 +119,10 @@ export const handler = async (event: any, context: any) => {
       }
     }
   }
-
   console.log("Calculating score for url" + url)
   const score = await calculateNetScore(url)
   console.log("Package Score: ", score)
+  
 
   //Static score for now
   // let itemScore = {
