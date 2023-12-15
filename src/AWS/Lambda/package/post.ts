@@ -37,7 +37,6 @@ export const handler = async (event: any, context: any) => {
       },
     }
     // TODO: Log response
-    
     return response
   }
   
