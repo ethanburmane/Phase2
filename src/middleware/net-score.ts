@@ -22,14 +22,26 @@ export async function calculateNetScore(url: string): Promise<Object> {
   let Dependencies = -1
   let reviewPercentage = -1
 
-  busFactor = await calculateBusFactor(url)
-  correctness = await calculateCorrectness(url)
-  //rampUpTime = await calculateRampUpTime(url)
-  rampUpTime = 0.5
-  responsiveness = await calculateResponsiveness(url)
-  licenseCompliance = await calculateLicenseCompliance(url)
-  Dependencies = await calculateDependency(url)
-  reviewPercentage = await calculateReviewPercentage(url)
+  // busFactor = await calculateBusFactor(url)
+  // correctness = await calculateCorrectness(url)
+  // //rampUpTime = await calculateRampUpTime(url)
+  // rampUpTime = 0.5
+  // responsiveness = await calculateResponsiveness(url)
+  // licenseCompliance = await calculateLicenseCompliance(url)
+  // Dependencies = await calculateDependency(url)
+  // reviewPercentage = await calculateReviewPercentage(url)
+  const results = await Promise.all([
+    calculateBusFactor(url),
+    calculateCorrectness(url),
+    // calculateRampUpTime(url), // Commented out if not needed
+    Promise.resolve(0.5), // Directly resolving the static value for rampUpTime
+    calculateResponsiveness(url),
+    calculateLicenseCompliance(url),
+    calculateDependency(url),
+    calculateReviewPercentage(url)
+  ]);
+  [busFactor, correctness, rampUpTime, responsiveness, licenseCompliance, Dependencies, reviewPercentage] = results;
+  
   console.log(`BusFactor: ${busFactor}`)
   console.log(`Correctness: ${correctness}`)
   console.log(`RampUpTime: ${rampUpTime}`)
