@@ -70,7 +70,6 @@ export const handler = async (event: any, context: any) => {
   const zipContent = packageInfo.zip
   const packageName = packageInfo.name
   const packageVersion = packageInfo.version
-
   if (!packageName)
   {
     return {
