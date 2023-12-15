@@ -36,107 +36,55 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.calculateRampUpTime = exports.CloneReadme = void 0;
+exports.calculateRampUpTime = void 0;
 var logger_1 = require("../src/logger");
 var utils = require("../src/middleware/utils");
 var path = require("path");
 var fs = require("fs");
 var child_process_1 = require("child_process");
-var axios_1 = require("axios");
-function CloneReadme(url) {
-    return __awaiter(this, void 0, void 0, function () {
-        var response, error_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios_1["default"].get(url, {
-                            headers: {
-                                Authorization: "token ".concat(process.env.GIT_TOKEN),
-                                Accept: 'application/vnd.github.VERSION.raw'
-                            }
-                        })];
-                case 1:
-                    response = _a.sent();
-                    // Return the README file content as a string.
-                    return [2 /*return*/, response.data];
-                case 2:
-                    error_1 = _a.sent();
-                    throw new Error(error_1.response ? error_1.response.data : error_1.message);
-                case 3: return [2 /*return*/];
-            }
-        });
-    });
-}
-exports.CloneReadme = CloneReadme;
-function countFilesInDirectory(dirPath) {
-    var fileCount = 0;
-    // Read the contents of the directory
+var codeExtensions = new Set([
+    '.js', '.py', '.java', '.cs', '.php',
+    '.cpp', '.cc', '.cxx', '.h', '.hpp', '.hxx',
+    '.ts', '.rb', '.swift', '.c',
+    '.m', '.mm', '.scala', '.sh', '.bash',
+    '.go', '.kt', '.kts', '.r', '.pl',
+    '.rs', '.dart', '.lua', '.txt', '.env',
+    '.config', '.xml', 'Makefile', '.md'
+]);
+var ignoreDirs = new Set(['node_modules', 'data', 'vendor', 'build', 'test', 'tests', 'docs', 'assets']);
+function countLinesOfCode(dirPath) {
+    logger_1["default"].info("Starting line count in directory: ".concat(dirPath));
+    var lineCount = 0;
     var contents = fs.readdirSync(dirPath);
     contents.forEach(function (item) {
         var itemPath = path.join(dirPath, item);
-        // Check if it's a directory
-        if (fs.statSync(itemPath).isDirectory()) {
-            // If it's a directory, recursively count files in it
-            fileCount += countFilesInDirectory(itemPath);
-        }
-        else {
-            // If it's a file, increment the file count
-            fileCount++;
-        }
-    });
-    return fileCount;
-}
-function get_num_files(url, location) {
-    return __awaiter(this, void 0, void 0, function () {
-        var fileCount, repoPath, files, _i, files_1, file, filePath, stat, fileCount_1;
-        return __generator(this, function (_a) {
-            fileCount = 0;
-            repoPath = location //path.join(__dirname, location); // Specify the directory where you want to clone the repository
-            ;
-            console.log('repoPath', repoPath);
-            if (!fs.existsSync(repoPath)) {
-                fs.mkdirSync(repoPath);
+        var itemStats = fs.statSync(itemPath);
+        if (itemStats.isDirectory()) {
+            // Check if the directory should be ignored
+            if (!ignoreDirs.has(item)) {
+                //console.log(`Traversing directory: ${itemPath}`);
+                lineCount += countLinesOfCode(itemPath);
             }
+        }
+        else if (codeExtensions.has(path.extname(itemPath))) {
             try {
-                files = fs.readdirSync(repoPath);
-                // Check if the directory is not empty
-                if (files.length > 0) {
-                    // Clear the directory by removing all files and subdirectories
-                    for (_i = 0, files_1 = files; _i < files_1.length; _i++) {
-                        file = files_1[_i];
-                        console.log('removing file');
-                        filePath = path.join(repoPath, file);
-                        stat = fs.statSync(filePath);
-                        if (stat.isDirectory()) {
-                            // Remove subdirectories and their contents
-                            fs.rmSync(filePath, { recursive: true });
-                        }
-                        else {
-                            // Remove files
-                            fs.unlinkSync(filePath);
-                        }
-                    }
-                }
-                // Clone the repository
-                (0, child_process_1.execSync)("git clone ".concat(url, " ").concat(repoPath));
-                console.log("repo cloned");
-                fileCount_1 = countFilesInDirectory(repoPath);
-                console.log("fileCount", fileCount_1);
-                //report the number of files in the directory
+                var fileContent = fs.readFileSync(itemPath, 'utf-8');
+                var fileLineCount = fileContent.split('\n').length;
+                console.log("Counted ".concat(fileLineCount, " lines in file: ").concat(itemPath));
+                lineCount += fileLineCount;
             }
             catch (error) {
-                console.error("An error occurred: ".concat(error.message));
+                console.error("Error reading file ".concat(itemPath, ": ").concat(error.message));
             }
-            return [2 /*return*/, fileCount];
-        });
+        }
     });
+    logger_1["default"].info("Completed line count in directory: ".concat(dirPath));
+    return lineCount;
 }
-// Ramp-up Time Calculations
 function calculateRampUpTime(url) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var link, ReadMeLen, localPath, parts, repoName, README, num_files;
+        var link, localPath, parts, repoName, files, linesOfCode;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -146,35 +94,44 @@ function calculateRampUpTime(url) {
                     link = _b.sent();
                     if (link) {
                         link = (_a = link === null || link === void 0 ? void 0 : link.split('github.com').pop()) !== null && _a !== void 0 ? _a : null;
-                        link = 'https://github.com' + link; // eslint-disable-line prefer-template
+                        link = 'https://github.com' + link;
                     }
-                    console.log('link', link);
-                    ReadMeLen = 0;
-                    if (!link) return [3 /*break*/, 4];
+                    else {
+                        console.error('Invalid URL or unable to process the link.');
+                        return [2 /*return*/, 0];
+                    }
+                    console.log("Processed link: ".concat(link));
                     localPath = 'dist/middleware/cloned-repos';
                     parts = url.split('/');
                     repoName = parts[parts.length - 1] || parts[parts.length - 2];
-                    console.log('repoName', repoName);
-                    // format local path name
                     if (repoName) {
                         localPath = path.join(localPath, repoName);
                     }
-                    // add .git to end of url
-                    if (!link.endsWith('.git')) {
-                        // Append '.git' if not present
-                        link += '.git';
+                    try {
+                        if (!fs.existsSync(localPath)) {
+                            console.log("Creating directory: ".concat(localPath));
+                            fs.mkdirSync(localPath, { recursive: true });
+                            console.log("Attempting to clone repository into: ".concat(localPath));
+                            (0, child_process_1.execSync)("git clone ".concat(link, " ").concat(localPath), { stdio: 'inherit' });
+                        }
+                        else {
+                            console.log("Directory already exists: ".concat(localPath));
+                            files = fs.readdirSync(localPath);
+                            if (files.length === 0) {
+                                console.log("Directory is empty. Cloning repository into: ".concat(localPath));
+                                (0, child_process_1.execSync)("git clone ".concat(link, " ").concat(localPath), { stdio: 'inherit' });
+                            }
+                        }
+                        console.log("Starting line count in: ".concat(localPath));
+                        linesOfCode = countLinesOfCode(localPath);
+                        console.log("Total lines of code in the repository: ".concat(linesOfCode));
+                        return [2 /*return*/, linesOfCode];
                     }
-                    return [4 /*yield*/, CloneReadme(link)];
-                case 2:
-                    README = _b.sent();
-                    ReadMeLen = README.length;
-                    console.log('ReadMe cloned len: ', ReadMeLen);
-                    return [4 /*yield*/, get_num_files(url, localPath)];
-                case 3:
-                    num_files = _b.sent();
-                    console.log('num_files', num_files);
-                    return [2 /*return*/, num_files];
-                case 4: return [2 /*return*/, function () { return 0; }];
+                    catch (error) {
+                        console.error("An error occurred: ".concat(error.message));
+                        return [2 /*return*/, 0];
+                    }
+                    return [2 /*return*/];
             }
         });
     });
@@ -182,14 +139,16 @@ function calculateRampUpTime(url) {
 exports.calculateRampUpTime = calculateRampUpTime;
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var url, rs;
+        var url, linesOfCode;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    url = 'https://github.com/django/django';
+                    url = 'https://github.com/facebook/react';
+                    console.log("Starting ramp-up time calculation for: ".concat(url));
                     return [4 /*yield*/, calculateRampUpTime(url)];
                 case 1:
-                    rs = _a.sent();
+                    linesOfCode = _a.sent();
+                    console.log("Result: ".concat(linesOfCode, " lines of code"));
                     return [2 /*return*/];
             }
         });

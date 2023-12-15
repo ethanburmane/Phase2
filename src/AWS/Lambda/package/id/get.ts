@@ -15,9 +15,7 @@ export const handler = async (event: any, context: any) => {
   let response;
   console.log("GET PACKAGE STARTING");
   //Extract id
-  const path = event.pathParameters.proxy;
-  const segments = path.split("/");
-  const packageId = segments[segments.length - 2];
+  const packageId = event.id;
   console.log("Package ID: ", packageId);
 
   // Check if the package exists
@@ -41,33 +39,47 @@ export const handler = async (event: any, context: any) => {
   const packageMetadata = {
     Name: Item.Name.S,
     Version: Item.Version.S,
-    id: Item.id.S
+    ID: Item.id.S
   }
   console.log("Package Metadata: ", JSON.stringify(packageMetadata));
 
-  const packageName = JSON.stringify(packageMetadata.Name);
-  console.log("Package Name: ", packageName);
-  const packageVersion = JSON.stringify(packageMetadata.Version);
-  console.log("Package Version: ", packageVersion);
+  const packageName = packageMetadata.Name;
+  console.log("Package Name: ", JSON.stringify(packageName));
+  const packageVersion = packageMetadata.Version;
+  console.log("Package Version: ",JSON.stringify(packageVersion));
 
   try {
-    let name = JSON.parse(packageName);
-    let version = JSON.parse(packageVersion);
     const s3Response = await s3Client.send(new GetObjectCommand({
       Bucket: "main-storage-bucket",
-      "Key": `package/${name}/${version}.zip`
+      "Key": `packages/${packageName}/${packageVersion}.zip`
     }));
-    console.log("content:", s3Response.Body.toString('base64'));
+    //console.log("S3 response body: ", s3Response.Body);
+    
+    // Function to read stream and convert to base64
+    const chunks: Buffer[] = [];
+    const stream = s3Response.Body;
+
+    // Listen for data events to read chunks
+    stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+
+    // Listen for the end of the stream
+    await new Promise((resolve, reject) => {
+        stream.on('end', resolve);
+        stream.on('error', reject);
+    });
+
+    // Combine chunks and convert to base64
+    const base64content = Buffer.concat(chunks).toString('base64');
+    console.log("FINISHING PACKAGE DOWNLOAD");
     return {
-      statusCode: 200,
-      body: {
-        metadata: packageMetadata,
-        data: {
-          Content: s3Response.Body.toString('base64'),
-          JSProgram: "<your_js_program_here>"
+        statusCode: 200,
+        body: {
+            metadata: packageMetadata,
+            data: {
+                Content: base64content
+            }
         }
-      }
-    }
+    };
   }  catch (error) {
       console.error(error);
       return { statusCode: 400, body: JSON.stringify("There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.") };

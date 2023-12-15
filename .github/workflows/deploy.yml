@@ -12,7 +12,9 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
@@ -31,58 +33,82 @@ jobs:
           npm install
       - name: deploy
         run: |
-          npx ncc build src/AWS/Lambda/package/post.ts -o dist/AWS/Lambda/package/post/
-          npx ncc build src/AWS/Lambda/package/byName/delete.ts -o dist/AWS/Lambda/package/byName/delete/
-          npx ncc build src/AWS/Lambda/package/byName/get.ts -o dist/AWS/Lambda/package/byName/get/
-          npx ncc build src/AWS/Lambda/package/byRegEx/post.ts -o dist/AWS/Lambda/package/byRegEx/post/
-          npx ncc build src/AWS/Lambda/package/id/rate/get.ts -o dist/AWS/Lambda/package/id/rate/get/
-          npx ncc build src/AWS/Lambda/package/id/delete.ts -o dist/AWS/Lambda/package/id/delete/
-          npx ncc build src/AWS/Lambda/package/id/get.ts -o dist/AWS/Lambda/package/id/get/
-          npx ncc build src/AWS/Lambda/package/id/put.ts -o dist/AWS/Lambda/package/id/put/
-          npx ncc build src/AWS/Lambda/packages/post.ts -o dist/AWS/Lambda/packages/post/
-          npx ncc build src/AWS/Lambda/reset/delete.ts -o dist/AWS/Lambda/reset/delete/
-
-          mkdir dist/AWS/Lambda/deploy
-
-          cd dist/AWS/Lambda/package/post
-          zip ../../deploy/package-post.zip index.js 
+          if ${{ github.event_name == 'pull_request' }}; then
+            echo "Pull request"
+            changed_files=$(git diff --name-only -r HEAD^1 HEAD)
+          else
+            echo "Pushing commits"
+            changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
+          fi
+          echo "All Changed Files"
+          echo "$changed_files"
+          changed_files=$(echo "$changed_files" | grep '^src/AWS/Lambda/' || true)
+          echo "Changed Lambda Files"
+          echo "$changed_files"
+          mkdir -p deploy
+          for file in $changed_files; do
+            echo "Deploying file $file"
+            relative_path=$(echo "$file" | sed 's/^src\///')
+            relative_path_without_extension="${relative_path%.ts}"
+            npx ncc build "$file" -o "dist/$relative_path_without_extension/"
+            zip_name=$(echo "$relative_path_without_extension" | sed 's#^AWS/Lambda/##' | sed 's#/#-#g').zip
+            zip -j "deploy/$zip_name" "dist/$relative_path_without_extension/index.js"
+            function_name=$(basename "$zip_name" .zip)
+            aws lambda update-function-code --function-name="$function_name" --zip-file="fileb://deploy/$zip_name"
+          done
           
-          cd ../byName/delete
-          zip ../../../deploy/package-byName-delete.zip index.js
-          
-          cd ../get
-          zip ../../../deploy/package-byName-get.zip index.js
-          
-          cd ../../byRegEx/post
-          zip ../../../deploy/package-byRegEx-post.zip index.js
-          
-          cd ../../id/rate/get
-          zip ../../../../deploy/package-id-rate-get.zip index.js
+          # npx ncc build src/AWS/Lambda/package/post.ts -o dist/AWS/Lambda/package/post/
+          # npx ncc build src/AWS/Lambda/package/byName/delete.ts -o dist/AWS/Lambda/package/byName/delete/
+          # npx ncc build src/AWS/Lambda/package/byName/get.ts -o dist/AWS/Lambda/package/byName/get/
+          # npx ncc build src/AWS/Lambda/package/byRegEx/post.ts -o dist/AWS/Lambda/package/byRegEx/post/
+          # npx ncc build src/AWS/Lambda/package/id/rate/get.ts -o dist/AWS/Lambda/package/id/rate/get/
+          # npx ncc build src/AWS/Lambda/package/id/delete.ts -o dist/AWS/Lambda/package/id/delete/
+          # npx ncc build src/AWS/Lambda/package/id/get.ts -o dist/AWS/Lambda/package/id/get/
+          # npx ncc build src/AWS/Lambda/package/id/put.ts -o dist/AWS/Lambda/package/id/put/
+          # npx ncc build src/AWS/Lambda/packages/post.ts -o dist/AWS/Lambda/packages/post/
+          # npx ncc build src/AWS/Lambda/reset/delete.ts -o dist/AWS/Lambda/reset/delete/
 
-          cd ../../delete
-          zip ../../../deploy/package-id-delete.zip index.js
+          # mkdir dist/AWS/Lambda/deploy
 
-          cd ../../id/get
-          zip ../../../deploy/package-id-get.zip index.js
-
-          cd ../../id/put
-          zip ../../../deploy/package-id-put.zip index.js
+          # cd dist/AWS/Lambda/package/post
+          # zip ../../deploy/package-post.zip index.js 
           
-          cd ../../../packages/post
-          zip ../../deploy/packages-post.zip index.js
+          # cd ../byName/delete
+          # zip ../../../deploy/package-byName-delete.zip index.js
           
-          cd ../../reset/delete
-          zip ../../deploy/reset-delete.zip index.js
+          # cd ../get
+          # zip ../../../deploy/package-byName-get.zip index.js
+          
+          # cd ../../byRegEx/post
+          # zip ../../../deploy/package-byRegEx-post.zip index.js
+          
+          # cd ../../id/rate/get
+          # zip ../../../../deploy/package-id-rate-get.zip index.js
 
-          cd ../../../../..
+          # cd ../../delete
+          # zip ../../../deploy/package-id-delete.zip index.js
 
-          aws lambda update-function-code --function-name=package-post --zip-file=fileb://dist/AWS/Lambda/deploy/package-post.zip
-          aws lambda update-function-code --function-name=package-byName-delete --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-delete.zip
-          aws lambda update-function-code --function-name=package-byName-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-get.zip
-          aws lambda update-function-code --function-name=package-byRegEx-post --zip-file=fileb://dist/AWS/Lambda/deploy/package-byRegEx-post.zip
-          aws lambda update-function-code --function-name=package-id-rate-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-rate-get.zip
-          aws lambda update-function-code --function-name=package-id-delete --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-delete.zip
-          aws lambda update-function-code --function-name=package-id-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-get.zip
-          aws lambda update-function-code --function-name=package-id-put --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-put.zip
-          aws lambda update-function-code --function-name=packages-post --zip-file=fileb://dist/AWS/Lambda/deploy/packages-post.zip
-          aws lambda update-function-code --function-name=reset-delete --zip-file=fileb://dist/AWS/Lambda/deploy/reset-delete.zip
+          # cd ../../id/get
+          # zip ../../../deploy/package-id-get.zip index.js
+
+          # cd ../../id/put
+          # zip ../../../deploy/package-id-put.zip index.js
+          
+          # cd ../../../packages/post
+          # zip ../../deploy/packages-post.zip index.js
+          
+          # cd ../../reset/delete
+          # zip ../../deploy/reset-delete.zip index.js
+
+          # cd ../../../../..
+
+          # aws lambda update-function-code --function-name=package-post --zip-file=fileb://dist/AWS/Lambda/deploy/package-post.zip
+          # aws lambda update-function-code --function-name=package-byName-delete --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-delete.zip
+          # aws lambda update-function-code --function-name=package-byName-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-byName-get.zip
+          # aws lambda update-function-code --function-name=package-byRegEx-post --zip-file=fileb://dist/AWS/Lambda/deploy/package-byRegEx-post.zip
+          # aws lambda update-function-code --function-name=package-id-rate-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-rate-get.zip
+          # aws lambda update-function-code --function-name=package-id-delete --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-delete.zip
+          # aws lambda update-function-code --function-name=package-id-get --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-get.zip
+          # aws lambda update-function-code --function-name=package-id-put --zip-file=fileb://dist/AWS/Lambda/deploy/package-id-put.zip
+          # aws lambda update-function-code --function-name=packages-post --zip-file=fileb://dist/AWS/Lambda/deploy/packages-post.zip
+          # aws lambda update-function-code --function-name=reset-delete --zip-file=fileb://dist/AWS/Lambda/deploy/reset-delete.zip

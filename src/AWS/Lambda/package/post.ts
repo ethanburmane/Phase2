@@ -1,6 +1,3 @@
-import { boolean } from "@oclif/core/lib/flags";
-import { unzip } from "zlib";
-
 /**
  * This file hosts the code for executing the code for POST host/package
  *
@@ -11,23 +8,18 @@ import { unzip } from "zlib";
  const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
  const { DynamoDBClient, PutItemCommand, GetItemCommand } = require('@aws-sdk/client-dynamodb');
  const axios = require('axios')
-//import { calculateNetScore } from '../../../middleware/net-score'
+ const {calculateNetScore} = require("../../../middleware/net-score")
 const JSZip = require('jszip')
 
-const MIN_PKG_SCORE = 0.5
+
+const MIN_PKG_SCORE = 0.35
 const AWS_REGION = "us-east-2"
 const PACKAGE_S3 = "main-storage-bucket"
-
 export const handler = async (event: any, context: any) => {
   let response
-
-  // TODO: Log request
-
-  const headers = event.headers
-  const body = event.body
-
   // Validate request
-  console.log("Validating event" + event)
+  console.log("Validating event", event)
+
   if (!isValidRequest(event)) {
     // Return 4xx code since the body is not formatted correctly
     console.log("Event was not valid")
@@ -43,32 +35,72 @@ export const handler = async (event: any, context: any) => {
       },
     }
     // TODO: Log response
-
     return response
   }
-
+  let body = extractBody(event)
+  if (!body)
+  {
+    body = event
+  }
   console.log("Extracing URL from body")
   let urlResult = await extractUrlFromBody(body)  
   if (urlResult[0] == false)
   {
-    console.log("Unable to get url from body")
+    console.log("Unable to get url from body.")
     return urlResult[1]
   }
   let url = urlResult[1]
+  
 
+  console.log("Getting package info from body.")
   let packageInfo = await packageInfoFromBody(body)
+  if (typeof packageInfo === 'number')
+  {
+    console.log("Sent 500")
+    return {
+      statusCode: 500,
+      body: {
+        error: "Server Error"
+      }
+    }
+  }
+  console.log(packageInfo)
+
   const zipContent = packageInfo.zip
   const packageName = packageInfo.name
   const packageVersion = packageInfo.version
+  if (!packageName)
+  {
+    return {
+      statusCode: 400,
+      body: {
+        error: "No Package Name in package.json."
+      }
+    }
+  }
+
+  if (!packageVersion)
+  {
+    return {
+      statusCode: 400,
+      body: {
+        error: "No Version Number in package.json."
+      }
+    }
+  }
 
   const itemId = createPackageID(packageName, packageVersion)
+
+  console.log("Checking if package exists.")
   const existenceResult = await doesPackageExist(itemId)
   if (existenceResult === 500)
   {
-    console.log("Unable to check if pacakge exists")
+    console.log("Server Error When checking if package exists.")
     return {
       statusCode: 500,
-      error: "Server Error"
+      body: {                
+        error: "Server Error"            
+      }
     }
   }
   else if (existenceResult === 409)
@@ -76,25 +108,30 @@ export const handler = async (event: any, context: any) => {
     console.log("Package exists")
     return {
       statusCode: 409,
-      error: "Package Already Exists"
+      body: {                
+        error: "Package Already Exists"            
+      }
     }
   }
-
-
-  // TODO log "scoring url"
   console.log("Calculating score for url" + url)
   const score = await calculateNetScore(url)
+  console.log("Package Score: ", score)
+  
 
-  if (score > MIN_PKG_SCORE) {
-    // Perform S3 update let s3response = 
-
-    // TODO log "package has valid score of ..."
-    console.log("Getting package info from body")
-    
-
+  //Static score for now
+  // let itemScore = {
+  //   "BusFactor": {"S": "0.7"},
+  //   "Correctness": {"S": "0.7"},
+  //   "RampUp": {"S": "0.7"},
+  //   "ResponsiveMaintainer": {"S": "0.7"},
+  //   "LicenseScore": {"S": "1.0"},
+  //   "GoodPinningPractice": {"S": "0.7"},
+  //   "PullRequest": {"S": "0.7"},
+  //   "NetScore": {"S": "0.7"}
+  // }
+  if (score.net > MIN_PKG_SCORE) {
     const objKey =  "packages/" + packageName + "/" + packageVersion + ".zip"
 
-    
     const cmdInput = {
       Body: zipContent,
       Bucket: PACKAGE_S3,
@@ -105,11 +142,25 @@ export const handler = async (event: any, context: any) => {
       "region": AWS_REGION
     }
 
-    // TODO log "sending PutObjectCommand for ..."
     console.log("Sending command to s3")
     const s3Client = new S3Client(config)
     const s3command = new PutObjectCommand(cmdInput)
-    const cmdResponse = await s3Client.send(s3command)
+    let cmdResponse
+    try
+    {
+      cmdResponse = await s3Client.send(s3command)
+    }
+    catch (e)
+    {
+      console.error("Error when putting object in s3.", e)
+      return {
+        statusCode: 500,
+        body: {
+          error: "Server Error"
+        }
+      }
+    }
+
 
     if (!isSuccessfulS3Response(cmdResponse))
     {
@@ -132,15 +183,16 @@ export const handler = async (event: any, context: any) => {
     }
 
     // TODO create item score formatted for db entry
+    
     let itemScore = {
-      "BusFactor": {"S": "0.5"},
-      "Correctness": {"S": "0.7"},
-      "RampUp": {"S": "0.7"},
-      "ResponsiveMaintainer": {"S": "0.7"},
-      "LicenseScore": {"S": "1.0"},
-      "GoodPinningPractice": {"S": "0.7"},
-      "PullRequest": {"S": "0.6"},
-      "NetScore": {"S": "0.65"}
+      "BusFactor": {"S": String(score.busFactor)},
+      "Correctness": {"S": String(score.correctness)},
+      "RampUp": {"S": String(score.rampUpTime)},
+      "ResponsiveMaintainer": {"S": String(score.responsiveness)},
+      "LicenseScore": {"S": String(score.license)},
+      "GoodPinningPractice": {"S": String(score.dependencies)},
+      "PullRequest": {"S": String(score.reviewPercentage)},
+      "NetScore": {"S": String(score.net)}
     }
     const uploadDate = new Date()
     const dateString = uploadDate.toISOString()
@@ -182,9 +234,26 @@ export const handler = async (event: any, context: any) => {
     }
 
     console.log("Sending dynamo command")
+    console.log("Params ", itemParams)
     const db = new DynamoDBClient(config)
     const dbcommand = new PutItemCommand(itemParams)
-    const dbcmdResponse = await db.send(dbcommand)
+    let dbcmdResponse = await db.send(dbcommand)
+
+    try
+    {
+      dbcmdResponse = await db.send(dbcommand)
+    }
+    catch (e)
+    {
+      console.error("Error when putting object in DB.", e)
+      console.log("Params", itemParams)
+      return {
+        statusCode: 500,
+        body: {
+          error: "Server Error"
+        }
+      }
+    }
 
     if (!isSuccessfulDBResponse(dbcmdResponse)) {
       // TODO log response info
@@ -202,11 +271,13 @@ export const handler = async (event: any, context: any) => {
           error: "Unable to upload package",
         },
       }
+    } 
+    let base64Content = base64FromZip(zipContent)
+    if (base64Content.length > 6 * 1024 * 1024)
+    {
+      base64Content = "Content Payload Too Large To Return."
     }
-
-    const base64Content = base64FromZip(zipContent)
     // TODO check base64
-
     response = {
       statusCode: 201,
       headers: {
@@ -214,8 +285,7 @@ export const handler = async (event: any, context: any) => {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "OPTIONS,POST"
       },
-      body: {
-        "metadata": {
+      "metadata": {
           "Name": packageName,
           "Version": packageVersion,
           "ID": itemId
@@ -223,12 +293,11 @@ export const handler = async (event: any, context: any) => {
         "data": {
           "Content": base64Content
         }
-      },
-    }
-    // TODO log response
+      }
+    console.log("Sent 201 Response With id ", itemId)
 
   } else {
-    // TODO log response
+    console.log("Sent 424 Response.")
     response = {
       statusCode: 424,
       headers: {
@@ -243,6 +312,12 @@ export const handler = async (event: any, context: any) => {
     }
   }
   return response
+}
+
+function extractBody(event: any)
+{
+  if (event.body) { return event.body }
+  else { return false }
 }
 
 async function extractUrlFromBody(body: any)
@@ -318,12 +393,8 @@ async function extractUrlFromContent(content: any)
   return [true, url]
 }
 
-function calculateNetScore(url: any)
-{
-  return 1
-}
 
-function isValidRequest(event: any)
+export function isValidRequest(event: any)
 {
   /**
    * Validates event for 
@@ -332,12 +403,13 @@ function isValidRequest(event: any)
    *    - Maybe add checking github url or base64 content as well
    */
 
-  const body = event.body
+  let body = event.body
   if (!body)
   {
-    return false
+    body = event
   }
-
+  
+  // Can't have both or neither
   if ((body.Content && body.URL) || (!(body.Content) && !(body.URL)))
   {
     return false
@@ -374,21 +446,50 @@ function isSuccessfulDBResponse(response: Record<string, any>)
 }
 
 async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
-  const zipURL = `${repoURL}/archive/main.zip`;
+  async function getPrimaryBranchName(repoURL: string): Promise<string> {
+    const apiURL = repoURL.replace('github.com', 'api.github.com/repos') + '/branches';
+    try {
+      const response = await axios.get(apiURL);
+      const branches = response.data;
+      const primaryBranch = branches.find((branch: any) => branch.protected) || branches[0];
+      return primaryBranch.name;
+    } catch (error) {
+      console.log("Error fetching primary branch name.", error)
+      throw new Error('Error fetching primary branch name');
+    }
+  }
 
-  const response = await axios.get(zipURL, { responseType: 'arraybuffer' });
-  return Buffer.from(response.data, 'binary');
+  try {
+    const primaryBranchName = await getPrimaryBranchName(repoURL);
+    console.log(`Attempting to fetch branch ${primaryBranchName}.`)
+    const zipURL = `${repoURL}/archive/${primaryBranchName}.zip`;
+
+    const response = await axios.get(zipURL, { responseType: 'arraybuffer' });
+    return Buffer.from(response.data, 'binary');
+  } catch (error) {
+    console.log("Error when fetching primary branch ", error)
+    throw error;
+  }
 }
 
-function createPackageID(packageName: string, packageVersion: string)
+
+export function createPackageID(packageName: string, packageVersion: string)
 {
   return packageName + packageVersion
 }
 
-async function packageInfoFromBody(body: Record<string, any>)
+async function packageInfoFromBody(body: any)
 {
-  if (body.Content) { return await packageInfoFromContent(body.Content) }
-  return await packageInfoFromURL(body.URL)
+  if (body.Content) 
+  { 
+    const res = await packageInfoFromContent(body.Content) 
+    return res
+  }
+  else 
+  {
+    const res = await packageInfoFromURL(body.URL)
+    return res
+  }
 }
 
 async function packageJsonDataFromZip(zip: any, root: string)
@@ -403,8 +504,18 @@ async function packageJsonDataFromZip(zip: any, root: string)
 
 async function packageInfoFromURL(url: string)
 {
-  const zip = await fetchGitHubRepoAsZip(url)
-  return await packageInfoFromZip(zip)
+  try 
+  {
+    console.log("Attempting to fetch repo as zip.")
+    const zip = await fetchGitHubRepoAsZip(url)
+    console.log("Using zip to get package info.")
+    return await packageInfoFromZip(zip)
+  }
+  catch (error: any)
+  {
+    console.error("Error fetching repo as zip ", error)
+    return 500
+  }
 }
 
 function findPackageJson(unzipped: any)
@@ -428,14 +539,24 @@ function findPackageJson(unzipped: any)
 async function packageInfoFromZip(zip: Buffer)
 {
   let jszip = new JSZip()
-  const unzipped = await jszip.loadAsync(zip)
+  let unzipped
+  try 
+  {
+    console.log("Unzipping package.")
+    unzipped = await jszip.loadAsync(zip)
+  }
+  catch (error: any)
+  {
+    console.log("Error unzipping package. ", error)
+    return 500
+  }
 
   // Locate and read the package.json file
   const packageJsonFound = findPackageJson(unzipped)
 
   if (!packageJsonFound)
   {
-    throw new Error("Package json not found in zip file")
+    return 500
   }
   
   const parsedPackageJson = await packageJsonDataFromZip(unzipped, rootFromZip(unzipped))
@@ -454,10 +575,11 @@ async function packageInfoFromZip(zip: Buffer)
 async function packageInfoFromContent(content: string)
 {
   const zipped = zipFromBase64(content)
-  return packageInfoFromZip(zipped)
+  return await packageInfoFromZip(zipped)
 }
 
 async function doesPackageExist(id: string) {
+  console.log("Checking if package exists")
   try {
     const db = new DynamoDBClient({ region: AWS_REGION})
     const itemParams = {
@@ -475,7 +597,7 @@ async function doesPackageExist(id: string) {
         return 200
     }
 } catch (err) {
-    console.error("Error:", err);
+    console.error("Error when checking if package exists", err);
     return 500
 }
 }

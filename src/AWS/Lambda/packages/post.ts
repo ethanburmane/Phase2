@@ -14,10 +14,12 @@ const DB = new DynamoDBClient({ region: AWS_REGION })
 export const handler = async (event: any) => {
   let response
   
+  console.log("Validating Request ", event)
   const reqValidResult = validateRequest(event)
 
   if (reqValidResult === false)
   {
+    console.log("Sent 400")
     response = {
       statusCode: 400,
       body: {
@@ -27,27 +29,29 @@ export const handler = async (event: any) => {
     return response
   }
 
+  console.log("Extracting offset and query.")
   const offset = extractOffset(event)
   const pkgQuery: any[] = extractQueryFromEvent(event)
 
+  console.log("Searching DB.")
   const searchResult = await performDBQuery(pkgQuery, offset)
 
   if (searchResult === false)
   {
+    console.log("Sent 500.")
     response = {
       statusCode: 500,
       body: {
         error: "Server Error Searching DB"
       }
     }
+    return response
   }
 
   let items: any[] = formatScanItems(searchResult)
   response = {
     statusCode: 200,
-    body: {
-      packages: items
-    }
+    body: items
   }
   return response
 }
@@ -64,22 +68,50 @@ function queryIsValid(query: any)
 
 function validateRequest(event: any)
 {
-  if (!(event.body))
+  let body = event.body
+  if (!(body))
   {
-    return false
+    console.log("Request has no body.")
+    body = event
   }
-  const body = event.body
 
   if (body instanceof Array)
   {
-    return queryArrayIsValid(body)
+    if (!queryArrayIsValid(body))
+    {
+      console.log("Query array is invalid.")
+      return false
+    }
+    return true
   }
+
+  //Check for search all
+  if ((body.Name) && (body.Name === "*"))
+  {
+    return true
+  }
+  console.log("Body was not an array.")
   return false
 }
 
 function extractQueryFromEvent(event: any) : any[]
 {
-  return event.body
+  if (event.body)
+  {
+    if (!(event.body instanceof Array))
+    {
+      return [event.body]
+    }
+    return event.body
+  }
+  else 
+  {
+    if (!(event instanceof Array))
+    {
+      return [event]
+    }
+    return event
+  }
 }
 
 async function performDBQuery(query: any[], offset: number)
@@ -92,10 +124,12 @@ async function scanDB(query: any[], offset: number)
   let scanResult
   if (query[0].Name === "*")
   {
+    console.log("Performing Full Scan.")
     scanResult = await fullDBScan(offset)
   }
   else 
   {
+    console.log("Performing Partial Scan.")
     scanResult = await partialDBScan(query)
   }
 

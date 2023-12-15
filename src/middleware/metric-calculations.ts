@@ -5,18 +5,23 @@ import {
   getCorrectnessData,
   getResponsivenessData,
   getLiscenseComplianceData,
+  getDependencyData,
 } from '../services/gh-service'
-import logger from '../logger'
+import {fetchAllPullRequests, checkIfPullRequestsReviewed} from '../services/gh-api'
+import * as fs from 'fs'
+import * as path from 'path'
+import { execSync } from "child_process";
 
 // Bus Factor Calculations
 export async function calculateBusFactor(url: string) {
-  logger.info('Calculating Bus Factor')
-
+  
+  console.log("Calculating Bus Factor.")
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
   if (link) {
     link = link?.split('github.com').pop() ?? null
     link = 'https://github.com' + link // eslint-disable-line prefer-template
+    link = link.replace(/\.git$/, '')
   }
 
   let data = null
@@ -35,10 +40,6 @@ export async function calculateBusFactor(url: string) {
     criticalContributorPullRequests,
     totalPullRequests,
   } = data
-
-  logger.debug(
-    `criticalContrubitorCommits: ${criticalContrubitorCommits}, totalCommits: ${totalCommits}, criticalContributorPullRequests: ${criticalContributorPullRequests}, totalPullRequests: ${totalPullRequests}`,
-  )
 
   // variable weights
   const commitWeight = 0.4
@@ -62,8 +63,8 @@ export async function calculateBusFactor(url: string) {
 
 // Correctness Calculations
 export async function calculateCorrectness(url: string) {
-  logger.info('Calculating Correctness')
-
+  
+  console.log("Calculating Correctness.")
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
   if (link) {
@@ -83,7 +84,7 @@ export async function calculateCorrectness(url: string) {
   // get data from returned object
   const {closedIssues, openIssues} = data
 
-  logger.debug(`closedIssues: ${closedIssues}, openIssues: ${openIssues}`)
+  
 
   const totalIssues = closedIssues + openIssues
 
@@ -100,80 +101,96 @@ export async function calculateCorrectness(url: string) {
   return correctnessScore
 }
 
-// // Ramp-up Time Calculations
-// export async function calculateRampUpTime(url: string) {
-//   logger.info('Calculating Ramp Up Time')
+export async function calculateRampUpTime(url: string): Promise<number> {
+  
+  console.log("Calculating RampUp.")
+  let link: string | null = await utils.evaluateLink(url);
+  if (link) {
+    link = link?.split('github.com').pop() ?? null;
+    link = 'https://github.com' + link;
+  } else {
+    console.error('Invalid URL or unable to process the link.');
+    return 0;
+  }
 
-//   // checks to see if link is a npm link and if so, converts it to a github link
-//   let link = await utils.evaluateLink(url)
-//   if (link) {
-//     link = link?.split('github.com').pop() ?? null
-//     link = 'https://github.com' + link // eslint-disable-line prefer-template
-//   }
+  console.log(`Processed link: ${link}`);
 
-//   let linesOfCode = 0
+  let localPath: string = 'dist/middleware/cloned-repos';
+  const parts: string[] = url.split('/');
+  const repoName: string = parts[parts.length - 1] || parts[parts.length - 2];
+  let rampUpScore = 0;
+  if (repoName) {
+    localPath = path.join(localPath, repoName);
+  }
 
-//   // get data using ./services/gh-service.ts
-//   if (link) {
-//     // clones the repo into ./cloned-repos
-//     const repoName = utils.parseGHRepoName(link)
-//     let localPath = '../ece461-project/src/middleware/cloned-repos'
-//     // format local path name
-//     if (repoName) {
-//       localPath = path.join(localPath, repoName)
-//     }
+  try {
+    if (!fs.existsSync(localPath)) {
+      console.log(`Creating directory: ${localPath}`);
+      fs.mkdirSync(localPath, { recursive: true });
+    } else {
+      console.log(`Directory already exists: ${localPath}`);
+      const files: string[] = fs.readdirSync(localPath);
+      if (files.length !== 0) {
+        console.log(`Directory is not empty. Deleting contents of: ${localPath}`);
+        fs.rmSync(localPath, { recursive: true, force: true });
+        fs.mkdirSync(localPath, { recursive: true });
+      }
+    }
 
-//     // add .git to end of url
-//     let repoUrl = link
-//     if (!link.includes('.git')) {
-//       repoUrl = `${link}.git`
-//     }
+    console.log(`Attempting to clone repository into: ${localPath}`);
+    execSync(`git clone --depth 1 ${link} ${localPath}`, { stdio: 'inherit' });
 
-//     await utils.cloneRepo(link, localPath, repoUrl)
+    // Additional steps for sparse checkout if needed
 
-//     utils.calcRepoLines(localPath, (totalLines) => {
-//       linesOfCode = totalLines
-//       // console.log(totalLines)
-//       logger.debug(`linesOfCode: ${linesOfCode}`)
+    console.log(`Starting line count in: ${localPath}`);
+    let linesOfCode: number = utils.countLinesOfCode(localPath);
 
-//       let rampUpScore = 0
-//       // console.log(linesOfCode)
-//       if (linesOfCode <= 500) {
-//         rampUpScore = 1
-//       } else if (linesOfCode <= 1000) {
-//         rampUpScore = 0.9
-//       } else if (linesOfCode <= 5000) {
-//         rampUpScore = 0.8
-//       } else if (linesOfCode <= 10_000) {
-//         rampUpScore = 0.7
-//       } else if (linesOfCode <= 50_000) {
-//         rampUpScore = 0.6
-//       } else if (linesOfCode <= 100_000) {
-//         rampUpScore = 0.5
-//       } else if (linesOfCode <= 500_000) {
-//         rampUpScore = 0.4
-//       } else if (linesOfCode <= 1_000_000) {
-//         rampUpScore = 0.3
-//       } else if (linesOfCode <= 5_000_000) {
-//         rampUpScore = 0.2
-//       }
+    console.log(`Total lines of code in the repository: ${linesOfCode}`);
+    
+    if (linesOfCode <= 500) {
+      rampUpScore = 1
+    } else if (linesOfCode <= 1000) {
+      rampUpScore = 0.9
+    } else if (linesOfCode <= 5000) {
+      rampUpScore = 0.8
+    } else if (linesOfCode <= 10_000) {
+      rampUpScore = 0.7
+    } else if (linesOfCode <= 50_000) {
+      rampUpScore = 0.6
+    } else if (linesOfCode <= 100_000) {
+      rampUpScore = 0.5
+    } else if (linesOfCode <= 500_000) {
+      rampUpScore = 0.4
+    } else if (linesOfCode <= 1_000_000) {
+      rampUpScore = 0.1
+    }
+    
 
-//       return rampUpScore
-//     })
-//   } else {
-//     return () => 0
-//   }
-// }
+  } catch (error: any) {
+    console.error(`An error occurred: ${error.message}`);
+    return 0;
+  } finally {
+    // Cleanup: Delete the cloned directory
+    if (fs.existsSync(localPath)) {
+      console.log(`Deleting directory: ${localPath}`);
+      fs.rmSync(localPath, { recursive: true, force: true });
+    }
+    
+  }
+  return rampUpScore;
+}
 
 // Responsiveness Calculations
-export async function calculateResponsiveness(url: string) {
-  logger.info('Calculating Responsiveness')
 
+export async function calculateResponsiveness(url: string) {
+  
+  console.log("Calculating Responsiveness")
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
   if (link) {
     link = link?.split('github.com').pop() ?? null
     link = 'https://github.com' + link // eslint-disable-line prefer-template
+    link = link.replace(/\.git$/, '')
   }
 
   let data = null
@@ -190,38 +207,23 @@ export async function calculateResponsiveness(url: string) {
   // calculate difference between the max and min monthly commits
   const maxMonthlyCommitCount = Math.max(...monthlyCommitCount)
   const minMonthlyCommitCount = Math.min(...monthlyCommitCount)
+  console.log('maxMonthlyCommitCount', maxMonthlyCommitCount)
+  console.log('minMonthlyCommitCount', minMonthlyCommitCount)
   const diffCommit = maxMonthlyCommitCount - minMonthlyCommitCount
 
-  logger.debug(
-    `maxMonthlyCommitCount: ${maxMonthlyCommitCount}, minMonthlyCommitCount: ${minMonthlyCommitCount}, diffCommit: ${diffCommit}`,
-  )
 
   /* eslint-disable no-implicit-coercion */
   /* eslint-disable no-else-return */
 
   // assign score based oon difference between max and min monthly commits
-  if (diffCommit < annualCommitCount * 0.1) {
-    return 1
-  } else if (diffCommit < annualCommitCount * 0.2) {
-    return 0.9
-  } else if (diffCommit < annualCommitCount * 0.3) {
-    return 0.8
-  } else if (diffCommit < annualCommitCount * 0.4) {
-    return 0.7
-  } else if (diffCommit < annualCommitCount * 0.5) {
-    return 0.6
-  } else if (diffCommit < annualCommitCount * 0.6) {
-    return 0.5
-  } else if (diffCommit < annualCommitCount * 0.7) {
-    return 0.4
-  } else if (diffCommit < annualCommitCount * 0.8) {
-    return 0.3
-  } else if (diffCommit < annualCommitCount * 0.9) {
-    return 0.2
-  } else if (diffCommit < annualCommitCount * 1) {
-    return 0.1
+  const ratio = diffCommit / annualCommitCount;
+
+  if (ratio < 0.1) {
+    return 1;
+  } else if (ratio < 1) {
+    return Math.round((1 - ratio) * 10) / 10;
   } else {
-    return 0
+    return 0;
   }
   /* eslint-enable no-else-return */
   /* eslint-enable no-implicit-coercion */
@@ -229,7 +231,8 @@ export async function calculateResponsiveness(url: string) {
 
 // License Compliance Calculations
 export async function calculateLicenseCompliance(url: string) {
-  logger.info('Calculating License Compliance')
+  
+  console.log("Calculating License.")
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
   if (link) {
@@ -241,12 +244,131 @@ export async function calculateLicenseCompliance(url: string) {
 
   // get data using ./services/gh-service.ts
   if (link) {
-    licenseCompliantScore = await getLiscenseComplianceData(link)
-
-    logger.debug(`licenseCompliantScore: ${licenseCompliantScore}`)
+    let readme = await utils.CloneReadme(url);
+    let licenses = utils.FindMatch(readme);
+    if (licenses.length > 0)
+    {
+        console.log('true')
+        return 1;
+    }
+    else
+    {
+        console.log('false')
+        return 0;
+    }
+    //
   } else {
     return 0
   }
 
   return licenseCompliantScore
+}
+
+export async function calculateDependency(url: string) {
+  
+  console.log('Calculating Dependency')
+  // checks to see if link is a npm link and if so, converts it to a github link
+  let link = await utils.evaluateLink(url)
+  console.log('link', link);
+  if (link) {
+    link = link?.split('github.com').pop() ?? null
+    link = 'https://github.com' + link // eslint-disable-line prefer-template
+    link = link.replace(/\.git$/, '');
+  }
+  console.log('link after', link);
+  let data = null
+
+  // get data using ./services/gh-service.ts
+  if (link) {
+    data = await getDependencyData(link)
+  } else {
+    return 0
+  }
+
+  let dev = Object.entries(data);
+  const numDep = dev.length
+  if (numDep > 10) {
+    const shuffled = dev.sort(() => 0.5 - Math.random());
+    dev = shuffled.slice(0, 10);
+  }
+
+  let numPin = 0;
+  for (const [key, value] of dev) {
+      let version: string = value as string
+      let pinned = utils.isPinned(version)
+      console.log(`Dependency: ${key}, Version: ${version}`)
+      console.log(utils.isPinned(version));
+      if (pinned) { // Check if the property is a direct property of the object
+          numPin +=1
+      }
+  }
+  console.log('numPin', numPin);
+  console.log('length', dev.length);
+  
+  // calculate difference between the max and min monthly commits
+  if (numPin === 0) {
+    return 1;
+  }else{
+    return (1 - (numPin / numDep));
+  }
+
+  /* eslint-disable no-implicit-coercion */
+  /* eslint-disable no-else-return */
+
+}
+
+
+export async function calculateReviewPercentage(url: string): Promise<number> {
+  
+  console.log("Calculating Reivew Percentage")
+  // checks to see if link is a npm link and if so, converts it to a github link
+  let link = await utils.evaluateLink(url)
+  let reviewPercentage = 0
+  if (link) {
+    link = link?.split('github.com').pop() ?? null
+    link = 'https://github.com' + link // eslint-disable-line prefer-template
+    link = link.replace(/\.git$/, '');
+  }
+  const repoOwner = link ? link.split('/')[3] : '';
+  const repoName = link ? link.split('/')[4] : '';
+
+  try {
+      console.log(`Fetching all pull requests for ${repoOwner}/${repoName}`);
+      const pullRequests = await fetchAllPullRequests(repoOwner, repoName);
+      let reviewedPRCount = 0;
+      
+      //cut off at 50 pull requests
+      if (pullRequests.length > 50) {
+        pullRequests.length = 50
+      }
+      console.log(pullRequests[0])
+      const results = await checkIfPullRequestsReviewed(repoOwner, repoName, pullRequests)
+      reviewedPRCount = results.filter(result => {
+        return 'reviewed' in result && result.reviewed === true;
+      }).length;
+
+      if (reviewedPRCount == 0) {
+        return 0;
+      }
+
+      const totalPullRequests = pullRequests.length;
+      
+    
+      reviewPercentage = (reviewedPRCount / totalPullRequests)
+
+      //scale up 
+      if (reviewPercentage > 1) {
+        reviewPercentage = 1
+      }
+      
+
+      console.log(`Reviewed Pull Requests: ${reviewedPRCount}`);
+      console.log(`Total Pull Requests: ${totalPullRequests}`);
+      console.log(`Review Percentage: ${reviewPercentage}`);
+      
+      return utils.round(reviewPercentage, 3)
+  } catch (error) {
+      console.error(`Error calculating review percentage:`, error);
+      return -1;
+  }
 }
