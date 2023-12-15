@@ -17,7 +17,7 @@ import { execSync } from "child_process";
 
 // Bus Factor Calculations
 export async function calculateBusFactor(url: string) {
-  logger.info('Calculating Bus Factor')
+  
 
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
@@ -44,10 +44,6 @@ export async function calculateBusFactor(url: string) {
     totalPullRequests,
   } = data
 
-  logger.debug(
-    `criticalContrubitorCommits: ${criticalContrubitorCommits}, totalCommits: ${totalCommits}, criticalContributorPullRequests: ${criticalContributorPullRequests}, totalPullRequests: ${totalPullRequests}`,
-  )
-
   // variable weights
   const commitWeight = 0.4
   const prWeight = 0.6
@@ -70,7 +66,7 @@ export async function calculateBusFactor(url: string) {
 
 // Correctness Calculations
 export async function calculateCorrectness(url: string) {
-  logger.info('Calculating Correctness')
+  
 
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
@@ -91,7 +87,7 @@ export async function calculateCorrectness(url: string) {
   // get data from returned object
   const {closedIssues, openIssues} = data
 
-  logger.debug(`closedIssues: ${closedIssues}, openIssues: ${openIssues}`)
+  
 
   const totalIssues = closedIssues + openIssues
 
@@ -108,77 +104,8 @@ export async function calculateCorrectness(url: string) {
   return correctnessScore
 }
 
-// // Ramp-up Time Calculations
-// export async function calculateRampUpTime(url: string): Promise<number> {
-//   logger.info('Calculating Ramp Up Time');
-//   let link: string | null = await utils.evaluateLink(url);
-//   if (link) {
-//       link = link?.split('github.com').pop() ?? null;
-//       link = 'https://github.com' + link;
-//   } else {
-//       console.error('Invalid URL or unable to process the link.');
-//       return 0;
-//   }
-
-//   console.log(`Processed link: ${link}`);
-
-//   let localPath: string = 'dist/middleware/cloned-repos';
-//   const parts: string[] = url.split('/');
-//   const repoName: string = parts[parts.length - 1] || parts[parts.length - 2];
-
-//   if (repoName) {
-//       localPath = path.join(localPath, repoName);
-//   }
-
-//   try {
-      
-//       if (!fs.existsSync(localPath)) {
-//           console.log(`Creating directory: ${localPath}`);
-//           fs.mkdirSync(localPath, { recursive: true });
-//           console.log(`Attempting to clone repository into: ${localPath}`);
-//           execSync(`git clone ${link} ${localPath}`, { stdio: 'inherit' });
-//         } else {
-//           console.log(`Directory already exists: ${localPath}`);
-//           // Check if the directory is empty
-//           const files: string[] = fs.readdirSync(localPath);
-//           if (files.length === 0) {
-//               console.log(`Directory is empty. Cloning repository into: ${localPath}`);
-//               execSync(`git clone ${link} ${localPath}`, { stdio: 'inherit' });
-//           }
-//       }
-
-      
-
-//       console.log(`Starting line count in: ${localPath}`);
-//       let linesOfCode: number = utils.countLinesOfCode(localPath);
-
-//       console.log(`Total lines of code in the repository: ${linesOfCode}`);
-//       let rampUpScore = 1
-//       if (linesOfCode <= 500) {
-//         rampUpScore = 1
-//       } else if (linesOfCode <= 1000) {
-//         rampUpScore = 0.9
-//       } else if (linesOfCode <= 5000) {
-//         rampUpScore = 0.8
-//       } else if (linesOfCode <= 10_000) {
-//         rampUpScore = 0.7
-//       } else if (linesOfCode <= 50_000) {
-//         rampUpScore = 0.6
-//       } else if (linesOfCode <= 100_000) {
-//         rampUpScore = 0.5
-//       } else if (linesOfCode <= 500_000) {
-//         rampUpScore = 0.4
-//       } else if (linesOfCode <= 1_000_000) {
-//         rampUpScore = 0.1
-//       }
-//       return rampUpScore;
-//   } catch (error: any) {
-//       console.error(`An error occurred: ${error.message}`);
-//       return 0;
-//   }
-// }
 export async function calculateRampUpTime(url: string): Promise<number> {
-  logger.info('Calculating Ramp Up Time');
+  
   let link: string | null = await utils.evaluateLink(url);
   if (link) {
     link = link?.split('github.com').pop() ?? null;
@@ -258,7 +185,7 @@ export async function calculateRampUpTime(url: string): Promise<number> {
 // Responsiveness Calculations
 
 export async function calculateResponsiveness(url: string) {
-  logger.info('Calculating Responsiveness')
+  
 
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
@@ -286,9 +213,6 @@ export async function calculateResponsiveness(url: string) {
   console.log('minMonthlyCommitCount', minMonthlyCommitCount)
   const diffCommit = maxMonthlyCommitCount - minMonthlyCommitCount
 
-  logger.debug(
-    `maxMonthlyCommitCount: ${maxMonthlyCommitCount}, minMonthlyCommitCount: ${minMonthlyCommitCount}, diffCommit: ${diffCommit}`,
-  )
 
   /* eslint-disable no-implicit-coercion */
   /* eslint-disable no-else-return */
@@ -323,7 +247,7 @@ export async function calculateResponsiveness(url: string) {
 
 // License Compliance Calculations
 export async function calculateLicenseCompliance(url: string) {
-  logger.info('Calculating License Compliance')
+  
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
   if (link) {
@@ -347,7 +271,7 @@ export async function calculateLicenseCompliance(url: string) {
         console.log('false')
         return 0;
     }
-    //logger.debug(`licenseCompliantScore: ${licenseCompliantScore}`)
+    //
   } else {
     return 0
   }
@@ -356,7 +280,7 @@ export async function calculateLicenseCompliance(url: string) {
 }
 
 export async function calculateDependency(url: string) {
-  logger.info('Calculating Dependency')
+  
   console.log('Calculating Dependency')
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
@@ -376,8 +300,13 @@ export async function calculateDependency(url: string) {
     return 0
   }
 
-  const dev = Object.entries(data);
+  let dev = Object.entries(data);
   const numDep = dev.length
+  if (numDep > 10) {
+    const shuffled = dev.sort(() => 0.5 - Math.random());
+    dev = shuffled.slice(0, 10);
+  }
+
   let numPin = 0;
   for (const [key, value] of dev) {
       let version: string = value as string
@@ -405,7 +334,7 @@ export async function calculateDependency(url: string) {
 
 
 export async function calculateReviewPercentage(url: string): Promise<number> {
-  logger.info('Calculating License Compliance')
+  
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
   let reviewPercentage = 0

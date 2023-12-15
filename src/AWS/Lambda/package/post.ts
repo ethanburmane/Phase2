@@ -451,7 +451,6 @@ function isSuccessfulDBResponse(response: Record<string, any>)
 }
 
 async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
-  // Function to fetch the primary branch name
   async function getPrimaryBranchName(repoURL: string): Promise<string> {
     const apiURL = repoURL.replace('github.com', 'api.github.com/repos') + '/branches';
     try {
@@ -466,12 +465,10 @@ async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
   }
 
   try {
-    // Fetch the primary branch name
     const primaryBranchName = await getPrimaryBranchName(repoURL);
     console.log(`Attempting to fetch branch ${primaryBranchName}.`)
     const zipURL = `${repoURL}/archive/${primaryBranchName}.zip`;
 
-    // Fetch the zip file of the primary branch
     const response = await axios.get(zipURL, { responseType: 'arraybuffer' });
     return Buffer.from(response.data, 'binary');
   } catch (error) {
