@@ -8,11 +8,10 @@ import {
   calculateDependency,
   calculateReviewPercentage,
 } from './metric-calculations'
-import logger from '../logger'
 
 // NetScore sub-category Calculations
 export async function calculateNetScore(url: string): Promise<Object> {
-  logger.info('Calculating Net Score')
+  console.log("Calculating Net Score.")
   //set default values for metrics to -1
   let licenseCompliance = -1
   let busFactor = -1
@@ -33,15 +32,14 @@ export async function calculateNetScore(url: string): Promise<Object> {
   const results = await Promise.all([
     calculateBusFactor(url),
     calculateCorrectness(url),
-    // calculateRampUpTime(url), // Commented out if not needed
-    Promise.resolve(0.5), // Directly resolving the static value for rampUpTime
+    calculateRampUpTime(url),
     calculateResponsiveness(url),
     calculateLicenseCompliance(url),
     calculateDependency(url),
     calculateReviewPercentage(url)
   ]);
   [busFactor, correctness, rampUpTime, responsiveness, licenseCompliance, Dependencies, reviewPercentage] = results;
-  
+
   console.log(`BusFactor: ${busFactor}`)
   console.log(`Correctness: ${correctness}`)
   console.log(`RampUpTime: ${rampUpTime}`)
@@ -52,9 +50,6 @@ export async function calculateNetScore(url: string): Promise<Object> {
 
 
   /* eslint-disable no-template-curly-in-string */
-  logger.debug(
-    'busFactor: ${busFactor}, correctness: ${correctness}, rampUpTime: ${rampUpTime}, responsiveness: ${responsiveness}, licenseCompliance: ${licenseCompliance}',
-  )
   /* eslint-enable no-template-curly-in-string */
   
 

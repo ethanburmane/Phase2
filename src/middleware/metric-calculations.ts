@@ -7,10 +7,7 @@ import {
   getLiscenseComplianceData,
   getDependencyData,
 } from '../services/gh-service'
-import {fetchAllPullRequests,
-checkIfPullRequestReviewed} from '../services/gh-api'
-
-import logger from '../logger'
+import {fetchAllPullRequests, checkIfPullRequestReviewed} from '../services/gh-api'
 import * as fs from 'fs'
 import * as path from 'path'
 import { execSync } from "child_process";
@@ -18,7 +15,7 @@ import { execSync } from "child_process";
 // Bus Factor Calculations
 export async function calculateBusFactor(url: string) {
   
-
+  console.log("Calculating Bus Factor.")
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
   if (link) {
@@ -67,7 +64,7 @@ export async function calculateBusFactor(url: string) {
 // Correctness Calculations
 export async function calculateCorrectness(url: string) {
   
-
+  console.log("Calculating Correctness.")
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
   if (link) {
@@ -106,6 +103,7 @@ export async function calculateCorrectness(url: string) {
 
 export async function calculateRampUpTime(url: string): Promise<number> {
   
+  console.log("Calculating RampUp.")
   let link: string | null = await utils.evaluateLink(url);
   if (link) {
     link = link?.split('github.com').pop() ?? null;
@@ -186,7 +184,7 @@ export async function calculateRampUpTime(url: string): Promise<number> {
 
 export async function calculateResponsiveness(url: string) {
   
-
+  console.log("Calculating Responsiveness")
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
   if (link) {
@@ -234,6 +232,7 @@ export async function calculateResponsiveness(url: string) {
 // License Compliance Calculations
 export async function calculateLicenseCompliance(url: string) {
   
+  console.log("Calculating License.")
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
   if (link) {
@@ -321,6 +320,7 @@ export async function calculateDependency(url: string) {
 
 export async function calculateReviewPercentage(url: string): Promise<number> {
   
+  console.log("Calculating Reivew Percentage")
   // checks to see if link is a npm link and if so, converts it to a github link
   let link = await utils.evaluateLink(url)
   let reviewPercentage = 0
