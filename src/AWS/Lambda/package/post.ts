@@ -38,7 +38,6 @@ export const handler = async (event: any, context: any) => {
     // TODO: Log response
     return response
   }
-  
   let body = extractBody(event)
   if (!body)
   {

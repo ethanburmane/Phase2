@@ -39,6 +39,7 @@ export async function calculateNetScore(url: string): Promise<Object> {
     calculateDependency(url),
     calculateReviewPercentage(url)
   ]);
+  
   [busFactor, correctness, rampUpTime, responsiveness, licenseCompliance, Dependencies, reviewPercentage] = results;
 
   console.log(`BusFactor: ${busFactor}`)
