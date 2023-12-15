@@ -32,7 +32,8 @@ export async function calculateNetScore(url: string): Promise<Object> {
   const results = await Promise.all([
     calculateBusFactor(url),
     calculateCorrectness(url),
-    calculateRampUpTime(url),
+    Promise.resolve(0.5),
+    //calculateRampUpTime(url),
     calculateResponsiveness(url),
     calculateLicenseCompliance(url),
     calculateDependency(url),
