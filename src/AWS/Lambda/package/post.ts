@@ -273,7 +273,11 @@ export const handler = async (event: any, context: any) => {
       }
     }
 
-    const base64Content = base64FromZip(zipContent)
+    let base64Content = base64FromZip(zipContent)
+    if (base64Content.length > 6 * 1024 * 1024)
+    {
+      base64Content = "Content Payload Too Large To Return."
+    }
     // TODO check base64
 
     response = {
