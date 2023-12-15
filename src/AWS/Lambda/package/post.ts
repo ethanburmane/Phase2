@@ -271,8 +271,7 @@ export const handler = async (event: any, context: any) => {
           error: "Unable to upload package",
         },
       }
-    }
-
+    } 
     let base64Content = base64FromZip(zipContent)
     if (base64Content.length > 6 * 1024 * 1024)
     {
