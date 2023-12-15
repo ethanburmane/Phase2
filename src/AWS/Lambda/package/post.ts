@@ -42,7 +42,6 @@ export const handler = async (event: any, context: any) => {
   {
     body = event
   }
-
   console.log("Extracing URL from body")
   let urlResult = await extractUrlFromBody(body)  
   if (urlResult[0] == false)
