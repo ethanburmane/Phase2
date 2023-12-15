@@ -312,7 +312,7 @@ export async function getDependencyList(repoUrl: string): Promise<Object> {
 //       throw error;
 //   }
 // }
-export async function checkIfPullRequestsReviewed(repoOwner: string, repoName: string, pullNumbers: number[]) {
+export async function checkIfPullRequestsReviewed(repoOwner: string, repoName: string, pullNumbers: any[]) {
   const instance = axios.create({
     baseURL: 'https://api.github.com/repos',
     timeout: 10_000,
@@ -323,7 +323,7 @@ export async function checkIfPullRequestsReviewed(repoOwner: string, repoName: s
   });
 
   const reviewPromises = pullNumbers.map(pullNumber => 
-    instance.get(`${repoOwner}/${repoName}/pulls/${pullNumber}/reviews`)
+    instance.get(`${repoOwner}/${repoName}/pulls/${pullNumber.number}/reviews`)
       .then(response => ({ pullNumber, reviewed: response.data.length > 0 }))
       .catch(error => {
         console.error(`Error checking reviews for pull request #${pullNumber}:`, error);
@@ -335,7 +335,7 @@ export async function checkIfPullRequestsReviewed(repoOwner: string, repoName: s
   return results;
 }
 
-export async function fetchAllPullRequests(repoOwner: string, repoName: string): Promise<number[]> {
+export async function fetchAllPullRequests(repoOwner: string, repoName: string): Promise<any[]> {
   const instance = axios.create({
     baseURL: 'https://api.github.com/repos/',
     timeout: 10000,
@@ -347,7 +347,7 @@ export async function fetchAllPullRequests(repoOwner: string, repoName: string):
 
   let page = 1;
   let pullRequests = [];
-  let mergedPullRequests: number[] = [];
+  let mergedPullRequests: any[] = [];
   let hasNextPage = true;
 
 

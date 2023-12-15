@@ -341,7 +341,7 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
       if (pullRequests.length > 50) {
         pullRequests.length = 50
       }
-      console.log(pullRequests)
+      console.log(pullRequests[0])
       const results = await checkIfPullRequestsReviewed(repoOwner, repoName, pullRequests)
       reviewedPRCount = results.filter(result => {
         return 'reviewed' in result && result.reviewed === true;

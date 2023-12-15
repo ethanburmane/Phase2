@@ -278,7 +278,6 @@ export const handler = async (event: any, context: any) => {
       base64Content = "Content Payload Too Large To Return."
     }
     // TODO check base64
-
     response = {
       statusCode: 201,
       headers: {
