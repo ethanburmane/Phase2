@@ -292,8 +292,27 @@ export async function getDependencyList(repoUrl: string): Promise<Object> {
   }
 }
 
-export async function checkIfPullRequestReviewed(repoOwner: string, repoName: string, pullNumber: number) {
-  logger.info('GH_API: running checkIfPullRequestReviewed')
+// export async function checkIfPullRequestReviewed(repoOwner: string, repoName: string, pullNumber: number) {
+//   logger.info('GH_API: running checkIfPullRequestReviewed')
+//   const instance = axios.create({
+//     baseURL: 'https://api.github.com/repos',
+//     timeout: 10_000,
+//     headers: {
+//       Accept: 'application/vnd.github+json',
+//       Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+//     },
+//   })
+  
+  
+//   try {
+//       const reviewsResponse = await instance.get(`${repoOwner}/${repoName}/pulls/${pullNumber}/reviews`);
+//       return reviewsResponse.data.length > 0;
+//   } catch (error) {
+//       console.error(`Error checking reviews for pull request #${pullNumber}:`);
+//       throw error;
+//   }
+// }
+export async function checkIfPullRequestsReviewed(repoOwner: string, repoName: string, pullNumbers: number[]) {
   const instance = axios.create({
     baseURL: 'https://api.github.com/repos',
     timeout: 10_000,
@@ -301,19 +320,22 @@ export async function checkIfPullRequestReviewed(repoOwner: string, repoName: st
       Accept: 'application/vnd.github+json',
       Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
     },
-  })
-  
-  
-  try {
-      const reviewsResponse = await instance.get(`${repoOwner}/${repoName}/pulls/${pullNumber}/reviews`);
-      return reviewsResponse.data.length > 0;
-  } catch (error) {
-      console.error(`Error checking reviews for pull request #${pullNumber}:`);
-      throw error;
-  }
+  });
+
+  const reviewPromises = pullNumbers.map(pullNumber => 
+    instance.get(`${repoOwner}/${repoName}/pulls/${pullNumber}/reviews`)
+      .then(response => ({ pullNumber, reviewed: response.data.length > 0 }))
+      .catch(error => {
+        console.error(`Error checking reviews for pull request #${pullNumber}:`, error);
+        return { pullNumber, error };
+      })
+  );
+
+  const results = await Promise.all(reviewPromises);
+  return results;
 }
 
-export async function fetchAllPullRequests(repoOwner: string, repoName: string): Promise<PR[]> {
+export async function fetchAllPullRequests(repoOwner: string, repoName: string): Promise<number[]> {
   const instance = axios.create({
     baseURL: 'https://api.github.com/repos/',
     timeout: 10000,
@@ -325,7 +347,7 @@ export async function fetchAllPullRequests(repoOwner: string, repoName: string):
 
   let page = 1;
   let pullRequests = [];
-  let mergedPullRequests: PR[] = [];
+  let mergedPullRequests: number[] = [];
   let hasNextPage = true;
 
 

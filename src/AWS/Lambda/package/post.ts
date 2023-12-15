@@ -9,7 +9,6 @@
  const { DynamoDBClient, PutItemCommand, GetItemCommand } = require('@aws-sdk/client-dynamodb');
  const axios = require('axios')
  const {calculateNetScore} = require("../../../middleware/net-score")
-
 const JSZip = require('jszip')
 
 const MIN_PKG_SCORE = 0.35

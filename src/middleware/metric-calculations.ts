@@ -7,7 +7,7 @@ import {
   getLiscenseComplianceData,
   getDependencyData,
 } from '../services/gh-service'
-import {fetchAllPullRequests, checkIfPullRequestReviewed} from '../services/gh-api'
+import {fetchAllPullRequests, checkIfPullRequestsReviewed} from '../services/gh-api'
 import * as fs from 'fs'
 import * as path from 'path'
 import { execSync } from "child_process";
@@ -342,13 +342,7 @@ export async function calculateReviewPercentage(url: string): Promise<number> {
         pullRequests.length = 50
       }
 
-      for (const pr of pullRequests) {
-
-          const isReviewed = await checkIfPullRequestReviewed(repoOwner, repoName, pr.number);
-          if (isReviewed) {
-              reviewedPRCount += 1;
-          }
-      }
+      const results = checkIfPullRequestsReviewed(repoOwner, repoName, pullRequests)
 
       if (reviewedPRCount == 0) {
         return 0;
