@@ -451,33 +451,35 @@ function isSuccessfulDBResponse(response: Record<string, any>)
 }
 
 async function fetchGitHubRepoAsZip(repoURL: string): Promise<Buffer> {
-  const zipURLMain = `${repoURL}/archive/main.zip`;
-  const zipURLMaster = `${repoURL}/archive/master.zip`;
-
-  try {
-    // Try fetching main branch first
-    console.log("Attempting to fetch branch main.")
-    const responseMain = await axios.get(zipURLMain, { responseType: 'arraybuffer' });
-    return Buffer.from(responseMain.data, 'binary');
-  } catch (error: any) {
-    console.log("Error when fetching main ", error)
-    if (error.response && error.response.status === 404) {
-      try {
-        // If main branch doesn't exist, fetch master branch
-        console.log("Attempting to fetch master branch.")
-        const responseMaster = await axios.get(zipURLMaster, { responseType: 'arraybuffer' });
-        return Buffer.from(responseMaster.data, 'binary');
-      } catch (error) {
-        console.log("Error when fetching master branch ", error)
-        // Both main and master branches don't exist
-        throw new Error('Both main and master branches not found.');
-      }
-    } else {
-      // Handle other errors
-      throw error;
+  // Function to fetch the primary branch name
+  async function getPrimaryBranchName(repoURL: string): Promise<string> {
+    const apiURL = repoURL.replace('github.com', 'api.github.com/repos') + '/branches';
+    try {
+      const response = await axios.get(apiURL);
+      const branches = response.data;
+      const primaryBranch = branches.find((branch: any) => branch.protected) || branches[0];
+      return primaryBranch.name;
+    } catch (error) {
+      console.log("Error fetching primary branch name.", error)
+      throw new Error('Error fetching primary branch name');
     }
   }
+
+  try {
+    // Fetch the primary branch name
+    const primaryBranchName = await getPrimaryBranchName(repoURL);
+    console.log(`Attempting to fetch branch ${primaryBranchName}.`)
+    const zipURL = `${repoURL}/archive/${primaryBranchName}.zip`;
+
+    // Fetch the zip file of the primary branch
+    const response = await axios.get(zipURL, { responseType: 'arraybuffer' });
+    return Buffer.from(response.data, 'binary');
+  } catch (error) {
+    console.log("Error when fetching primary branch ", error)
+    throw error;
+  }
 }
+
 
 export function createPackageID(packageName: string, packageVersion: string)
 {
