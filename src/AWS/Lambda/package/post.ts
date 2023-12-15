@@ -285,8 +285,7 @@ export const handler = async (event: any, context: any) => {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "OPTIONS,POST"
       },
-      body: {
-        "metadata": {
+      "metadata": {
           "Name": packageName,
           "Version": packageVersion,
           "ID": itemId
@@ -294,8 +293,7 @@ export const handler = async (event: any, context: any) => {
         "data": {
           "Content": base64Content
         }
-      },
-    }
+      }
     console.log("Sent 201 Response With id ", itemId)
 
   } else {
