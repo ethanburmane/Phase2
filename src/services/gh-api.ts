@@ -330,21 +330,15 @@ export async function fetchAllPullRequests(repoOwner: string, repoName: string):
 
 
   console.log(`Starting to fetch pull requests for ${repoOwner}/${repoName}`);
-
-  while (hasNextPage && page <= 2) {
-    try {
-      const response = await instance.get(`${repoOwner}/${repoName}/pulls`, {
-        params: { state: 'all', per_page: 100, page },
-      });
-      console.log(`Fetched page ${page} with ${response.data.length} pull requests.`);
-      const mergedPRs = response.data.filter((pr: { merged_at: any }) => pr.merged_at);
-      mergedPullRequests = mergedPullRequests.concat(mergedPRs);
-      hasNextPage = response.data.length === 100;
-      page += 1;
-    } catch (error) {
-      console.error(`Error fetching pull requests for page ${page}:`);
-      throw error;
-    }
+  try {
+    const response = await instance.get(`${repoOwner}/${repoName}/pulls`, {
+      params: { state: 'all', per_page: 100, page },
+    });
+    const mergedPRs = response.data.filter((pr: { merged_at: any }) => pr.merged_at);
+    mergedPullRequests = mergedPullRequests.concat(mergedPRs);
+  } catch (error) {
+    console.error(`Error fetching pull requests for page ${page}:`);
+    throw error;
   }
 
   console.log(`Finished fetching pull requests. Total count: ${mergedPullRequests.length}`);

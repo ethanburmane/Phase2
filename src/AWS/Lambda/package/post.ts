@@ -15,7 +15,6 @@ const JSZip = require('jszip')
 const MIN_PKG_SCORE = 0.35
 const AWS_REGION = "us-east-2"
 const PACKAGE_S3 = "main-storage-bucket"
-
 export const handler = async (event: any, context: any) => {
   let response
   // Validate request
